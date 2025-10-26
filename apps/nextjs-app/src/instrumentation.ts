@@ -1,14 +1,9 @@
-import * as Sentry from '@sentry/nextjs';
-
 export async function register() {
   if (process.env.NEXT_RUNTIME === 'nodejs') {
-    await import('./otel');
-    await import('../sentry.server.config');
-  }
-
-  if (process.env.NEXT_RUNTIME === 'edge') {
-    await import('../sentry.edge.config');
+    // Only initialize OTel if NOT using custom server
+    // Custom server handles OTel initialization in server.ts
+    if (process.env.CUSTOM_SERVER !== 'true') {
+      await import('./otel');
+    }
   }
 }
-
-export const onRequestError = Sentry.captureRequestError;
