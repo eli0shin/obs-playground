@@ -1,4 +1,4 @@
-import { diag, DiagConsoleLogger, DiagLogLevel, metrics, trace, context } from "@opentelemetry/api";
+import { metrics, trace, context } from "@opentelemetry/api";
 import { logs, SeverityNumber } from "@opentelemetry/api-logs";
 import { NodeSDK } from "@opentelemetry/sdk-node";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
@@ -9,9 +9,6 @@ import { BatchLogRecordProcessor, LogRecordProcessor } from "@opentelemetry/sdk-
 import { MeterProvider, PeriodicExportingMetricReader, MetricReader } from "@opentelemetry/sdk-metrics";
 import { getNodeAutoInstrumentations } from "@opentelemetry/auto-instrumentations-node";
 import { CompositePropagator, W3CTraceContextPropagator, W3CBaggagePropagator } from "@opentelemetry/core";
-
-// Enable error logging
-diag.setLogger(new DiagConsoleLogger(), DiagLogLevel.ERROR);
 
 // Batch processor configuration to prevent payload size errors
 const batchConfig = {

@@ -1,4 +1,4 @@
-import { diag, DiagConsoleLogger, DiagLogLevel, metrics, trace, context, SpanStatusCode } from "@opentelemetry/api";
+import { metrics, trace, context, SpanStatusCode } from "@opentelemetry/api";
 import { logs, SeverityNumber } from "@opentelemetry/api-logs";
 import { NodeSDK } from "@opentelemetry/sdk-node";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
@@ -17,9 +17,6 @@ import {
   W3CBaggagePropagator,
 } from "@opentelemetry/core";
 import type { Span } from "@opentelemetry/api";
-
-// Enable error logging
-diag.setLogger(new DiagConsoleLogger(), DiagLogLevel.ERROR);
 
 // Batch processor configuration to prevent payload size errors
 const batchConfig = {

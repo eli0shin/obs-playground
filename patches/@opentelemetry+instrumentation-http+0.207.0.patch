@@ -1,0 +1,32 @@
+diff --git a/node_modules/@opentelemetry/instrumentation-http/build/src/http.js b/node_modules/@opentelemetry/instrumentation-http/build/src/http.js
+index 7f867d8..e628586 100644
+--- a/node_modules/@opentelemetry/instrumentation-http/build/src/http.js
++++ b/node_modules/@opentelemetry/instrumentation-http/build/src/http.js
+@@ -284,7 +284,10 @@ class HttpInstrumentation extends instrumentation_1.InstrumentationBase {
+                         code: (0, utils_1.parseResponseStatus)(api_1.SpanKind.CLIENT, response.statusCode),
+                     };
+                 }
+-                span.setStatus(status);
++                // Only set status if it's ERROR, to avoid overwriting manually-set status
++                if (status.code !== api_1.SpanStatusCode.UNSET) {
++                    span.setStatus(status);
++                }
+                 if (this.getConfig().applyCustomAttributesOnSpan) {
+                     (0, instrumentation_1.safeExecuteInTheMiddle)(() => this.getConfig().applyCustomAttributesOnSpan(span, request, response), () => { }, true);
+                 }
+@@ -500,9 +503,12 @@ class HttpInstrumentation extends instrumentation_1.InstrumentationBase {
+         oldMetricAttributes = Object.assign(oldMetricAttributes, (0, utils_1.getIncomingRequestMetricAttributesOnResponse)(attributes));
+         stableMetricAttributes = Object.assign(stableMetricAttributes, (0, utils_1.getIncomingStableRequestMetricAttributesOnResponse)(attributes));
+         this._headerCapture.server.captureResponseHeaders(span, header => response.getHeader(header));
+-        span.setAttributes(attributes).setStatus({
+-            code: (0, utils_1.parseResponseStatus)(api_1.SpanKind.SERVER, response.statusCode),
+-        });
++        span.setAttributes(attributes);
++        // Only set status if it's ERROR, to avoid overwriting manually-set status
++        const statusCode = (0, utils_1.parseResponseStatus)(api_1.SpanKind.SERVER, response.statusCode);
++        if (statusCode !== api_1.SpanStatusCode.UNSET) {
++            span.setStatus({ code: statusCode });
++        }
+         const route = attributes[semantic_conventions_1.ATTR_HTTP_ROUTE];
+         if (route) {
+             span.updateName(`${request.method || 'GET'} ${route}`);
