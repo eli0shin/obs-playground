@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import MySentry from "./my-sentry";
 import MyStatsig from "./my-statsig";
 
 const geistSans = Geist({
@@ -28,9 +29,11 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <MyStatsig>
-          {children}
-        </MyStatsig>
+        <MySentry>
+          <MyStatsig>
+            {children}
+          </MyStatsig>
+        </MySentry>
       </body>
     </html>
   );

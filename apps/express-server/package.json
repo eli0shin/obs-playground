@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "tsx watch --import ./src/otel.ts --env-file=.env src/index.ts",
+    "dev": "tsx watch --env-file=.env --import ./src/otel.ts src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
     "type-check": "tsc --noEmit"
