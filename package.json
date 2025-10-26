@@ -7,6 +7,19 @@
   "workspaces": [
     "apps/*"
   ],
+  "overrides": {
+    "import-in-the-middle": "2.0.0",
+    "@opentelemetry/instrumentation": "0.207.0",
+    "require-in-the-middle": "8.0.1",
+    "@sentry/node": {
+      "@opentelemetry/instrumentation": "0.207.0",
+      "require-in-the-middle": "8.0.1"
+    },
+    "@prisma/instrumentation": {
+      "@opentelemetry/instrumentation": "0.207.0",
+      "require-in-the-middle": "8.0.1"
+    }
+  },
   "scripts": {
     "dev": "turbo run dev",
     "dev:all": "concurrently --names \"NEXT,EXPRESS,GRAPHQL,PROXY\" --prefix-colors \"cyan,magenta,yellow,green\" \"cd apps/nextjs-app && PORT=3000 npm run dev\" \"cd apps/express-server && PORT=3001 npm run dev\" \"cd apps/graphql-server && PORT=4000 npm run dev\" \"node dev-proxy.js\"",
