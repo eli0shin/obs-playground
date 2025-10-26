@@ -4,20 +4,23 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "dev:custom": "tsx server.ts",
+    "dev:custom": "tsx --env-file=.env server.ts",
     "build": "next build",
     "start": "next start",
-    "start:custom": "tsx server.ts",
+    "start:custom": "tsx --env-file=.env server.ts",
     "lint": "eslint"
   },
   "dependencies": {
+    "@opentelemetry/auto-instrumentations-node": "^0.66.0",
     "@sentry/nextjs": "^10",
+    "express": "^5.1.0",
     "next": "16.0.0",
     "react": "19.2.0",
     "react-dom": "19.2.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/express": "^5.0.4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

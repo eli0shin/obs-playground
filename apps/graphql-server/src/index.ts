@@ -1,3 +1,4 @@
+import './otel.js';
 import { ApolloServer } from '@apollo/server';
 import { startStandaloneServer } from '@apollo/server/standalone';
 
@@ -39,7 +40,7 @@ const server = new ApolloServer({
   resolvers,
 });
 
-const PORT = Number(process.env.PORT) || 4000;
+const PORT = +(process.env.PORT || "4000");
 
 const { url } = await startStandaloneServer(server, {
   listen: { port: PORT },
