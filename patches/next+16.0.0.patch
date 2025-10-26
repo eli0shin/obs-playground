@@ -1,0 +1,29 @@
+diff --git a/node_modules/next/dist/server/lib/trace/tracer.js b/node_modules/next/dist/server/lib/trace/tracer.js
+index cc9c8c8..356eeee 100644
+--- a/node_modules/next/dist/server/lib/trace/tracer.js
++++ b/node_modules/next/dist/server/lib/trace/tracer.js
+@@ -118,7 +118,6 @@ class NextTracerImpl {
+         return context.with(remoteContext, fn);
+     }
+     trace(...args) {
+-        var _trace_getSpanContext;
+         const [type, fnOrOptions, fnOrEmpty] = args;
+         // coerce options form overload
+         const { fn, options } = typeof fnOrOptions === 'function' ? {
+@@ -136,13 +135,12 @@ class NextTracerImpl {
+         }
+         // Trying to get active scoped span to assign parent. If option specifies parent span manually, will try to use it.
+         let spanContext = this.getSpanContext((options == null ? void 0 : options.parentSpan) ?? this.getActiveScopeSpan());
+-        let isRootSpan = false;
+         if (!spanContext) {
+             spanContext = (context == null ? void 0 : context.active()) ?? ROOT_CONTEXT;
+-            isRootSpan = true;
+-        } else if ((_trace_getSpanContext = trace.getSpanContext(spanContext)) == null ? void 0 : _trace_getSpanContext.isRemote) {
+-            isRootSpan = true;
+         }
++        // Check if there's already a root span in the store for this trace
++        const existingRootSpanId = spanContext.getValue(rootSpanIdKey);
++        const isRootSpan = !existingRootSpanId || !rootSpanAttributesStore.has(existingRootSpanId);
+         const spanId = getSpanId();
+         options.attributes = {
+             'next.span_name': spanName,

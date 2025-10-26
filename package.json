@@ -21,6 +21,7 @@
     }
   },
   "scripts": {
+    "postinstall": "patch-package",
     "dev": "turbo run dev",
     "dev:all": "concurrently --names \"NEXT,EXPRESS,GRAPHQL,PROXY\" --prefix-colors \"cyan,magenta,yellow,green\" \"cd apps/nextjs-app && PORT=3000 npm run dev\" \"cd apps/express-server && PORT=3001 npm run dev\" \"cd apps/graphql-server && PORT=4000 npm run dev\" \"node dev-proxy.js\"",
     "dev:all:custom": "concurrently --names \"CUSTOM,EXPRESS,GRAPHQL,PROXY\" --prefix-colors \"cyan,magenta,yellow,green\" \"cd apps/nextjs-app && PORT=3000 npm run dev:custom\" \"cd apps/express-server && PORT=3001 npm run dev\" \"cd apps/graphql-server && PORT=4000 npm run dev\" \"node dev-proxy.js\"",
@@ -37,6 +38,7 @@
     "concurrently": "^9.2.1",
     "express": "^5.1.0",
     "http-proxy-middleware": "^3.0.5",
+    "patch-package": "^8.0.1",
     "turbo": "^2.5.8"
   }
 }
