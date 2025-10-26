@@ -4,7 +4,7 @@ import fs from "fs";
 import { createProxyMiddleware } from "http-proxy-middleware";
 
 const app = express();
-const PORT = process.env.PROXY_PORT ?? 443;
+const PORT = 443;
 
 // Load SSL certificate
 const httpsOptions = {
@@ -44,16 +44,14 @@ app.use(
 );
 
 https.createServer(httpsOptions, app).listen(PORT, () => {
-  const baseUrl =
-    PORT === 443 ? "https://localhost" : `https://localhost:${PORT}`;
   console.log(`
 ╭──────────────────────────────────────────╮
-│  Proxy server running on port ${PORT}    │
+│  Proxy server running on port 443        │
 │                                          │
 │  Routes:                                 │
-│  • ${baseUrl}          → Next.js         │
-│  • ${baseUrl}/api      → Express         │
-│  • ${baseUrl}/graphql  → GraphQL         │
+│  • https://localhost          → Next.js  │
+│  • https://localhost/api      → Express  │
+│  • https://localhost/graphql  → GraphQL  │
 ╰──────────────────────────────────────────╯
   `);
 });
