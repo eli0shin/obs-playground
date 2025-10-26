@@ -1,4 +1,4 @@
-import { diag, DiagConsoleLogger, DiagLogLevel, metrics, trace, context } from "@opentelemetry/api";
+import { diag, DiagConsoleLogger, DiagLogLevel, metrics, trace, context, SpanStatusCode } from "@opentelemetry/api";
 import { logs, SeverityNumber } from "@opentelemetry/api-logs";
 import { NodeSDK } from "@opentelemetry/sdk-node";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
@@ -16,6 +16,7 @@ import {
   W3CTraceContextPropagator,
   W3CBaggagePropagator,
 } from "@opentelemetry/core";
+import type { Span } from "@opentelemetry/api";
 
 // Enable error logging
 diag.setLogger(new DiagConsoleLogger(), DiagLogLevel.ERROR);
@@ -200,6 +201,17 @@ const sdk = new NodeSDK({
       "@opentelemetry/instrumentation-graphql": {
         ignoreTrivialResolveSpans: true,
         depth: 1,
+        responseHook: (span: Span, data: { errors?: readonly Error[] }) => {
+          if (data.errors && data.errors.length > 0) {
+            span.setStatus({
+              code: SpanStatusCode.ERROR,
+              message: data.errors[0].message,
+            });
+            for (const error of data.errors) {
+              span.recordException(error);
+            }
+          }
+        },
       },
     }),
   ],

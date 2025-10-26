@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { trace, SpanStatusCode } from '@opentelemetry/api';
 
 const EXPRESS_URL = process.env.EXPRESS_URL || 'http://localhost:3001';
 
@@ -37,7 +38,14 @@ async function getBatchNutrition(recipeIds: string[]) {
 
     return data as BatchNutritionResponse;
   } catch (error) {
-    console.error('Error getting batch nutrition:', error);
+    const activeSpan = trace.getActiveSpan();
+    if (activeSpan && error instanceof Error) {
+      activeSpan.recordException(error);
+      activeSpan.setStatus({
+        code: SpanStatusCode.ERROR,
+        message: error.message,
+      });
+    }
     return {
       recipes: [],
       count: 0,

@@ -1,0 +1,8 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./apps/express-server" },
+    { "path": "./apps/graphql-server" },
+    { "path": "./apps/nextjs-app" }
+  ]
+}

@@ -1,8 +1,10 @@
 import './otel.js';
 import { ApolloServer } from '@apollo/server';
+import type { GraphQLRequestListener } from '@apollo/server';
 import { expressMiddleware } from '@as-integrations/express5';
 import express from 'express';
 import cors from 'cors';
+import { trace, SpanStatusCode } from '@opentelemetry/api';
 
 const EXPRESS_API_URL = process.env.EXPRESS_API_URL || 'http://localhost:3001';
 
@@ -242,11 +244,47 @@ const resolvers = {
     },
 
     recipeWithCost: async (_: unknown, { id }: { id: string }) => {
+      const activeSpan = trace.getActiveSpan();
+
+      if (activeSpan) {
+        activeSpan.setAttributes({
+          'graphql.resolver': 'recipeWithCost',
+          'recipe.id': id,
+        });
+      }
+
       const recipe = recipes.find((r) => r.id === id);
-      if (!recipe) return null;
+      if (!recipe) {
+        if (activeSpan) {
+          activeSpan.setAttribute('recipe.found', false);
+        }
+        return null;
+      }
+
+      const category = categories.find((c) => c.id === recipe.categoryId);
+
+      if (activeSpan) {
+        activeSpan.setAttributes({
+          'recipe.found': true,
+          'recipe.title': recipe.title,
+          'recipe.category': category?.name || 'Unknown',
+          'recipe.difficulty': recipe.difficulty,
+          'recipe.prep_time': recipe.prepTime,
+          'recipe.cook_time': recipe.cookTime,
+          'recipe.total_time': recipe.prepTime + recipe.cookTime,
+          'recipe.servings': recipe.servings,
+        });
+      }
 
       const recipeIngs = recipeIngredients.filter((ri) => ri.recipeId === id);
       const ingredientIds = recipeIngs.map((ri) => ri.ingredientId);
+
+      if (activeSpan) {
+        activeSpan.setAttributes({
+          'recipe.ingredient_count': recipeIngs.length,
+          'recipe.ingredient_ids': ingredientIds.join(','),
+        });
+      }
 
       // Call Express API to get pricing
       const response = await fetch(
@@ -270,6 +308,14 @@ const resolvers = {
       });
 
       const totalCost = ingredientCosts.reduce((sum, ic) => sum + ic.totalCost, 0);
+      const costPerServing = totalCost / recipe.servings;
+
+      if (activeSpan) {
+        activeSpan.setAttributes({
+          'recipe.total_cost': totalCost,
+          'recipe.cost_per_serving': costPerServing,
+        });
+      }
 
       return {
         ...recipe,
@@ -279,10 +325,46 @@ const resolvers = {
     },
 
     recipeWithNutrition: async (_: unknown, { id }: { id: string }) => {
+      const activeSpan = trace.getActiveSpan();
+
+      if (activeSpan) {
+        activeSpan.setAttributes({
+          'graphql.resolver': 'recipeWithNutrition',
+          'recipe.id': id,
+        });
+      }
+
       const recipe = recipes.find((r) => r.id === id);
-      if (!recipe) return null;
+      if (!recipe) {
+        if (activeSpan) {
+          activeSpan.setAttribute('recipe.found', false);
+        }
+        return null;
+      }
+
+      const category = categories.find((c) => c.id === recipe.categoryId);
+
+      if (activeSpan) {
+        activeSpan.setAttributes({
+          'recipe.found': true,
+          'recipe.title': recipe.title,
+          'recipe.category': category?.name || 'Unknown',
+          'recipe.difficulty': recipe.difficulty,
+          'recipe.prep_time': recipe.prepTime,
+          'recipe.cook_time': recipe.cookTime,
+          'recipe.total_time': recipe.prepTime + recipe.cookTime,
+          'recipe.servings': recipe.servings,
+        });
+      }
 
       const recipeIngs = recipeIngredients.filter((ri) => ri.recipeId === id);
+
+      if (activeSpan) {
+        activeSpan.setAttributes({
+          'recipe.ingredient_count': recipeIngs.length,
+          'nutrition.parallel_requests': recipeIngs.length,
+        });
+      }
 
       // Call Express API to get nutrition for each ingredient
       const nutritionPromises = recipeIngs.map(async (ri) => {
@@ -313,6 +395,24 @@ const resolvers = {
         { calories: 0, protein: 0, fat: 0, carbs: 0 }
       );
 
+      const caloriesPerServing = totalNutrition.calories / recipe.servings;
+      const proteinPerServing = totalNutrition.protein / recipe.servings;
+      const fatPerServing = totalNutrition.fat / recipe.servings;
+      const carbsPerServing = totalNutrition.carbs / recipe.servings;
+
+      if (activeSpan) {
+        activeSpan.setAttributes({
+          'nutrition.total_calories': totalNutrition.calories,
+          'nutrition.total_protein': totalNutrition.protein,
+          'nutrition.total_fat': totalNutrition.fat,
+          'nutrition.total_carbs': totalNutrition.carbs,
+          'nutrition.calories_per_serving': caloriesPerServing,
+          'nutrition.protein_per_serving': proteinPerServing,
+          'nutrition.fat_per_serving': fatPerServing,
+          'nutrition.carbs_per_serving': carbsPerServing,
+        });
+      }
+
       return {
         ...recipe,
         ...totalNutrition,
@@ -323,23 +423,66 @@ const resolvers = {
       _: unknown,
       { categoryId, difficulty }: { categoryId?: string; difficulty?: string }
     ) => {
+      const activeSpan = trace.getActiveSpan();
+      const filtersApplied = [];
+
       let filtered = recipes;
       if (categoryId) {
         filtered = filtered.filter((r) => r.categoryId === categoryId);
+        filtersApplied.push('category');
       }
       if (difficulty) {
         filtered = filtered.filter((r) => r.difficulty === difficulty);
+        filtersApplied.push('difficulty');
       }
+
+      if (activeSpan) {
+        const category = categoryId ? categories.find((c) => c.id === categoryId) : undefined;
+        activeSpan.setAttributes({
+          'filter.applied_count': filtersApplied.length,
+          'filter.applied': filtersApplied.join(',') || 'none',
+          'filter.category_id': categoryId || 'none',
+          'filter.category_name': category?.name || 'none',
+          'filter.difficulty': difficulty || 'none',
+          'recipes.total_count': recipes.length,
+          'recipes.result_count': filtered.length,
+          'recipes.filter_match_rate': filtered.length / recipes.length,
+        });
+      }
+
       return filtered;
     },
 
     searchRecipes: (_: unknown, { query }: { query: string }) => {
+      const activeSpan = trace.getActiveSpan();
       const lowerQuery = query.toLowerCase();
-      return recipes.filter(
+
+      const results = recipes.filter(
         (r) =>
           r.title.toLowerCase().includes(lowerQuery) ||
           r.description.toLowerCase().includes(lowerQuery)
       );
+
+      const titleMatches = results.filter((r) =>
+        r.title.toLowerCase().includes(lowerQuery)
+      ).length;
+      const descriptionMatches = results.filter((r) =>
+        r.description.toLowerCase().includes(lowerQuery)
+      ).length;
+
+      if (activeSpan) {
+        activeSpan.setAttributes({
+          'search.query': query,
+          'search.query_length': query.length,
+          'search.result_count': results.length,
+          'search.matched_title_count': titleMatches,
+          'search.matched_description_count': descriptionMatches,
+          'search.total_recipes': recipes.length,
+          'search.match_rate': results.length / recipes.length,
+        });
+      }
+
+      return results;
     },
 
     categories: () => categories,
@@ -365,6 +508,7 @@ const resolvers = {
       _: unknown,
       { input }: { input: { recipe: Omit<Recipe, 'id'>; ingredients: RecipeIngredient[] } }
     ) => {
+      const activeSpan = trace.getActiveSpan();
       const newRecipe: Recipe = {
         id: String(recipeIdCounter++),
         ...input.recipe,
@@ -380,6 +524,31 @@ const resolvers = {
         });
       });
 
+      const category = categories.find((c) => c.id === newRecipe.categoryId);
+      const ingredientCategories = [
+        ...new Set(
+          input.ingredients.map((ing) => {
+            const ingredient = ingredients.find((i) => i.id === ing.ingredientId);
+            return ingredient?.category;
+          }).filter(Boolean)
+        ),
+      ];
+
+      if (activeSpan) {
+        activeSpan.setAttributes({
+          'recipe.created_id': newRecipe.id,
+          'recipe.title': newRecipe.title,
+          'recipe.category': category?.name || 'Unknown',
+          'recipe.difficulty': newRecipe.difficulty,
+          'recipe.prep_time': newRecipe.prepTime,
+          'recipe.cook_time': newRecipe.cookTime,
+          'recipe.total_time': newRecipe.prepTime + newRecipe.cookTime,
+          'recipe.servings': newRecipe.servings,
+          'recipe.ingredient_count': input.ingredients.length,
+          'recipe.ingredient_categories': ingredientCategories.join(','),
+        });
+      }
+
       return newRecipe;
     },
 
@@ -387,16 +556,67 @@ const resolvers = {
       _: unknown,
       { id, recipe }: { id: string; recipe: Omit<Recipe, 'id'> }
     ) => {
+      const activeSpan = trace.getActiveSpan();
       const index = recipes.findIndex((r) => r.id === id);
-      if (index === -1) return null;
 
-      recipes[index] = { id, ...recipe };
+      if (index === -1) {
+        if (activeSpan) {
+          activeSpan.setAttributes({
+            'recipe.id': id,
+            'recipe.found': false,
+          });
+        }
+        return null;
+      }
+
+      const oldRecipe = recipes[index];
+      const updatedRecipe = { id, ...recipe };
+      recipes[index] = updatedRecipe;
+
+      const fieldsChanged = [];
+      if (oldRecipe.title !== updatedRecipe.title) fieldsChanged.push('title');
+      if (oldRecipe.description !== updatedRecipe.description) fieldsChanged.push('description');
+      if (oldRecipe.prepTime !== updatedRecipe.prepTime) fieldsChanged.push('prepTime');
+      if (oldRecipe.cookTime !== updatedRecipe.cookTime) fieldsChanged.push('cookTime');
+      if (oldRecipe.difficulty !== updatedRecipe.difficulty) fieldsChanged.push('difficulty');
+      if (oldRecipe.servings !== updatedRecipe.servings) fieldsChanged.push('servings');
+      if (oldRecipe.categoryId !== updatedRecipe.categoryId) fieldsChanged.push('categoryId');
+
+      const category = categories.find((c) => c.id === updatedRecipe.categoryId);
+
+      if (activeSpan) {
+        activeSpan.setAttributes({
+          'recipe.id': id,
+          'recipe.found': true,
+          'recipe.title': updatedRecipe.title,
+          'recipe.category': category?.name || 'Unknown',
+          'recipe.fields_changed': fieldsChanged.join(','),
+          'recipe.fields_changed_count': fieldsChanged.length,
+          'recipe.category_changed': oldRecipe.categoryId !== updatedRecipe.categoryId,
+          'recipe.difficulty_changed': oldRecipe.difficulty !== updatedRecipe.difficulty,
+        });
+      }
+
       return recipes[index];
     },
 
     deleteRecipe: (_: unknown, { id }: { id: string }) => {
+      const activeSpan = trace.getActiveSpan();
       const index = recipes.findIndex((r) => r.id === id);
-      if (index === -1) return false;
+
+      if (index === -1) {
+        if (activeSpan) {
+          activeSpan.setAttributes({
+            'recipe.deleted_id': id,
+            'recipe.found': false,
+            'recipe.deletion_success': false,
+          });
+        }
+        return false;
+      }
+
+      const recipe = recipes[index];
+      const category = categories.find((c) => c.id === recipe.categoryId);
 
       recipes.splice(index, 1);
       // Remove associated recipe ingredients
@@ -404,7 +624,19 @@ const resolvers = {
         .map((ri, idx) => (ri.recipeId === id ? idx : -1))
         .filter((idx) => idx !== -1)
         .reverse();
+      const ingredientRelationshipsDeleted = ingIndexes.length;
       ingIndexes.forEach((idx) => recipeIngredients.splice(idx, 1));
+
+      if (activeSpan) {
+        activeSpan.setAttributes({
+          'recipe.deleted_id': id,
+          'recipe.title': recipe.title,
+          'recipe.category': category?.name || 'Unknown',
+          'recipe.found': true,
+          'recipe.deletion_success': true,
+          'recipe.ingredient_relationships_deleted': ingredientRelationshipsDeleted,
+        });
+      }
 
       return true;
     },
@@ -414,6 +646,27 @@ const resolvers = {
 const server = new ApolloServer({
   typeDefs,
   resolvers,
+  plugins: [
+    {
+      async requestDidStart(): Promise<GraphQLRequestListener<any>> {
+        return {
+          async didEncounterErrors(requestContext) {
+            const activeSpan = trace.getActiveSpan();
+
+            if (activeSpan && requestContext.errors) {
+              for (const error of requestContext.errors) {
+                activeSpan.recordException(error);
+                activeSpan.setStatus({
+                  code: SpanStatusCode.ERROR,
+                  message: error.message,
+                });
+              }
+            }
+          },
+        };
+      },
+    },
+  ],
 });
 
 await server.start();
@@ -428,6 +681,4 @@ app.use(
   expressMiddleware(server),
 );
 
-app.listen(PORT, () => {
-  console.log(`GraphQL Server ready at: http://localhost:${PORT}/graphql`);
-});
+app.listen(PORT);

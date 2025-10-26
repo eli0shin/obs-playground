@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { trace, SpanStatusCode } from '@opentelemetry/api';
 
 const EXPRESS_URL = process.env.EXPRESS_URL || 'http://localhost:3001';
 
@@ -19,7 +20,17 @@ type ShoppingListResponse = {
   recipeCount: number;
 };
 
-async function generateShoppingList(recipeIds: string[]) {
+async function generateShoppingList(recipeIds: string[], isDefault: boolean) {
+  const activeSpan = trace.getActiveSpan();
+
+  if (activeSpan) {
+    activeSpan.setAttributes({
+      'shopping_list.recipe_ids': recipeIds.join(','),
+      'shopping_list.recipe_count': recipeIds.length,
+      'shopping_list.using_default_ids': isDefault,
+    });
+  }
+
   try {
     const response = await fetch(`${EXPRESS_URL}/shopping-list/generate`, {
       method: 'POST',
@@ -38,9 +49,25 @@ async function generateShoppingList(recipeIds: string[]) {
       throw new Error(data.error);
     }
 
+    if (activeSpan) {
+      activeSpan.setAttributes({
+        'shopping_list.total_items': data.items?.length || 0,
+        'shopping_list.total_cost': data.totalCost || 0,
+        'shopping_list.out_of_stock_count': data.outOfStock?.length || 0,
+        'shopping_list.out_of_stock_names': data.outOfStock?.join(',') || '',
+        'shopping_list.has_out_of_stock': (data.outOfStock?.length || 0) > 0,
+      });
+    }
+
     return data as ShoppingListResponse;
   } catch (error) {
-    console.error('Error generating shopping list:', error);
+    if (activeSpan && error instanceof Error) {
+      activeSpan.recordException(error);
+      activeSpan.setStatus({
+        code: SpanStatusCode.ERROR,
+        message: error.message,
+      });
+    }
     // Return empty shopping list on error
     return {
       items: [],
@@ -57,8 +84,9 @@ export default async function ShoppingListPage({
   searchParams: Promise<{ ids?: string }>;
 }) {
   const params = await searchParams;
+  const hasCustomIds = Boolean(params.ids);
   const ids = params.ids ? params.ids.split(',') : ['1', '2'];
-  const shoppingList = await generateShoppingList(ids);
+  const shoppingList = await generateShoppingList(ids, !hasCustomIds);
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">

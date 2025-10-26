@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { trace, SpanStatusCode } from '@opentelemetry/api';
 
 const EXPRESS_URL = process.env.EXPRESS_URL || 'http://localhost:3001';
 
@@ -36,7 +37,14 @@ async function getMealPlanEstimate(recipeIds: string[]) {
 
     return data as MealPlanEstimate;
   } catch (error) {
-    console.error('Error getting meal plan estimate:', error);
+    const activeSpan = trace.getActiveSpan();
+    if (activeSpan && error instanceof Error) {
+      activeSpan.recordException(error);
+      activeSpan.setStatus({
+        code: SpanStatusCode.ERROR,
+        message: error.message,
+      });
+    }
     return {
       recipes: [],
       totalWeeklyCost: 0,
