@@ -1,7 +1,7 @@
-import Link from 'next/link';
+import Link from "next/link";
 
-import { GRAPHQL_URL } from '@/config';
-const EXPRESS_URL = process.env.EXPRESS_URL || 'http://localhost:3001';
+import { GRAPHQL_URL } from "@/config";
+const EXPRESS_URL = process.env.EXPRESS_URL || "http://localhost:3001";
 
 type Ingredient = {
   id: string;
@@ -44,8 +44,8 @@ type InventoryData = {
 
 async function getRecipe(id: string) {
   const response = await fetch(GRAPHQL_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       query: `
         query GetRecipe($id: ID!) {
@@ -70,7 +70,7 @@ async function getRecipe(id: string) {
       `,
       variables: { id },
     }),
-    cache: 'no-store',
+    cache: "no-store",
   });
 
   const { data } = await response.json();
@@ -79,23 +79,29 @@ async function getRecipe(id: string) {
 
 async function getIngredientPrices(ingredientIds: string[]) {
   const response = await fetch(
-    `${EXPRESS_URL}/ingredients/prices?ids=${ingredientIds.join(',')}`,
-    { cache: 'no-store' }
+    `${EXPRESS_URL}/ingredients/prices?ids=${ingredientIds.join(",")}`,
+    { cache: "no-store" },
   );
   return response.json() as Promise<Record<string, number>>;
 }
 
 async function getIngredientNutrition(ingredientId: string) {
-  const response = await fetch(`${EXPRESS_URL}/nutrition/ingredient/${ingredientId}`, {
-    cache: 'no-store',
-  });
+  const response = await fetch(
+    `${EXPRESS_URL}/nutrition/ingredient/${ingredientId}`,
+    {
+      cache: "no-store",
+    },
+  );
   return response.json() as Promise<NutritionData>;
 }
 
 async function getIngredientStock(ingredientId: string) {
-  const response = await fetch(`${EXPRESS_URL}/inventory/stock/${ingredientId}`, {
-    cache: 'no-store',
-  });
+  const response = await fetch(
+    `${EXPRESS_URL}/inventory/stock/${ingredientId}`,
+    {
+      cache: "no-store",
+    },
+  );
   return response.json() as Promise<InventoryData>;
 }
 
@@ -111,7 +117,7 @@ export default async function FullRecipePage({
     getRecipe(id),
     // We'll fetch prices after getting the recipe to know which ingredients to price
     getRecipe(id).then((r) =>
-      getIngredientPrices(r.ingredients.map((i) => i.ingredient.id))
+      getIngredientPrices(r.ingredients.map((i) => i.ingredient.id)),
     ),
   ]);
 
@@ -148,12 +154,12 @@ export default async function FullRecipePage({
         nutrition,
         stock,
       };
-    })
+    }),
   );
 
   const totalCost = ingredientData.reduce(
     (sum, item) => sum + item.price * item.quantity,
-    0
+    0,
   );
 
   const totalNutrition = ingredientData.reduce(
@@ -163,7 +169,7 @@ export default async function FullRecipePage({
       fat: acc.fat + item.nutrition.fat * item.quantity,
       carbs: acc.carbs + item.nutrition.carbs * item.quantity,
     }),
-    { calories: 0, protein: 0, fat: 0, carbs: 0 }
+    { calories: 0, protein: 0, fat: 0, carbs: 0 },
   );
 
   const outOfStockItems = ingredientData.filter((item) => !item.stock.inStock);
@@ -180,11 +186,12 @@ export default async function FullRecipePage({
 
         <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 p-4 dark:border-emerald-800 dark:bg-emerald-950">
           <p className="text-sm text-emerald-800 dark:text-emerald-200">
-            <strong>Call Chain:</strong> Parallel Fetches (Next.js &rarr; GraphQL & Express)
+            <strong>Call Chain:</strong> Parallel Fetches (Next.js &rarr;
+            GraphQL & Express)
           </p>
           <p className="mt-1 text-xs text-emerald-700 dark:text-emerald-300">
-            Recipe data from GraphQL, pricing/nutrition/inventory from Express - all fetched in
-            parallel
+            Recipe data from GraphQL, pricing/nutrition/inventory from Express -
+            all fetched in parallel
           </p>
         </div>
 
@@ -237,7 +244,9 @@ export default async function FullRecipePage({
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-green-700 dark:text-green-300">Per Serving</span>
+                  <span className="text-green-700 dark:text-green-300">
+                    Per Serving
+                  </span>
                   <span className="font-medium text-green-800 dark:text-green-200">
                     ${(totalCost / recipe.servings).toFixed(2)}
                   </span>
@@ -252,13 +261,17 @@ export default async function FullRecipePage({
               </h3>
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div>
-                  <span className="text-blue-700 dark:text-blue-300">Calories</span>
+                  <span className="text-blue-700 dark:text-blue-300">
+                    Calories
+                  </span>
                   <p className="text-xl font-bold text-blue-900 dark:text-blue-100">
                     {Math.round(totalNutrition.calories)}
                   </p>
                 </div>
                 <div>
-                  <span className="text-blue-700 dark:text-blue-300">Protein</span>
+                  <span className="text-blue-700 dark:text-blue-300">
+                    Protein
+                  </span>
                   <p className="text-xl font-bold text-blue-900 dark:text-blue-100">
                     {Math.round(totalNutrition.protein)}g
                   </p>
@@ -270,7 +283,9 @@ export default async function FullRecipePage({
                   </p>
                 </div>
                 <div>
-                  <span className="text-blue-700 dark:text-blue-300">Carbs</span>
+                  <span className="text-blue-700 dark:text-blue-300">
+                    Carbs
+                  </span>
                   <p className="text-xl font-bold text-blue-900 dark:text-blue-100">
                     {Math.round(totalNutrition.carbs)}g
                   </p>
@@ -324,7 +339,11 @@ export default async function FullRecipePage({
                   {ingredientData.map((item) => (
                     <tr
                       key={item.ingredient.id}
-                      className={!item.stock.inStock ? 'bg-orange-50 dark:bg-orange-950/20' : ''}
+                      className={
+                        !item.stock.inStock
+                          ? "bg-orange-50 dark:bg-orange-950/20"
+                          : ""
+                      }
                     >
                       <td className="px-4 py-3 text-sm font-medium text-zinc-900 dark:text-zinc-50">
                         {item.ingredient.name}

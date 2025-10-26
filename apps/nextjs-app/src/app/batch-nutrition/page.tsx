@@ -1,7 +1,7 @@
-import Link from 'next/link';
-import { trace, SpanStatusCode } from '@opentelemetry/api';
+import Link from "next/link";
+import { trace, SpanStatusCode } from "@opentelemetry/api";
 
-const EXPRESS_URL = process.env.EXPRESS_URL || 'http://localhost:3001';
+const EXPRESS_URL = process.env.EXPRESS_URL || "http://localhost:3001";
 
 type RecipeNutrition = {
   recipeId: string;
@@ -20,10 +20,10 @@ type BatchNutritionResponse = {
 async function getBatchNutrition(recipeIds: string[]) {
   try {
     const response = await fetch(`${EXPRESS_URL}/batch/nutrition`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ recipeIds }),
-      cache: 'no-store',
+      cache: "no-store",
     });
 
     if (!response.ok) {
@@ -32,7 +32,7 @@ async function getBatchNutrition(recipeIds: string[]) {
 
     const data = await response.json();
 
-    if ('error' in data) {
+    if ("error" in data) {
       throw new Error(data.error);
     }
 
@@ -59,7 +59,7 @@ export default async function BatchNutritionPage({
   searchParams: Promise<{ ids?: string }>;
 }) {
   const params = await searchParams;
-  const ids = params.ids ? params.ids.split(',') : ['1', '2', '3'];
+  const ids = params.ids ? params.ids.split(",") : ["1", "2", "3"];
   const nutritionData = await getBatchNutrition(ids);
 
   const totals = nutritionData.recipes.reduce(
@@ -69,7 +69,7 @@ export default async function BatchNutritionPage({
       fat: acc.fat + recipe.fat,
       carbs: acc.carbs + recipe.carbs,
     }),
-    { calories: 0, protein: 0, fat: 0, carbs: 0 }
+    { calories: 0, protein: 0, fat: 0, carbs: 0 },
   );
 
   return (
@@ -84,10 +84,12 @@ export default async function BatchNutritionPage({
 
         <div className="mb-4 rounded-lg border border-purple-200 bg-purple-50 p-4 dark:border-purple-800 dark:bg-purple-950">
           <p className="text-sm text-purple-800 dark:text-purple-200">
-            <strong>Call Chain:</strong> Next.js &rarr; Express &rarr; GraphQL &rarr; Express
+            <strong>Call Chain:</strong> Next.js &rarr; Express &rarr; GraphQL
+            &rarr; Express
           </p>
           <p className="mt-1 text-xs text-purple-700 dark:text-purple-300">
-            Express fetches recipes from GraphQL, then calls itself for nutrition data
+            Express fetches recipes from GraphQL, then calls itself for
+            nutrition data
           </p>
         </div>
 
@@ -228,13 +230,17 @@ export default async function BatchNutritionPage({
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-sm text-zinc-600 dark:text-zinc-400">Fat</span>
+                      <span className="text-sm text-zinc-600 dark:text-zinc-400">
+                        Fat
+                      </span>
                       <span className="font-medium text-zinc-900 dark:text-zinc-50">
                         {recipe.fat}g
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-sm text-zinc-600 dark:text-zinc-400">Carbs</span>
+                      <span className="text-sm text-zinc-600 dark:text-zinc-400">
+                        Carbs
+                      </span>
                       <span className="font-medium text-zinc-900 dark:text-zinc-50">
                         {recipe.carbs}g
                       </span>

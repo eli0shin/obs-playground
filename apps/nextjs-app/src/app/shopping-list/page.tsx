@@ -1,7 +1,7 @@
-import Link from 'next/link';
-import { trace, SpanStatusCode } from '@opentelemetry/api';
+import Link from "next/link";
+import { trace, SpanStatusCode } from "@opentelemetry/api";
 
-const EXPRESS_URL = process.env.EXPRESS_URL || 'http://localhost:3001';
+const EXPRESS_URL = process.env.EXPRESS_URL || "http://localhost:3001";
 
 type ShoppingListItem = {
   ingredientId: string;
@@ -25,18 +25,18 @@ async function generateShoppingList(recipeIds: string[], isDefault: boolean) {
 
   if (activeSpan) {
     activeSpan.setAttributes({
-      'shopping_list.recipe_ids': recipeIds.join(','),
-      'shopping_list.recipe_count': recipeIds.length,
-      'shopping_list.using_default_ids': isDefault,
+      "shopping_list.recipe_ids": recipeIds.join(","),
+      "shopping_list.recipe_count": recipeIds.length,
+      "shopping_list.using_default_ids": isDefault,
     });
   }
 
   try {
     const response = await fetch(`${EXPRESS_URL}/shopping-list/generate`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ recipeIds }),
-      cache: 'no-store',
+      cache: "no-store",
     });
 
     if (!response.ok) {
@@ -45,17 +45,17 @@ async function generateShoppingList(recipeIds: string[], isDefault: boolean) {
 
     const data = await response.json();
 
-    if ('error' in data) {
+    if ("error" in data) {
       throw new Error(data.error);
     }
 
     if (activeSpan) {
       activeSpan.setAttributes({
-        'shopping_list.total_items': data.items?.length || 0,
-        'shopping_list.total_cost': data.totalCost || 0,
-        'shopping_list.out_of_stock_count': data.outOfStock?.length || 0,
-        'shopping_list.out_of_stock_names': data.outOfStock?.join(',') || '',
-        'shopping_list.has_out_of_stock': (data.outOfStock?.length || 0) > 0,
+        "shopping_list.total_items": data.items?.length || 0,
+        "shopping_list.total_cost": data.totalCost || 0,
+        "shopping_list.out_of_stock_count": data.outOfStock?.length || 0,
+        "shopping_list.out_of_stock_names": data.outOfStock?.join(",") || "",
+        "shopping_list.has_out_of_stock": (data.outOfStock?.length || 0) > 0,
       });
     }
 
@@ -85,7 +85,7 @@ export default async function ShoppingListPage({
 }) {
   const params = await searchParams;
   const hasCustomIds = Boolean(params.ids);
-  const ids = params.ids ? params.ids.split(',') : ['1', '2'];
+  const ids = params.ids ? params.ids.split(",") : ["1", "2"];
   const shoppingList = await generateShoppingList(ids, !hasCustomIds);
 
   return (
@@ -103,7 +103,8 @@ export default async function ShoppingListPage({
             <strong>Call Chain:</strong> Next.js &rarr; Express &rarr; GraphQL
           </p>
           <p className="mt-1 text-xs text-purple-700 dark:text-purple-300">
-            Express API fetches recipe ingredients from GraphQL, then aggregates and adds pricing
+            Express API fetches recipe ingredients from GraphQL, then aggregates
+            and adds pricing
           </p>
         </div>
 
@@ -114,7 +115,7 @@ export default async function ShoppingListPage({
             </h1>
             <p className="mt-2 text-lg text-zinc-600 dark:text-zinc-400">
               Aggregated ingredients for {shoppingList.recipeCount} recipe
-              {shoppingList.recipeCount !== 1 ? 's' : ''}
+              {shoppingList.recipeCount !== 1 ? "s" : ""}
             </p>
           </header>
 
@@ -179,7 +180,11 @@ export default async function ShoppingListPage({
                   {shoppingList.items.map((item) => (
                     <tr
                       key={item.ingredientId}
-                      className={!item.inStock ? 'bg-orange-50 dark:bg-orange-950/20' : ''}
+                      className={
+                        !item.inStock
+                          ? "bg-orange-50 dark:bg-orange-950/20"
+                          : ""
+                      }
                     >
                       <td className="px-4 py-3 text-sm font-medium text-zinc-900 dark:text-zinc-50">
                         {item.name}

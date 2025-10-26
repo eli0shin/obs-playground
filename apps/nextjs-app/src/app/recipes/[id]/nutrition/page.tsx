@@ -1,6 +1,6 @@
-import Link from 'next/link';
+import Link from "next/link";
 
-import { GRAPHQL_URL } from '@/config';
+import { GRAPHQL_URL } from "@/config";
 
 type RecipeWithNutrition = {
   id: string;
@@ -18,8 +18,8 @@ type RecipeWithNutrition = {
 
 async function getRecipeWithNutrition(id: string) {
   const response = await fetch(GRAPHQL_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       query: `
         query GetRecipeWithNutrition($id: ID!) {
@@ -40,7 +40,7 @@ async function getRecipeWithNutrition(id: string) {
       `,
       variables: { id },
     }),
-    cache: 'no-store',
+    cache: "no-store",
   });
 
   const { data } = await response.json();
@@ -74,9 +74,11 @@ export default async function RecipeNutritionPage({
   }
 
   const caloriesPerServing = Math.round(recipe.calories / recipe.servings);
-  const proteinPerServing = Math.round((recipe.protein / recipe.servings) * 10) / 10;
+  const proteinPerServing =
+    Math.round((recipe.protein / recipe.servings) * 10) / 10;
   const fatPerServing = Math.round((recipe.fat / recipe.servings) * 10) / 10;
-  const carbsPerServing = Math.round((recipe.carbs / recipe.servings) * 10) / 10;
+  const carbsPerServing =
+    Math.round((recipe.carbs / recipe.servings) * 10) / 10;
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">
@@ -93,7 +95,8 @@ export default async function RecipeNutritionPage({
             <strong>Call Chain:</strong> Next.js &rarr; GraphQL &rarr; Express
           </p>
           <p className="mt-1 text-xs text-blue-700 dark:text-blue-300">
-            GraphQL resolver fetches recipe data and calls Express API for nutrition information
+            GraphQL resolver fetches recipe data and calls Express API for
+            nutrition information
           </p>
         </div>
 

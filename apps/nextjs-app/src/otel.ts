@@ -4,11 +4,25 @@ import { NodeSDK } from "@opentelemetry/sdk-node";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
 import { OTLPLogExporter } from "@opentelemetry/exporter-logs-otlp-http";
 import { OTLPMetricExporter } from "@opentelemetry/exporter-metrics-otlp-http";
-import { BatchSpanProcessor, SpanProcessor } from "@opentelemetry/sdk-trace-node";
-import { BatchLogRecordProcessor, LogRecordProcessor } from "@opentelemetry/sdk-logs";
-import { MeterProvider, PeriodicExportingMetricReader, MetricReader } from "@opentelemetry/sdk-metrics";
+import {
+  BatchSpanProcessor,
+  SpanProcessor,
+} from "@opentelemetry/sdk-trace-node";
+import {
+  BatchLogRecordProcessor,
+  LogRecordProcessor,
+} from "@opentelemetry/sdk-logs";
+import {
+  MeterProvider,
+  PeriodicExportingMetricReader,
+  MetricReader,
+} from "@opentelemetry/sdk-metrics";
 import { getNodeAutoInstrumentations } from "@opentelemetry/auto-instrumentations-node";
-import { CompositePropagator, W3CTraceContextPropagator, W3CBaggagePropagator } from "@opentelemetry/core";
+import {
+  CompositePropagator,
+  W3CTraceContextPropagator,
+  W3CBaggagePropagator,
+} from "@opentelemetry/core";
 
 // Batch processor configuration to prevent payload size errors
 const batchConfig = {
@@ -30,7 +44,7 @@ const createSpanProcessors = (): SpanProcessor[] => {
                 "x-honeycomb-team": process.env.HONEYCOMB_API_KEY,
               },
             }),
-            batchConfig
+            batchConfig,
           ),
         ]
       : []),
@@ -45,7 +59,7 @@ const createSpanProcessors = (): SpanProcessor[] => {
                 Authorization: process.env.GRAFANA_OTLP_AUTH,
               },
             }),
-            batchConfig
+            batchConfig,
           ),
         ]
       : []),
@@ -60,7 +74,7 @@ const createSpanProcessors = (): SpanProcessor[] => {
                 "x-sentry-auth": process.env.SENTRY_AUTH,
               },
             }),
-            batchConfig
+            batchConfig,
           ),
         ]
       : []),
@@ -81,7 +95,7 @@ const createLogProcessors = (): LogRecordProcessor[] => {
               headers: {
                 "x-honeycomb-team": process.env.HONEYCOMB_API_KEY,
               },
-            })
+            }),
           ),
         ]
       : []),
@@ -95,7 +109,7 @@ const createLogProcessors = (): LogRecordProcessor[] => {
               headers: {
                 Authorization: process.env.GRAFANA_OTLP_AUTH,
               },
-            })
+            }),
           ),
         ]
       : []),
@@ -109,7 +123,7 @@ const createLogProcessors = (): LogRecordProcessor[] => {
               headers: {
                 "x-sentry-auth": process.env.SENTRY_AUTH,
               },
-            })
+            }),
           ),
         ]
       : []),
@@ -174,10 +188,7 @@ const sdk = new NodeSDK({
   spanProcessors,
   logRecordProcessors,
   textMapPropagator: new CompositePropagator({
-    propagators: [
-      new W3CTraceContextPropagator(),
-      new W3CBaggagePropagator(),
-    ],
+    propagators: [new W3CTraceContextPropagator(), new W3CBaggagePropagator()],
   }),
   spanLimits: {
     attributeValueLengthLimit: 1024, // Limit attribute value length
@@ -193,10 +204,12 @@ const sdk = new NodeSDK({
       "@opentelemetry/instrumentation-http": {
         ignoreIncomingRequestHook: (request) => {
           // Ignore Next.js development requests and static assets
-          const url = request.url ?? '';
-          return url.includes('/__nextjs_source-map') ||
-                 url.includes('/_next/webpack-hmr') ||
-                 url.includes('/_next/static');
+          const url = request.url ?? "";
+          return (
+            url.includes("/__nextjs_source-map") ||
+            url.includes("/_next/webpack-hmr") ||
+            url.includes("/_next/static")
+          );
         },
       },
     }),
@@ -216,10 +229,16 @@ const originalError = console.error.bind(console);
 const originalDebug = console.debug.bind(console);
 
 // Helper to emit log records
-function emitLogRecord(severityNumber: SeverityNumber, severityText: string, ...args: any[]) {
-  const body = args.map((arg: any) =>
-    typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
-  ).join(' ');
+function emitLogRecord(
+  severityNumber: SeverityNumber,
+  severityText: string,
+  ...args: any[]
+) {
+  const body = args
+    .map((arg: any) =>
+      typeof arg === "object" ? JSON.stringify(arg) : String(arg),
+    )
+    .join(" ");
 
   const activeSpan = trace.getActiveSpan();
   const spanContext = activeSpan?.spanContext();
@@ -231,35 +250,35 @@ function emitLogRecord(severityNumber: SeverityNumber, severityText: string, ...
     context: context.active(),
     attributes: {
       ...(spanContext && {
-        'trace_id': spanContext.traceId,
-        'span_id': spanContext.spanId,
+        trace_id: spanContext.traceId,
+        span_id: spanContext.spanId,
       }),
     },
   });
 }
 
 // Override console methods
-console.log = function(...args: any[]) {
+console.log = function (...args: any[]) {
   originalLog(...args);
-  emitLogRecord(SeverityNumber.INFO, 'INFO', ...args);
+  emitLogRecord(SeverityNumber.INFO, "INFO", ...args);
 };
 
-console.info = function(...args: any[]) {
+console.info = function (...args: any[]) {
   originalInfo(...args);
-  emitLogRecord(SeverityNumber.INFO, 'INFO', ...args);
+  emitLogRecord(SeverityNumber.INFO, "INFO", ...args);
 };
 
-console.warn = function(...args: any[]) {
+console.warn = function (...args: any[]) {
   originalWarn(...args);
-  emitLogRecord(SeverityNumber.WARN, 'WARN', ...args);
+  emitLogRecord(SeverityNumber.WARN, "WARN", ...args);
 };
 
-console.error = function(...args: any[]) {
+console.error = function (...args: any[]) {
   originalError(...args);
-  emitLogRecord(SeverityNumber.ERROR, 'ERROR', ...args);
+  emitLogRecord(SeverityNumber.ERROR, "ERROR", ...args);
 };
 
-console.debug = function(...args: any[]) {
+console.debug = function (...args: any[]) {
   originalDebug(...args);
-  emitLogRecord(SeverityNumber.DEBUG, 'DEBUG', ...args);
+  emitLogRecord(SeverityNumber.DEBUG, "DEBUG", ...args);
 };

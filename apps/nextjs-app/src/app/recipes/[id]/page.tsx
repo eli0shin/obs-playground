@@ -1,6 +1,6 @@
-import Link from 'next/link';
+import Link from "next/link";
 
-import { GRAPHQL_URL } from '@/config';
+import { GRAPHQL_URL } from "@/config";
 
 type Ingredient = {
   id: string;
@@ -26,8 +26,8 @@ type Recipe = {
 
 async function getRecipe(id: string) {
   const response = await fetch(GRAPHQL_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       query: `
         query GetRecipe($id: ID!) {
@@ -52,14 +52,18 @@ async function getRecipe(id: string) {
       `,
       variables: { id },
     }),
-    cache: 'no-store',
+    cache: "no-store",
   });
 
   const { data } = await response.json();
   return data.recipe as Recipe;
 }
 
-export default async function RecipePage({ params }: { params: Promise<{ id: string }> }) {
+export default async function RecipePage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const { id } = await params;
   const recipe = await getRecipe(id);
 

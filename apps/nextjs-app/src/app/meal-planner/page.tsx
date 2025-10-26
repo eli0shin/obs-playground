@@ -1,7 +1,7 @@
-import Link from 'next/link';
-import { trace, SpanStatusCode } from '@opentelemetry/api';
+import Link from "next/link";
+import { trace, SpanStatusCode } from "@opentelemetry/api";
 
-const EXPRESS_URL = process.env.EXPRESS_URL || 'http://localhost:3001';
+const EXPRESS_URL = process.env.EXPRESS_URL || "http://localhost:3001";
 
 type RecipeCost = {
   recipeId: string;
@@ -19,10 +19,10 @@ type MealPlanEstimate = {
 async function getMealPlanEstimate(recipeIds: string[]) {
   try {
     const response = await fetch(
-      `${EXPRESS_URL}/meal-plan/estimate?recipeIds=${recipeIds.join(',')}`,
+      `${EXPRESS_URL}/meal-plan/estimate?recipeIds=${recipeIds.join(",")}`,
       {
-        cache: 'no-store',
-      }
+        cache: "no-store",
+      },
     );
 
     if (!response.ok) {
@@ -31,7 +31,7 @@ async function getMealPlanEstimate(recipeIds: string[]) {
 
     const data = await response.json();
 
-    if ('error' in data) {
+    if ("error" in data) {
       throw new Error(data.error);
     }
 
@@ -54,7 +54,15 @@ async function getMealPlanEstimate(recipeIds: string[]) {
   }
 }
 
-const DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+const DAYS_OF_WEEK = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+];
 
 export default async function MealPlannerPage({
   searchParams,
@@ -62,7 +70,9 @@ export default async function MealPlannerPage({
   searchParams: Promise<{ ids?: string }>;
 }) {
   const params = await searchParams;
-  const ids = params.ids ? params.ids.split(',') : ['1', '2', '3', '1', '2', '3', '1'];
+  const ids = params.ids
+    ? params.ids.split(",")
+    : ["1", "2", "3", "1", "2", "3", "1"];
   const mealPlan = await getMealPlanEstimate(ids);
 
   return (
@@ -141,7 +151,9 @@ export default async function MealPlannerPage({
                         <h3 className="font-semibold text-zinc-900 dark:text-zinc-50">
                           {recipe.title}
                         </h3>
-                        <p className="text-sm text-zinc-600 dark:text-zinc-400">{day}</p>
+                        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                          {day}
+                        </p>
                       </div>
                     </div>
                     <div className="text-right">

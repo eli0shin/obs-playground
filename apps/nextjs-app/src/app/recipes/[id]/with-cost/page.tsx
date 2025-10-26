@@ -1,6 +1,6 @@
-import Link from 'next/link';
+import Link from "next/link";
 
-import { GRAPHQL_URL } from '@/config';
+import { GRAPHQL_URL } from "@/config";
 
 type IngredientCost = {
   ingredientId: string;
@@ -25,8 +25,8 @@ type RecipeWithCost = {
 
 async function getRecipeWithCost(id: string) {
   const response = await fetch(GRAPHQL_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       query: `
         query GetRecipeWithCost($id: ID!) {
@@ -52,7 +52,7 @@ async function getRecipeWithCost(id: string) {
       `,
       variables: { id },
     }),
-    cache: 'no-store',
+    cache: "no-store",
   });
 
   const { data } = await response.json();
@@ -100,7 +100,8 @@ export default async function RecipeWithCostPage({
             <strong>Call Chain:</strong> Next.js &rarr; GraphQL &rarr; Express
           </p>
           <p className="mt-1 text-xs text-blue-700 dark:text-blue-300">
-            GraphQL resolver fetches recipe data and calls Express API for pricing information
+            GraphQL resolver fetches recipe data and calls Express API for
+            pricing information
           </p>
         </div>
 
@@ -189,7 +190,8 @@ export default async function RecipeWithCostPage({
             </div>
 
             <p className="mt-4 text-sm text-zinc-600 dark:text-zinc-400">
-              Cost per serving: ${(recipe.totalCost / recipe.servings).toFixed(2)}
+              Cost per serving: $
+              {(recipe.totalCost / recipe.servings).toFixed(2)}
             </p>
           </section>
         </article>

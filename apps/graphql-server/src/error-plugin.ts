@@ -1,5 +1,5 @@
-import { ApolloServerPlugin, GraphQLRequestListener } from '@apollo/server';
-import { trace, SpanStatusCode } from '@opentelemetry/api';
+import { ApolloServerPlugin, GraphQLRequestListener } from "@apollo/server";
+import { trace, SpanStatusCode } from "@opentelemetry/api";
 
 export const errorRecordingPlugin: ApolloServerPlugin = {
   async requestDidStart(): Promise<GraphQLRequestListener<any>> {

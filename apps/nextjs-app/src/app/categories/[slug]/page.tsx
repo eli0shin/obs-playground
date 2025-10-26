@@ -1,6 +1,6 @@
-import Link from 'next/link';
+import Link from "next/link";
 
-import { GRAPHQL_URL } from '@/config';
+import { GRAPHQL_URL } from "@/config";
 
 type Category = {
   id: string;
@@ -21,8 +21,8 @@ type Recipe = {
 
 async function getCategoryAndRecipes(slug: string) {
   const response = await fetch(GRAPHQL_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       query: `
         query GetCategoryRecipes {
@@ -44,7 +44,7 @@ async function getCategoryAndRecipes(slug: string) {
         }
       `,
     }),
-    cache: 'no-store',
+    cache: "no-store",
   });
 
   const { data } = await response.json();
@@ -56,7 +56,11 @@ async function getCategoryAndRecipes(slug: string) {
   return { category, recipes };
 }
 
-export default async function CategoryPage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function CategoryPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
   const { slug } = await params;
   const { category, recipes } = await getCategoryAndRecipes(slug);
 
@@ -93,7 +97,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
             {category.name} Recipes
           </h1>
           <p className="mt-2 text-lg text-zinc-600 dark:text-zinc-400">
-            {recipes.length} recipe{recipes.length !== 1 ? 's' : ''} found
+            {recipes.length} recipe{recipes.length !== 1 ? "s" : ""} found
           </p>
         </header>
 

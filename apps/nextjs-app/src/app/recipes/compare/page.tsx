@@ -1,6 +1,6 @@
-import Link from 'next/link';
+import Link from "next/link";
 
-import { GRAPHQL_URL } from '@/config';
+import { GRAPHQL_URL } from "@/config";
 
 type IngredientCost = {
   ingredientId: string;
@@ -24,8 +24,8 @@ type RecipeWithCost = {
 async function getRecipesWithCost(ids: string[]) {
   const promises = ids.map(async (id) => {
     const response = await fetch(GRAPHQL_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         query: `
           query GetRecipeWithCost($id: ID!) {
@@ -49,7 +49,7 @@ async function getRecipesWithCost(ids: string[]) {
         `,
         variables: { id },
       }),
-      cache: 'no-store',
+      cache: "no-store",
     });
 
     const { data } = await response.json();
@@ -65,7 +65,7 @@ export default async function CompareRecipesPage({
   searchParams: Promise<{ ids?: string }>;
 }) {
   const params = await searchParams;
-  const ids = params.ids ? params.ids.split(',') : ['1', '2'];
+  const ids = params.ids ? params.ids.split(",") : ["1", "2"];
   const recipes = await getRecipesWithCost(ids);
 
   return (
@@ -83,7 +83,8 @@ export default async function CompareRecipesPage({
             <strong>Call Chain:</strong> Next.js &rarr; GraphQL &rarr; Express
           </p>
           <p className="mt-1 text-xs text-blue-700 dark:text-blue-300">
-            Multiple parallel GraphQL queries, each calling Express API for pricing
+            Multiple parallel GraphQL queries, each calling Express API for
+            pricing
           </p>
         </div>
 

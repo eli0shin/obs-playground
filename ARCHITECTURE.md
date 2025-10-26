@@ -1,14 +1,17 @@
 # Recipe & Meal Planning Platform - Architecture
 
 ## Overview
+
 OpenTelemetry playground demonstrating various service call patterns and telemetry scenarios through a recipe and meal planning application.
 
 ## Service Architecture
 
 ### GraphQL Server (Port 4000)
+
 **Domain**: Recipe catalog + orchestrates data from Express when needed
 
 #### Schema Entities
+
 - **Recipe**: `id, title, description, prepTime, cookTime, difficulty, servings`
 - **Ingredient**: `id, name, category, unit`
 - **RecipeIngredient**: `recipeId, ingredientId, quantity`
@@ -17,6 +20,7 @@ OpenTelemetry playground demonstrating various service call patterns and telemet
 - **RecipeWithNutrition**: Extends Recipe with `calories, protein, fat, carbs` (calls Express)
 
 #### Queries
+
 - `recipe(id)` - Simple recipe lookup
 - `recipeWithCost(id)` - **GraphQL → Express** (gets pricing data)
 - `recipeWithNutrition(id)` - **GraphQL → Express** (gets nutrition data)
@@ -25,6 +29,7 @@ OpenTelemetry playground demonstrating various service call patterns and telemet
 - `categories` - List all categories
 
 #### Mutations
+
 - `createRecipe(input)` - Add new recipe
 - `updateRecipe(id, input)` - Update existing recipe
 - `deleteRecipe(id)` - Remove recipe
@@ -32,9 +37,11 @@ OpenTelemetry playground demonstrating various service call patterns and telemet
 ---
 
 ### Express API (Port 3001)
+
 **Domain**: Pricing, nutrition, inventory, shopping list generation
 
 #### Simple Data Endpoints (Express only)
+
 - `GET /ingredients/:id/price` - Get ingredient price per unit
 - `GET /ingredients/prices` - Get all ingredient prices (batch)
 - `POST /ingredients/prices` - Update ingredient prices
@@ -42,6 +49,7 @@ OpenTelemetry playground demonstrating various service call patterns and telemet
 - `GET /inventory/stock/:ingredientId` - Check ingredient stock levels
 
 #### Orchestration Endpoints (Express → GraphQL)
+
 - `POST /shopping-list/generate` - **Express → GraphQL**
   - Body: `{ recipeIds: [1, 2, 3], servings: { "1": 4, "2": 2 } }`
   - Gets recipe ingredients from GraphQL, adds pricing and stock info
@@ -57,26 +65,31 @@ OpenTelemetry playground demonstrating various service call patterns and telemet
 ---
 
 ### Next.js App (Port 3000)
+
 **Domain**: UI, orchestration, server-side rendering
 
 #### Pages by Call Chain Pattern
 
 **Single Service (Next → GraphQL)**:
+
 - `/` - Home with recipe browse
 - `/recipes/[id]` - Basic recipe detail
 - `/categories/[slug]` - Recipes in category
 
 **Next → GraphQL → Express**:
+
 - `/recipes/[id]/with-cost` - Recipe with per-ingredient pricing
 - `/recipes/[id]/nutrition` - Recipe with nutrition breakdown
 - `/recipes/compare?ids=1,2,3` - Compare multiple recipes with costs
 
 **Next → Express → GraphQL**:
+
 - `/shopping-list` - Generate aggregated shopping list from selected recipes
 - `/meal-planner` - Plan weekly meals with cost estimation
 - `/batch-nutrition` - Nutritional analysis across multiple recipes
 
 **Complex (Parallel Fetches)**:
+
 - `/recipes/[id]/full` - Complete recipe view with parallel calls to GraphQL and Express
 
 ---
@@ -84,6 +97,7 @@ OpenTelemetry playground demonstrating various service call patterns and telemet
 ## Call Chain Examples
 
 ### Flow 1: Next → GraphQL → Express
+
 ```
 User visits /recipes/123/with-cost
 → Next.js SSR calls GraphQL query { recipeWithCost(id: 123) }
@@ -95,6 +109,7 @@ User visits /recipes/123/with-cost
 ```
 
 ### Flow 2: Next → Express → GraphQL
+
 ```
 User submits /shopping-list form with recipeIds: [1, 2, 3]
 → Next.js calls Express POST /shopping-list/generate
@@ -107,6 +122,7 @@ User submits /shopping-list form with recipeIds: [1, 2, 3]
 ```
 
 ### Flow 3: Complex Chain (Next → Express → GraphQL → Express)
+
 ```
 User visits /batch-nutrition with recipeIds: [1, 2, 3]
 → Next.js calls Express POST /batch/nutrition
