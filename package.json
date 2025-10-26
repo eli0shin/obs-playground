@@ -4,9 +4,12 @@
   "description": "",
   "type": "module",
   "main": "index.js",
+  "workspaces": [
+    "apps/*"
+  ],
   "scripts": {
     "dev": "turbo run dev",
-    "dev:all": "concurrently --names \"NEXT,EXPRESS,GRAPHQL,PROXY\" --prefix-colors \"cyan,magenta,yellow,green\" \"cd apps/nextjs-app && PORT=3000 pnpm dev\" \"cd apps/express-server && PORT=3001 pnpm dev\" \"cd apps/graphql-server && PORT=4000 pnpm dev\" \"node proxy.js\"",
+    "dev:all": "concurrently --names \"NEXT,EXPRESS,GRAPHQL,PROXY\" --prefix-colors \"cyan,magenta,yellow,green\" \"cd apps/nextjs-app && PORT=3000 npm run dev\" \"cd apps/express-server && PORT=3001 npm run dev\" \"cd apps/graphql-server && PORT=4000 npm run dev\" \"node dev-proxy.js\"",
     "build": "turbo run build",
     "type-check": "turbo run type-check",
     "lint": "turbo run lint"
@@ -14,7 +17,7 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "packageManager": "pnpm@10.7.0",
+  "packageManager": "npm@11.5.1",
   "devDependencies": {
     "@types/express": "^5.0.4",
     "concurrently": "^9.2.1",
