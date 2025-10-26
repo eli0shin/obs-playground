@@ -8,8 +8,15 @@ import {
   BatchSpanProcessor,
   SpanProcessor,
 } from "@opentelemetry/sdk-trace-node";
-import { BatchLogRecordProcessor, LogRecordProcessor } from "@opentelemetry/sdk-logs";
-import { MeterProvider, PeriodicExportingMetricReader, MetricReader } from "@opentelemetry/sdk-metrics";
+import {
+  BatchLogRecordProcessor,
+  LogRecordProcessor,
+} from "@opentelemetry/sdk-logs";
+import {
+  MeterProvider,
+  PeriodicExportingMetricReader,
+  MetricReader,
+} from "@opentelemetry/sdk-metrics";
 import { getNodeAutoInstrumentations } from "@opentelemetry/auto-instrumentations-node";
 import {
   CompositePropagator,
@@ -89,7 +96,7 @@ const createLogProcessors = (): LogRecordProcessor[] => {
               headers: {
                 "x-honeycomb-team": process.env.HONEYCOMB_API_KEY,
               },
-            })
+            }),
           ),
         ]
       : []),
@@ -103,7 +110,7 @@ const createLogProcessors = (): LogRecordProcessor[] => {
               headers: {
                 Authorization: process.env.GRAFANA_OTLP_AUTH,
               },
-            })
+            }),
           ),
         ]
       : []),
@@ -117,7 +124,7 @@ const createLogProcessors = (): LogRecordProcessor[] => {
               headers: {
                 "x-sentry-auth": process.env.SENTRY_AUTH,
               },
-            })
+            }),
           ),
         ]
       : []),
@@ -215,79 +222,3 @@ const sdk = new NodeSDK({
 });
 
 sdk.start();
-
-// Bridge console logs to OpenTelemetry logs
-const logger = logs.getLogger("graphql-server", "1.0.0");
-
-// Store original console methods
-// eslint-disable-next-line @typescript-eslint/unbound-method
-const originalLog = console.log;
-// eslint-disable-next-line @typescript-eslint/unbound-method
-const originalInfo = console.info;
-// eslint-disable-next-line @typescript-eslint/unbound-method
-const originalWarn = console.warn;
-// eslint-disable-next-line @typescript-eslint/unbound-method
-const originalError = console.error;
-// eslint-disable-next-line @typescript-eslint/unbound-method
-const originalDebug = console.debug;
-
-// Helper to emit log records
-function emitLogRecord(severityNumber: SeverityNumber, severityText: string, ...args: any[]) {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-  const body = args.map((arg: any) =>
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
-  ).join(' ');
-
-  const activeSpan = trace.getActiveSpan();
-  const spanContext = activeSpan?.spanContext();
-
-  logger.emit({
-    severityNumber,
-    severityText,
-    body,
-    context: context.active(),
-    attributes: {
-      ...(spanContext && {
-        'trace_id': spanContext.traceId,
-        'span_id': spanContext.spanId,
-      }),
-    },
-  });
-}
-
-// Override console methods
-console.log = function(...args: any[]) {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-  originalLog.call(console, ...args);
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-  emitLogRecord(SeverityNumber.INFO, 'INFO', ...args);
-};
-
-console.info = function(...args: any[]) {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-  originalInfo.call(console, ...args);
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-  emitLogRecord(SeverityNumber.INFO, 'INFO', ...args);
-};
-
-console.warn = function(...args: any[]) {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-  originalWarn.call(console, ...args);
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-  emitLogRecord(SeverityNumber.WARN, 'WARN', ...args);
-};
-
-console.error = function(...args: any[]) {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-  originalError.call(console, ...args);
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-  emitLogRecord(SeverityNumber.ERROR, 'ERROR', ...args);
-};
-
-console.debug = function(...args: any[]) {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-  originalDebug.call(console, ...args);
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-  emitLogRecord(SeverityNumber.DEBUG, 'DEBUG', ...args);
-};

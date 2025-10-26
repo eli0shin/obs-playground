@@ -1,11 +1,11 @@
-import { Request, Response, NextFunction } from 'express';
-import { trace, SpanStatusCode } from '@opentelemetry/api';
+import { Request, Response, NextFunction } from "express";
+import { trace, SpanStatusCode } from "@opentelemetry/api";
 
 export function errorHandler(
   err: Error,
   _req: Request,
   res: Response,
-  _next: NextFunction
+  _next: NextFunction,
 ): void {
   const activeSpan = trace.getActiveSpan();
 
@@ -18,6 +18,6 @@ export function errorHandler(
   }
 
   res.status(500).json({
-    error: err.message || 'Internal server error'
+    error: err.message || "Internal server error",
   });
 }
