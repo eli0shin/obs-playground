@@ -1,0 +1,25 @@
+{
+  "name": "obs-playground",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "dev": "turbo run dev",
+    "dev:all": "concurrently --names \"NEXT,EXPRESS,GRAPHQL,PROXY\" --prefix-colors \"cyan,magenta,yellow,green\" \"cd apps/nextjs-app && PORT=3000 pnpm dev\" \"cd apps/express-server && PORT=3001 pnpm dev\" \"cd apps/graphql-server && PORT=4000 pnpm dev\" \"node proxy.js\"",
+    "build": "turbo run build",
+    "type-check": "turbo run type-check",
+    "lint": "turbo run lint"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.7.0",
+  "devDependencies": {
+    "@types/express": "^5.0.4",
+    "concurrently": "^9.2.1",
+    "express": "^5.1.0",
+    "http-proxy-middleware": "^3.0.5",
+    "turbo": "^2.5.8"
+  }
+}
