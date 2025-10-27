@@ -2,5 +2,6 @@
 node_modules
 dist
 certs/
-.env*
+.env
+.env.local
 *.tsbuildinfo
