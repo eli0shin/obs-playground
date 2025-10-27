@@ -1,6 +1,7 @@
 import "./otel.js";
 import express from "express";
 import { errorHandler } from "./error-middleware.js";
+import { responseInstrumentation } from "./response-instrumentation.js";
 import healthRoutes from "./routes/health.js";
 import pricingRoutes from "./routes/pricing.js";
 import nutritionRoutes from "./routes/nutrition.js";
@@ -13,6 +14,7 @@ const app = express();
 const PORT = process.env.PORT ?? 3001;
 
 app.use(express.json());
+app.use(responseInstrumentation);
 
 // Register routes
 app.use(healthRoutes);
