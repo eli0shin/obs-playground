@@ -5,7 +5,7 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "dev": "tsx watch --env-file=.env --import ./src/otel.ts src/index.ts",
+    "dev": "tsx watch --env-file=../../.env --import ./src/otel.ts src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
     "type-check": "tsc --noEmit",
@@ -17,10 +17,8 @@
   "dependencies": {
     "@apollo/server": "^5.0.0",
     "@as-integrations/express5": "^1.1.2",
+    "@obs-playground/otel": "*",
     "@opentelemetry/api": "^1.9.0",
-    "@opentelemetry/auto-instrumentations-node": "^0.66.0",
-    "@opentelemetry/core": "^2.2.0",
-    "@opentelemetry/sdk-trace-node": "^2.2.0",
     "body-parser": "^2.2.0",
     "cors": "^2.8.5",
     "express": "^5.1.0",

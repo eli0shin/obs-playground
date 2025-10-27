@@ -8,7 +8,10 @@ This is an OpenTelemetry instrumentation playground demonstrating distributed tr
 
 **Architecture:** Next.js frontend â†’ Express API (port 3001) â†’ GraphQL server (port 4000)
 
-**Monorepo:** Uses npm workspaces with Turbo for task orchestration.
+**Monorepo:** Uses npm workspaces with Turbo for task orchestration. Structure:
+
+- `apps/*` - Application services (nextjs-app, express-server, graphql-server)
+- `packages/*` - Shared libraries (otel for OpenTelemetry configuration)
 
 ## Development Commands
 
@@ -85,14 +88,16 @@ Frontend makes REST calls to Express â†’ Express orchestrates calls to GraphQL â
 
 ## OpenTelemetry Instrumentation
 
-**Core Pattern:** Each app has `src/otel.ts` that initializes the OTEL SDK with:
+**Shared Package:** All OTEL configuration is consolidated in `packages/otel`, a shared workspace package that exports an `initializeOtel()` function. Each app calls this function from its `src/otel.ts` with service-specific configuration.
+
+**Core Setup:** The shared package configures:
 
 - BatchSpanProcessor (batch size: 50, queue: 500, delay: 5s)
 - BatchLogRecordProcessor
 - PeriodicExportingMetricReader
 - OTLP-HTTP exporters to Honeycomb, Grafana, Sentry (multi-backend support)
 - W3C Trace Context + W3C Baggage propagators
-- Console bridging (console methods emit OTEL log records)
+- Returns a logger instance for each service to use directly (no console bridging)
 
 **Dependency Overrides:** The following versions are pinned to ensure instrumentation compatibility:
 
@@ -114,6 +119,18 @@ Frontend makes REST calls to Express â†’ Express orchestrates calls to GraphQL â
 - Business metrics (pricing ranges, inventory levels, recipe matches)
 - Performance metrics (cost calculations, nutrition aggregations)
 - Error context (exception recording in active spans)
+
+**Environment Configuration:**
+
+- Shared OTEL config (Honeycomb, Grafana, Sentry credentials) lives in root `.env`
+- App-specific variables remain in each app's `.env` file
+- All services load both root and app-specific env vars
+
+**Service-Specific Setup:**
+
+- **Next.js:** Custom HTTP instrumentation to ignore dev requests (`/_next/webpack-hmr`, static assets)
+- **GraphQL:** Custom GraphQL instrumentation with error recording via `responseHook`
+- **Express:** Uses default auto-instrumentation with fs disabled
 
 **Next.js Specifics:**
 
@@ -159,9 +176,12 @@ Frontend makes REST calls to Express â†’ Express orchestrates calls to GraphQL â
 
 **OpenTelemetry Initialization:**
 
-- `apps/nextjs-app/src/otel.ts` - Frontend OTEL setup
-- `apps/express-server/src/otel.ts` - Express OTEL setup
-- `apps/graphql-server/src/otel.ts` - GraphQL OTEL setup
+- `packages/otel/src/index.ts` - Shared OTEL initialization and configuration
+- `packages/otel/src/exporters.ts` - Multi-backend exporter configuration
+- `packages/otel/src/types.ts` - TypeScript types for OTEL config
+- `apps/nextjs-app/src/otel.ts` - Next.js-specific instrumentation config
+- `apps/express-server/src/otel.ts` - Express-specific instrumentation config
+- `apps/graphql-server/src/otel.ts` - GraphQL-specific instrumentation config
 
 **Service Entry Points:**
 

@@ -1,6 +1,7 @@
 {
   "files": [],
   "references": [
+    { "path": "./packages/otel" },
     { "path": "./apps/express-server" },
     { "path": "./apps/graphql-server" },
     { "path": "./apps/nextjs-app" }

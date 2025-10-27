@@ -4,20 +4,15 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "dev:custom": "CUSTOM_SERVER=true tsx --env-file=.env server.ts",
+    "dev:custom": "CUSTOM_SERVER=true tsx --env-file=../../.env server.ts",
     "build": "next build",
     "start": "next start",
-    "start:custom": "CUSTOM_SERVER=true tsx --env-file=.env server.ts",
+    "start:custom": "CUSTOM_SERVER=true tsx --env-file=../../.env server.ts",
     "lint": "eslint"
   },
   "dependencies": {
+    "@obs-playground/otel": "*",
     "@opentelemetry/api": "^1.9.0",
-    "@opentelemetry/auto-instrumentations-node": "^0.66.0",
-    "@opentelemetry/core": "^2.2.0",
-    "@opentelemetry/instrumentation": "^0.207.0",
-    "@opentelemetry/instrumentation-fetch": "^0.207.0",
-    "@opentelemetry/instrumentation-http": "^0.207.0",
-    "@opentelemetry/sdk-trace-node": "^2.2.0",
     "@sentry/nextjs": "^10.22.0",
     "@statsig/react-bindings": "^3.29.0",
     "@statsig/session-replay": "^3.29.0",

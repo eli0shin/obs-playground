@@ -1,224 +1,24 @@
-import { metrics, trace, context, SpanStatusCode } from "@opentelemetry/api";
-import { logs, SeverityNumber } from "@opentelemetry/api-logs";
-import { NodeSDK } from "@opentelemetry/sdk-node";
-import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
-import { OTLPLogExporter } from "@opentelemetry/exporter-logs-otlp-http";
-import { OTLPMetricExporter } from "@opentelemetry/exporter-metrics-otlp-http";
-import {
-  BatchSpanProcessor,
-  SpanProcessor,
-} from "@opentelemetry/sdk-trace-node";
-import {
-  BatchLogRecordProcessor,
-  LogRecordProcessor,
-} from "@opentelemetry/sdk-logs";
-import {
-  MeterProvider,
-  PeriodicExportingMetricReader,
-  MetricReader,
-} from "@opentelemetry/sdk-metrics";
-import { getNodeAutoInstrumentations } from "@opentelemetry/auto-instrumentations-node";
-import {
-  CompositePropagator,
-  W3CTraceContextPropagator,
-  W3CBaggagePropagator,
-} from "@opentelemetry/core";
+import { SpanStatusCode } from "@opentelemetry/api";
 import type { Span } from "@opentelemetry/api";
+import { initializeOtel } from "@obs-playground/otel";
 
-// Batch processor configuration to prevent payload size errors
-const batchConfig = {
-  maxExportBatchSize: 50, // Reduced from default 512
-  maxQueueSize: 500, // Reduced from default 2048
-  scheduledDelayMillis: 5000, // Export every 5 seconds
-};
-
-// Configure trace exporters
-const createSpanProcessors = (): SpanProcessor[] => {
-  const processors = [
-    // Honeycomb exporter
-    ...(process.env.HONEYCOMB_API_KEY && process.env.HONEYCOMB_ENDPOINT
-      ? [
-          new BatchSpanProcessor(
-            new OTLPTraceExporter({
-              url: `${process.env.HONEYCOMB_ENDPOINT}/v1/traces`,
-              headers: {
-                "x-honeycomb-team": process.env.HONEYCOMB_API_KEY,
-              },
-            }),
-            batchConfig,
-          ),
-        ]
-      : []),
-
-    // Grafana exporter
-    ...(process.env.GRAFANA_OTLP_ENDPOINT && process.env.GRAFANA_OTLP_AUTH
-      ? [
-          new BatchSpanProcessor(
-            new OTLPTraceExporter({
-              url: `${process.env.GRAFANA_OTLP_ENDPOINT}/v1/traces`,
-              headers: {
-                Authorization: process.env.GRAFANA_OTLP_AUTH,
-              },
-            }),
-            batchConfig,
-          ),
-        ]
-      : []),
-
-    // Sentry exporter
-    ...(process.env.SENTRY_OTLP_ENDPOINT && process.env.SENTRY_AUTH
-      ? [
-          new BatchSpanProcessor(
-            new OTLPTraceExporter({
-              url: `${process.env.SENTRY_OTLP_ENDPOINT}/v1/traces`,
-              headers: {
-                "x-sentry-auth": process.env.SENTRY_AUTH,
-              },
-            }),
-            batchConfig,
-          ),
-        ]
-      : []),
-  ];
-
-  return processors;
-};
-
-// Configure log exporters
-const createLogProcessors = (): LogRecordProcessor[] => {
-  const processors = [
-    // Honeycomb exporter
-    ...(process.env.HONEYCOMB_API_KEY && process.env.HONEYCOMB_ENDPOINT
-      ? [
-          new BatchLogRecordProcessor(
-            new OTLPLogExporter({
-              url: `${process.env.HONEYCOMB_ENDPOINT}/v1/logs`,
-              headers: {
-                "x-honeycomb-team": process.env.HONEYCOMB_API_KEY,
-              },
-            }),
-          ),
-        ]
-      : []),
-
-    // Grafana exporter
-    ...(process.env.GRAFANA_OTLP_ENDPOINT && process.env.GRAFANA_OTLP_AUTH
-      ? [
-          new BatchLogRecordProcessor(
-            new OTLPLogExporter({
-              url: `${process.env.GRAFANA_OTLP_ENDPOINT}/v1/logs`,
-              headers: {
-                Authorization: process.env.GRAFANA_OTLP_AUTH,
-              },
-            }),
-          ),
-        ]
-      : []),
-
-    // Sentry exporter
-    ...(process.env.SENTRY_OTLP_ENDPOINT && process.env.SENTRY_AUTH
-      ? [
-          new BatchLogRecordProcessor(
-            new OTLPLogExporter({
-              url: `${process.env.SENTRY_OTLP_ENDPOINT}/v1/logs`,
-              headers: {
-                "x-sentry-auth": process.env.SENTRY_AUTH,
-              },
-            }),
-          ),
-        ]
-      : []),
-  ];
-
-  return processors;
-};
-
-// Configure metric exporters
-const createMetricReaders = (): MetricReader[] => {
-  const readers = [
-    // Honeycomb exporter
-    ...(process.env.HONEYCOMB_API_KEY && process.env.HONEYCOMB_ENDPOINT
-      ? [
-          new PeriodicExportingMetricReader({
-            exporter: new OTLPMetricExporter({
-              url: `${process.env.HONEYCOMB_ENDPOINT}/v1/metrics`,
-              headers: {
-                "x-honeycomb-team": process.env.HONEYCOMB_API_KEY,
-              },
-            }),
-            exportIntervalMillis: 60000, // Export every 60 seconds
-          }),
-        ]
-      : []),
-
-    // Grafana exporter
-    ...(process.env.GRAFANA_OTLP_ENDPOINT && process.env.GRAFANA_OTLP_AUTH
-      ? [
-          new PeriodicExportingMetricReader({
-            exporter: new OTLPMetricExporter({
-              url: `${process.env.GRAFANA_OTLP_ENDPOINT}/v1/metrics`,
-              headers: {
-                Authorization: process.env.GRAFANA_OTLP_AUTH,
-              },
-            }),
-            exportIntervalMillis: 60000,
-          }),
-        ]
-      : []),
-
-    // Note: Sentry does not support OTLP metrics, only traces
-  ];
-
-  return readers;
-};
-
-const spanProcessors = createSpanProcessors();
-const logRecordProcessors = createLogProcessors();
-const metricReaders = createMetricReaders();
-
-// Create MeterProvider with all metric readers for multi-backend support
-const meterProvider = new MeterProvider({
-  readers: metricReaders,
-});
-
-// Set global meter provider
-metrics.setGlobalMeterProvider(meterProvider);
-
-const sdk = new NodeSDK({
+initializeOtel({
   serviceName: "graphql-server",
-  spanProcessors,
-  logRecordProcessors,
-  textMapPropagator: new CompositePropagator({
-    propagators: [new W3CTraceContextPropagator(), new W3CBaggagePropagator()],
-  }),
-  spanLimits: {
-    attributeValueLengthLimit: 1024, // Limit attribute value length
-    attributeCountLimit: 64, // Limit number of attributes per span
-  },
-  instrumentations: [
-    getNodeAutoInstrumentations({
-      // we recommend disabling fs autoinstrumentation since it can be noisy
-      // and expensive during startup
-      "@opentelemetry/instrumentation-fs": {
-        enabled: false,
-      },
-      "@opentelemetry/instrumentation-graphql": {
-        ignoreTrivialResolveSpans: true,
-        depth: 1,
-        responseHook: (span: Span, data: { errors?: readonly Error[] }) => {
-          if (data.errors && data.errors.length > 0) {
-            span.setStatus({
-              code: SpanStatusCode.ERROR,
-              message: data.errors[0].message,
-            });
-            for (const error of data.errors) {
-              span.recordException(error);
-            }
+  instrumentations: {
+    "@opentelemetry/instrumentation-graphql": {
+      ignoreTrivialResolveSpans: true,
+      depth: 1,
+      responseHook: (span: Span, data: { errors?: readonly Error[] }) => {
+        if (data.errors && data.errors.length > 0) {
+          span.setStatus({
+            code: SpanStatusCode.ERROR,
+            message: data.errors[0].message,
+          });
+          for (const error of data.errors) {
+            span.recordException(error);
           }
-        },
+        }
       },
-    }),
-  ],
+    },
+  },
 });
-
-sdk.start();

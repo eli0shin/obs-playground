@@ -1,27 +1,17 @@
 {
   "name": "obs-playground",
   "version": "1.0.0",
+  "private": true,
   "description": "",
   "type": "module",
   "main": "index.js",
   "workspaces": [
-    "apps/*"
+    "apps/*",
+    "packages/*"
   ],
-  "overrides": {
-    "import-in-the-middle": "2.0.0",
-    "@opentelemetry/instrumentation": "0.207.0",
-    "require-in-the-middle": "8.0.1",
-    "@sentry/node": {
-      "@opentelemetry/instrumentation": "0.207.0",
-      "require-in-the-middle": "8.0.1"
-    },
-    "@prisma/instrumentation": {
-      "@opentelemetry/instrumentation": "0.207.0",
-      "require-in-the-middle": "8.0.1"
-    }
-  },
   "scripts": {
     "postinstall": "patch-package",
+    "clean": "rm -rf node_modules packages/*/node_modules apps/*/node_modules && npm install",
     "dev": "turbo run dev",
     "dev:all": "concurrently --names \"NEXT,EXPRESS,GRAPHQL,PROXY\" --prefix-colors \"cyan,magenta,yellow,green\" \"cd apps/nextjs-app && PORT=3000 npm run dev\" \"cd apps/express-server && PORT=3001 npm run dev\" \"cd apps/graphql-server && PORT=4000 npm run dev\" \"node dev-proxy.js\"",
     "dev:all:custom": "concurrently --names \"CUSTOM,EXPRESS,GRAPHQL,PROXY\" --prefix-colors \"cyan,magenta,yellow,green\" \"cd apps/nextjs-app && PORT=3000 npm run dev:custom\" \"cd apps/express-server && PORT=3001 npm run dev\" \"cd apps/graphql-server && PORT=4000 npm run dev\" \"node dev-proxy.js\"",
@@ -32,7 +22,7 @@
     "format:check": "prettier --check ."
   },
   "keywords": [],
-  "author": "",
+  "author": "elimelech.oshinsky@gmail.com",
   "license": "ISC",
   "packageManager": "npm@11.5.1",
   "devDependencies": {

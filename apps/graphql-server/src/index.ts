@@ -6,7 +6,7 @@ import express from "express";
 import cors from "cors";
 import { trace, SpanStatusCode } from "@opentelemetry/api";
 
-const EXPRESS_API_URL = process.env.EXPRESS_API_URL || "http://localhost:3001";
+const EXPRESS_URL = process.env.EXPRESS_URL || "http://localhost:3001";
 
 // Types
 type Recipe = {
@@ -288,7 +288,7 @@ const resolvers = {
 
       // Call Express API to get pricing
       const response = await fetch(
-        `${EXPRESS_API_URL}/ingredients/prices?ids=${ingredientIds.join(",")}`,
+        `${EXPRESS_URL}/ingredients/prices?ids=${ingredientIds.join(",")}`,
       );
       const prices = (await response.json()) as Record<string, number>;
 
@@ -372,7 +372,7 @@ const resolvers = {
       // Call Express API to get nutrition for each ingredient
       const nutritionPromises = recipeIngs.map(async (ri) => {
         const response = await fetch(
-          `${EXPRESS_API_URL}/nutrition/ingredient/${ri.ingredientId}`,
+          `${EXPRESS_URL}/nutrition/ingredient/${ri.ingredientId}`,
         );
         const nutrition = (await response.json()) as NutritionData;
 
