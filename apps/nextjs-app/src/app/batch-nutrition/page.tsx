@@ -39,9 +39,9 @@ async function getBatchNutrition(recipeIds: string[]) {
     return data as BatchNutritionResponse;
   } catch (error) {
     const activeSpan = trace.getActiveSpan();
-    if (activeSpan && error instanceof Error) {
-      activeSpan.recordException(error);
-      activeSpan.setStatus({
+    if (error instanceof Error) {
+      activeSpan?.recordException(error);
+      activeSpan?.setStatus({
         code: SpanStatusCode.ERROR,
         message: error.message,
       });

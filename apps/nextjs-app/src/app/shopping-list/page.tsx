@@ -23,13 +23,11 @@ type ShoppingListResponse = {
 async function generateShoppingList(recipeIds: string[], isDefault: boolean) {
   const activeSpan = trace.getActiveSpan();
 
-  if (activeSpan) {
-    activeSpan.setAttributes({
-      "shopping_list.recipe_ids": recipeIds.join(","),
-      "shopping_list.recipe_count": recipeIds.length,
-      "shopping_list.using_default_ids": isDefault,
-    });
-  }
+  activeSpan?.setAttributes({
+    "shopping_list.recipe_ids": recipeIds.join(","),
+    "shopping_list.recipe_count": recipeIds.length,
+    "shopping_list.using_default_ids": isDefault,
+  });
 
   try {
     const response = await fetch(`${EXPRESS_URL}/shopping-list/generate`, {
@@ -49,21 +47,19 @@ async function generateShoppingList(recipeIds: string[], isDefault: boolean) {
       throw new Error(data.error);
     }
 
-    if (activeSpan) {
-      activeSpan.setAttributes({
-        "shopping_list.total_items": data.items?.length || 0,
-        "shopping_list.total_cost": data.totalCost || 0,
-        "shopping_list.out_of_stock_count": data.outOfStock?.length || 0,
-        "shopping_list.out_of_stock_names": data.outOfStock?.join(",") || "",
-        "shopping_list.has_out_of_stock": (data.outOfStock?.length || 0) > 0,
-      });
-    }
+    activeSpan?.setAttributes({
+      "shopping_list.total_items": data.items?.length || 0,
+      "shopping_list.total_cost": data.totalCost || 0,
+      "shopping_list.out_of_stock_count": data.outOfStock?.length || 0,
+      "shopping_list.out_of_stock_names": data.outOfStock?.join(",") || "",
+      "shopping_list.has_out_of_stock": (data.outOfStock?.length || 0) > 0,
+    });
 
     return data as ShoppingListResponse;
   } catch (error) {
-    if (activeSpan && error instanceof Error) {
-      activeSpan.recordException(error);
-      activeSpan.setStatus({
+    if (error instanceof Error) {
+      activeSpan?.recordException(error);
+      activeSpan?.setStatus({
         code: SpanStatusCode.ERROR,
         message: error.message,
       });

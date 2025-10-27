@@ -38,9 +38,9 @@ async function getMealPlanEstimate(recipeIds: string[]) {
     return data as MealPlanEstimate;
   } catch (error) {
     const activeSpan = trace.getActiveSpan();
-    if (activeSpan && error instanceof Error) {
-      activeSpan.recordException(error);
-      activeSpan.setStatus({
+    if (error instanceof Error) {
+      activeSpan?.recordException(error);
+      activeSpan?.setStatus({
         code: SpanStatusCode.ERROR,
         message: error.message,
       });

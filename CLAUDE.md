@@ -167,6 +167,14 @@ Frontend makes REST calls to Express â†’ Express orchestrates calls to GraphQL â
 - 2-space indentation
 - Semicolons enabled
 
+**OpenTelemetry Patterns:**
+
+- Always use optional chaining (`?.`) when calling methods on `activeSpan`
+- Never wrap span operations in `if (activeSpan)` blocks
+- Good: `activeSpan?.setAttributes({ ... })`
+- Bad: `if (activeSpan) { activeSpan.setAttributes({ ... }) }`
+- Applies to: `setAttributes()`, `setAttribute()`, `recordException()`, `setStatus()`
+
 **Testing:**
 
 - No test framework currently configured

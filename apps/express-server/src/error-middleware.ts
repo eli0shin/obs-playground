@@ -9,13 +9,11 @@ export function errorHandler(
 ): void {
   const activeSpan = trace.getActiveSpan();
 
-  if (activeSpan) {
-    activeSpan.recordException(err);
-    activeSpan.setStatus({
-      code: SpanStatusCode.ERROR,
-      message: err.message,
-    });
-  }
+  activeSpan?.recordException(err);
+  activeSpan?.setStatus({
+    code: SpanStatusCode.ERROR,
+    message: err.message,
+  });
 
   res.status(500).json({
     error: err.message || "Internal server error",
