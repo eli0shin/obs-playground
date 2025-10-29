@@ -23,7 +23,7 @@ index cc9c8c8..356eeee 100644
          }
 +        // Check if there's already a root span in the store for this trace
 +        const existingRootSpanId = spanContext.getValue(rootSpanIdKey);
-+        const isRootSpan = !existingRootSpanId || !rootSpanAttributesStore.has(existingRootSpanId);
++        const isRootSpan = typeof existingRootSpanId !== 'number' || !rootSpanAttributesStore.has(existingRootSpanId);
          const spanId = getSpanId();
          options.attributes = {
              'next.span_name': spanName,
