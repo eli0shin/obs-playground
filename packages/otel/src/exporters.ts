@@ -68,6 +68,18 @@ export function createSpanProcessors(): SpanProcessor[] {
           ),
         ]
       : []),
+
+    // Datadog exporter
+    ...(process.env.DATADOG_OTLP_ENDPOINT
+      ? [
+          new BatchSpanProcessor(
+            new OTLPTraceExporter({
+              url: `${process.env.DATADOG_OTLP_ENDPOINT}/v1/traces`,
+            }),
+            batchConfig,
+          ),
+        ]
+      : []),
   ];
 
   return processors;
@@ -117,6 +129,17 @@ export function createLogProcessors(): LogRecordProcessor[] {
           ),
         ]
       : []),
+
+    // Datadog exporter
+    ...(process.env.DATADOG_OTLP_ENDPOINT
+      ? [
+          new BatchLogRecordProcessor(
+            new OTLPLogExporter({
+              url: `${process.env.DATADOG_OTLP_ENDPOINT}/v1/logs`,
+            }),
+          ),
+        ]
+      : []),
   ];
 
   return processors;
@@ -149,6 +172,18 @@ export function createMetricReaders(): MetricReader[] {
               headers: {
                 Authorization: process.env.GRAFANA_OTLP_AUTH,
               },
+            }),
+            exportIntervalMillis: 60000,
+          }),
+        ]
+      : []),
+
+    // Datadog exporter
+    ...(process.env.DATADOG_OTLP_ENDPOINT
+      ? [
+          new PeriodicExportingMetricReader({
+            exporter: new OTLPMetricExporter({
+              url: `${process.env.DATADOG_OTLP_ENDPOINT}/v1/metrics`,
             }),
             exportIntervalMillis: 60000,
           }),

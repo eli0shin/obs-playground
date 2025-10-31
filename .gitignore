@@ -5,3 +5,4 @@ certs/
 .env
 .env.local
 *.tsbuildinfo
+datadog.yaml
