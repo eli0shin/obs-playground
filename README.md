@@ -9,7 +9,7 @@ A multi-service reference implementation demonstrating distributed tracing with 
 - **GraphQL Server** (port 4000) - Apollo Server with recipe schema
 - **HTTPS Proxy** (port 443) - Unified development server
 
-Services export traces to Honeycomb, Grafana Cloud, and Sentry.
+Services export traces to Honeycomb, Grafana Cloud, Sentry, and Datadog.
 
 ## Prerequisites
 
@@ -45,6 +45,8 @@ Start all services:
 ```bash
 npm run dev:all        # With built-in Next.js server
 npm run dev:all:custom # With custom Next.js server
+npm run dev:dd:all     # With built-in Next.js server and Datadog native tracing
+npm run dev:dd:custom  # With custom Next.js server and Datadog native tracing
 ```
 
 Access the app:
@@ -53,6 +55,8 @@ Access the app:
 - Next.js: http://localhost:3000
 - Express API: http://localhost:3001
 - GraphQL Playground: http://localhost:4000/graphql
+
+Using native Datadog tracing requires that you have the datadog agent setup locally with opentelemetry ingest/egress enabled.
 
 ## Development
 

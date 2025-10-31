@@ -7,6 +7,7 @@ import {
   W3CTraceContextPropagator,
   W3CBaggagePropagator,
 } from "@opentelemetry/core";
+import tracer from "dd-trace";
 import {
   createSpanProcessors,
   createLogProcessors,
@@ -17,6 +18,23 @@ import type { OtelConfig, OtelResult } from "./types.js";
 export function initializeOtel(config: OtelConfig): OtelResult {
   const { serviceName, instrumentations = {} } = config;
 
+  // Check if Datadog native tracer is enabled
+  if (process.env.DD_TRACE_ENABLED === "true") {
+    const ddServiceName = `dd-${serviceName}`;
+    const ddTracer = tracer.init({
+      service: ddServiceName,
+      hostname: process.env.DD_AGENT_HOST || "localhost",
+      port: process.env.DD_TRACE_AGENT_PORT || "8126",
+    });
+
+    console.log(
+      `Datadog native tracer (dd-trace) initialized for service: ${ddServiceName}`,
+    );
+
+    return { sdk: ddTracer };
+  }
+
+  // Standard OpenTelemetry initialization
   const spanProcessors = createSpanProcessors();
   const logRecordProcessors = createLogProcessors();
   const metricReaders = createMetricReaders();

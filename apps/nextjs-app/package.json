@@ -11,6 +11,8 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@datadog/browser-rum": "^6.23.0",
+    "@datadog/browser-rum-react": "^6.23.0",
     "@obs-playground/otel": "*",
     "@opentelemetry/api": "^1.9.0",
     "@sentry/nextjs": "^10.22.0",
