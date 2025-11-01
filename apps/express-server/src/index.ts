@@ -9,6 +9,8 @@ import inventoryRoutes from "./routes/inventory.js";
 import shoppingListRoutes from "./routes/shopping-list.js";
 import mealPlanRoutes from "./routes/meal-plan.js";
 import batchNutritionRoutes from "./routes/batch-nutrition.js";
+import errorRoutes from "./routes/error.js";
+import slowRoutes from "./routes/slow.js";
 
 const app = express();
 const PORT = process.env.PORT ?? 3001;
@@ -24,6 +26,8 @@ app.use(inventoryRoutes);
 app.use(shoppingListRoutes);
 app.use(mealPlanRoutes);
 app.use(batchNutritionRoutes);
+app.use(errorRoutes);
+app.use(slowRoutes);
 
 // Error handling middleware - must be last
 app.use(errorHandler);

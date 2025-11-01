@@ -5,12 +5,10 @@ import express from "express";
 import cors from "cors";
 import { typeDefs } from "./schema/index.js";
 import { resolvers } from "./resolvers/index.js";
-import { errorTrackingPlugin } from "./plugins/error-tracking.js";
 
 const server = new ApolloServer({
   typeDefs,
   resolvers,
-  plugins: [errorTrackingPlugin],
 });
 
 await server.start();

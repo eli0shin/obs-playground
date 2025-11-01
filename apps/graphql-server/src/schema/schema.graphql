@@ -92,10 +92,19 @@ type Query {
   searchRecipes(query: String!): [Recipe!]!
   categories: [Category!]!
   ingredients: [Ingredient!]!
+
+  # Testing queries that always fail
+  errorQuery: String!
+  slowQuery(delayMs: Int): String!
+  notFoundRecipe: Recipe
 }
 
 type Mutation {
   createRecipe(input: CreateRecipeInput!): Recipe!
   updateRecipe(id: ID!, recipe: RecipeInput!): Recipe
   deleteRecipe(id: ID!): Boolean!
+
+  # Testing mutations that always fail
+  errorMutation(input: String!): Boolean!
+  validationErrorMutation(input: CreateRecipeInput!): Recipe!
 }

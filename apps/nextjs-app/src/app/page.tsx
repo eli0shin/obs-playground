@@ -147,6 +147,72 @@ export default async function Home() {
             </Link>
           </div>
         </section>
+
+        <section className="mt-12">
+          <h2 className="mb-6 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
+            Telemetry Testing
+          </h2>
+          <p className="mb-6 text-sm text-zinc-600 dark:text-zinc-400">
+            Test pages for observability and error tracking scenarios
+          </p>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <Link
+              href="/testing/errors"
+              className="rounded-lg border border-red-200 bg-red-50 p-6 transition-colors hover:border-red-300 dark:border-red-800 dark:bg-red-950 dark:hover:border-red-700"
+            >
+              <h3 className="text-lg font-medium text-red-900 dark:text-red-100">
+                Error Scenarios
+              </h3>
+              <p className="mt-2 text-sm text-red-700 dark:text-red-300">
+                Pages that fail: 500, 404, timeouts, Suspense errors
+              </p>
+            </Link>
+            <Link
+              href="/recipes/new"
+              className="rounded-lg border border-green-200 bg-green-50 p-6 transition-colors hover:border-green-300 dark:border-green-800 dark:bg-green-950 dark:hover:border-green-700"
+            >
+              <h3 className="text-lg font-medium text-green-900 dark:text-green-100">
+                Server Actions
+              </h3>
+              <p className="mt-2 text-sm text-green-700 dark:text-green-300">
+                Create recipe form with Server Action
+              </p>
+            </Link>
+            <Link
+              href="/testing/forms/broken-create"
+              className="rounded-lg border border-orange-200 bg-orange-50 p-6 transition-colors hover:border-orange-300 dark:border-orange-800 dark:bg-orange-950 dark:hover:border-orange-700"
+            >
+              <h3 className="text-lg font-medium text-orange-900 dark:text-orange-100">
+                Broken Form
+              </h3>
+              <p className="mt-2 text-sm text-orange-700 dark:text-orange-300">
+                Server Action that always fails
+              </p>
+            </Link>
+            <Link
+              href="/testing/client/broken-api"
+              className="rounded-lg border border-purple-200 bg-purple-50 p-6 transition-colors hover:border-purple-300 dark:border-purple-800 dark:bg-purple-950 dark:hover:border-purple-700"
+            >
+              <h3 className="text-lg font-medium text-purple-900 dark:text-purple-100">
+                Client API Calls
+              </h3>
+              <p className="mt-2 text-sm text-purple-700 dark:text-purple-300">
+                Express API calls from browser that fail
+              </p>
+            </Link>
+            <Link
+              href="/testing/client/broken-mutation"
+              className="rounded-lg border border-blue-200 bg-blue-50 p-6 transition-colors hover:border-blue-300 dark:border-blue-800 dark:bg-blue-950 dark:hover:border-blue-700"
+            >
+              <h3 className="text-lg font-medium text-blue-900 dark:text-blue-100">
+                Client GraphQL
+              </h3>
+              <p className="mt-2 text-sm text-blue-700 dark:text-blue-300">
+                GraphQL mutations from browser that fail
+              </p>
+            </Link>
+          </div>
+        </section>
       </div>
     </div>
   );

@@ -19,6 +19,9 @@ app.use(
     target: "http://localhost:4000",
     changeOrigin: true,
     logLevel: "info",
+    pathRewrite: {
+      "^/": "/graphql",
+    },
   }),
 );
 
@@ -29,6 +32,9 @@ app.use(
     target: "http://localhost:3001",
     changeOrigin: true,
     logLevel: "info",
+    pathRewrite: {
+      "^/": "/api/",
+    },
   }),
 );
 

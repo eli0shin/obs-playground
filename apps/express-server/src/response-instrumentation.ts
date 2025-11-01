@@ -23,9 +23,28 @@ export function responseInstrumentation(
 
   res.on("finish", () => {
     if (res.statusCode >= 400) {
+      // @ts-expect-error
+      responseBody = JSON.parse(responseBody);
       const activeSpan = trace.getActiveSpan();
+      if (responseBody && typeof responseBody === "object") {
+        if (
+          "message" in responseBody &&
+          typeof responseBody.message === "string"
+        ) {
+          activeSpan?.recordException(new Error(responseBody.message));
+        } else if (
+          "error" in responseBody &&
+          typeof responseBody.error === "string"
+        ) {
+          activeSpan?.recordException(new Error(responseBody.error));
+        }
 
-      activeSpan?.addEvent("error_response", responseBody as Attributes);
+        if ("errors" in responseBody && Array.isArray(responseBody.errors)) {
+          responseBody.errors.forEach((error) => {
+            activeSpan?.addEvent("error_details", error as Attributes);
+          });
+        }
+      }
     }
   });
 
