@@ -10,7 +10,6 @@ router.get("/meal-plan/estimate", async (req: Request, res: Response) => {
   const { recipeIds } = req.query;
 
   if (!recipeIds || typeof recipeIds !== "string") {
-    activeSpan?.setAttribute("meal_plan.validation_failed", true);
     return res
       .status(400)
       .json({ error: "recipeIds query parameter is required" });

@@ -18,39 +18,24 @@ type BatchNutritionResponse = {
 };
 
 async function getBatchNutrition(recipeIds: string[]) {
-  try {
-    const response = await fetch(`${EXPRESS_URL}/batch/nutrition`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ recipeIds }),
-      cache: "no-store",
-    });
+  const response = await fetch(`${EXPRESS_URL}/batch/nutrition`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ recipeIds }),
+    cache: "no-store",
+  });
 
-    if (!response.ok) {
-      throw new Error(`Failed to get batch nutrition: ${response.status}`);
-    }
-
-    const data = await response.json();
-
-    if ("error" in data) {
-      throw new Error(data.error);
-    }
-
-    return data as BatchNutritionResponse;
-  } catch (error) {
-    const activeSpan = trace.getActiveSpan();
-    if (error instanceof Error) {
-      activeSpan?.recordException(error);
-      activeSpan?.setStatus({
-        code: SpanStatusCode.ERROR,
-        message: error.message,
-      });
-    }
-    return {
-      recipes: [],
-      count: 0,
-    };
+  if (!response.ok) {
+    throw new Error(`Failed to get batch nutrition: ${response.status}`);
   }
+
+  const data = await response.json();
+
+  if ("error" in data) {
+    throw new Error(data.error);
+  }
+
+  return data as BatchNutritionResponse;
 }
 
 export default async function BatchNutritionPage({

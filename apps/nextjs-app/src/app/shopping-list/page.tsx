@@ -29,49 +29,32 @@ async function generateShoppingList(recipeIds: string[], isDefault: boolean) {
     "shopping_list.using_default_ids": isDefault,
   });
 
-  try {
-    const response = await fetch(`${EXPRESS_URL}/shopping-list/generate`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ recipeIds }),
-      cache: "no-store",
-    });
+  const response = await fetch(`${EXPRESS_URL}/shopping-list/generate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ recipeIds }),
+    cache: "no-store",
+  });
 
-    if (!response.ok) {
-      throw new Error(`Failed to generate shopping list: ${response.status}`);
-    }
-
-    const data = await response.json();
-
-    if ("error" in data) {
-      throw new Error(data.error);
-    }
-
-    activeSpan?.setAttributes({
-      "shopping_list.total_items": data.items?.length || 0,
-      "shopping_list.total_cost": data.totalCost || 0,
-      "shopping_list.out_of_stock_count": data.outOfStock?.length || 0,
-      "shopping_list.out_of_stock_names": data.outOfStock?.join(",") || "",
-      "shopping_list.has_out_of_stock": (data.outOfStock?.length || 0) > 0,
-    });
-
-    return data as ShoppingListResponse;
-  } catch (error) {
-    if (error instanceof Error) {
-      activeSpan?.recordException(error);
-      activeSpan?.setStatus({
-        code: SpanStatusCode.ERROR,
-        message: error.message,
-      });
-    }
-    // Return empty shopping list on error
-    return {
-      items: [],
-      totalCost: 0,
-      outOfStock: [],
-      recipeCount: 0,
-    };
+  if (!response.ok) {
+    throw new Error(`Failed to generate shopping list: ${response.status}`);
   }
+
+  const data = await response.json();
+
+  if ("error" in data) {
+    throw new Error(data.error);
+  }
+
+  activeSpan?.setAttributes({
+    "shopping_list.total_items": data.items?.length || 0,
+    "shopping_list.total_cost": data.totalCost || 0,
+    "shopping_list.out_of_stock_count": data.outOfStock?.length || 0,
+    "shopping_list.out_of_stock_names": data.outOfStock,
+    "shopping_list.has_out_of_stock": (data.outOfStock?.length || 0) > 0,
+  });
+
+  return data as ShoppingListResponse;
 }
 
 export default async function ShoppingListPage({

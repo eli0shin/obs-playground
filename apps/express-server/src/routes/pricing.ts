@@ -11,8 +11,7 @@ router.get("/ingredients/:id/price", (req: Request, res: Response) => {
 
   activeSpan?.setAttributes({
     "ingredient.id": id,
-    "ingredient.found": price !== undefined,
-    "pricing.price": price || 0,
+    "pricing.price": price,
   });
 
   if (price === undefined) {
@@ -30,12 +29,10 @@ router.get("/ingredients/prices", (req: Request, res: Response) => {
     // Return all prices
     const allPrices = Object.values(ingredientPrices);
     activeSpan?.setAttributes({
-      "batch.type": "all",
       "batch.ingredient_count": allPrices.length,
+      "batch.prices": allPrices,
       "batch.price_range_min": Math.min(...allPrices),
       "batch.price_range_max": Math.max(...allPrices),
-      "batch.price_range_avg":
-        allPrices.reduce((a, b) => a + b, 0) / allPrices.length,
     });
     return res.json(ingredientPrices);
   }
@@ -53,10 +50,10 @@ router.get("/ingredients/prices", (req: Request, res: Response) => {
   });
 
   activeSpan?.setAttributes({
-    "batch.type": "filtered",
     "batch.ingredient_ids_requested": idArray.length,
-    "batch.ingredient_ids_found": Object.keys(prices).length,
-    "batch.ingredient_ids_missing": idArray.length - Object.keys(prices).length,
+    "batch.ingredient_ids_found": Object.keys(prices),
+    "batch.ingredient_ids_missing_count":
+      idArray.length - Object.keys(prices).length,
   });
 
   if (priceValues.length > 0) {

@@ -47,7 +47,7 @@ export const Mutation = {
     ];
 
     activeSpan?.setAttributes({
-      "recipe.created_id": newRecipe.id,
+      "recipe.id": newRecipe.id,
       "recipe.title": newRecipe.title,
       "recipe.category": category?.name || "Unknown",
       "recipe.difficulty": newRecipe.difficulty,
@@ -56,7 +56,7 @@ export const Mutation = {
       "recipe.total_time": newRecipe.prepTime + newRecipe.cookTime,
       "recipe.servings": newRecipe.servings,
       "recipe.ingredient_count": input.ingredients.length,
-      "recipe.ingredient_categories": ingredientCategories.join(","),
+      "recipe.ingredient_categories": ingredientCategories,
     });
 
     return newRecipe;
@@ -68,47 +68,22 @@ export const Mutation = {
   ) => {
     const activeSpan = trace.getActiveSpan();
     const index = recipes.findIndex((r) => r.id === id);
+    activeSpan?.setAttributes({
+      "recipe.id": id,
+    });
 
     if (index === -1) {
-      activeSpan?.setAttributes({
-        "recipe.id": id,
-        "recipe.found": false,
-      });
       return null;
     }
 
-    const oldRecipe = recipes[index];
     const updatedRecipe = { id, ...recipe };
     recipes[index] = updatedRecipe;
-
-    const fieldsChanged = [];
-    if (oldRecipe.title !== updatedRecipe.title) fieldsChanged.push("title");
-    if (oldRecipe.description !== updatedRecipe.description)
-      fieldsChanged.push("description");
-    if (oldRecipe.prepTime !== updatedRecipe.prepTime)
-      fieldsChanged.push("prepTime");
-    if (oldRecipe.cookTime !== updatedRecipe.cookTime)
-      fieldsChanged.push("cookTime");
-    if (oldRecipe.difficulty !== updatedRecipe.difficulty)
-      fieldsChanged.push("difficulty");
-    if (oldRecipe.servings !== updatedRecipe.servings)
-      fieldsChanged.push("servings");
-    if (oldRecipe.categoryId !== updatedRecipe.categoryId)
-      fieldsChanged.push("categoryId");
 
     const category = categories.find((c) => c.id === updatedRecipe.categoryId);
 
     activeSpan?.setAttributes({
-      "recipe.id": id,
-      "recipe.found": true,
       "recipe.title": updatedRecipe.title,
-      "recipe.category": category?.name || "Unknown",
-      "recipe.fields_changed": fieldsChanged.join(","),
-      "recipe.fields_changed_count": fieldsChanged.length,
-      "recipe.category_changed":
-        oldRecipe.categoryId !== updatedRecipe.categoryId,
-      "recipe.difficulty_changed":
-        oldRecipe.difficulty !== updatedRecipe.difficulty,
+      "recipe.category": category?.name,
     });
 
     return recipes[index];
@@ -117,13 +92,11 @@ export const Mutation = {
   deleteRecipe: (_: unknown, { id }: { id: string }) => {
     const activeSpan = trace.getActiveSpan();
     const index = recipes.findIndex((r) => r.id === id);
+    activeSpan?.setAttributes({
+      "recipe.id": id,
+    });
 
     if (index === -1) {
-      activeSpan?.setAttributes({
-        "recipe.deleted_id": id,
-        "recipe.found": false,
-        "recipe.deletion_success": false,
-      });
       return false;
     }
 
@@ -135,16 +108,11 @@ export const Mutation = {
       .map((ri, idx) => (ri.recipeId === id ? idx : -1))
       .filter((idx) => idx !== -1)
       .reverse();
-    const ingredientRelationshipsDeleted = ingIndexes.length;
     ingIndexes.forEach((idx) => recipeIngredients.splice(idx, 1));
 
     activeSpan?.setAttributes({
-      "recipe.deleted_id": id,
       "recipe.title": recipe.title,
-      "recipe.category": category?.name || "Unknown",
-      "recipe.found": true,
-      "recipe.deletion_success": true,
-      "recipe.ingredient_relationships_deleted": ingredientRelationshipsDeleted,
+      "recipe.category": category?.name,
     });
 
     return true;

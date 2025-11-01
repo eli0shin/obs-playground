@@ -97,12 +97,10 @@ router.post("/shopping-list/generate", async (req: Request, res: Response) => {
     "shopping_list.total_cost": totalCost,
     "shopping_list.cost_per_serving": costPerServing,
     "shopping_list.out_of_stock_count": outOfStock.length,
-    "shopping_list.out_of_stock_names": outOfStock.join(","),
-    "shopping_list.has_out_of_stock": outOfStock.length > 0,
-    "shopping_list.most_expensive_ingredient":
-      mostExpensiveItem?.name || "none",
+    "shopping_list.out_of_stock_names": outOfStock,
+    "shopping_list.most_expensive_ingredient": mostExpensiveItem?.name,
     "shopping_list.most_expensive_ingredient_cost":
-      mostExpensiveItem?.totalCost || 0,
+      mostExpensiveItem?.totalCost,
   });
 
   res.json({

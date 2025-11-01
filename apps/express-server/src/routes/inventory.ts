@@ -11,7 +11,6 @@ router.get("/inventory/stock/:ingredientId", (req: Request, res: Response) => {
 
   activeSpan?.setAttributes({
     "inventory.ingredient_id": ingredientId,
-    "inventory.found": inventory !== undefined,
   });
 
   if (inventory) {

@@ -11,7 +11,6 @@ router.get("/nutrition/ingredient/:id", (req: Request, res: Response) => {
 
   activeSpan?.setAttributes({
     "ingredient.id": id,
-    "ingredient.found": nutrition !== undefined,
   });
 
   if (nutrition) {

@@ -37,7 +37,16 @@ initializeOtel({
               "graphql.error.stacktrace": error.stack,
               ...flattenedExtensions,
             });
-            span.recordException(error?.originalError?.cause as Error);
+
+            if (
+              error.originalError &&
+              error.originalError.message !== error.message
+            ) {
+              span.recordException(error.originalError);
+            }
+            if (error.originalError?.cause) {
+              span.recordException(error.originalError.cause as Error);
+            }
           }
         }
       },

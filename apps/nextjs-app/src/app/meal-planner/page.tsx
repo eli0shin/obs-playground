@@ -17,41 +17,24 @@ type MealPlanEstimate = {
 };
 
 async function getMealPlanEstimate(recipeIds: string[]) {
-  try {
-    const response = await fetch(
-      `${EXPRESS_URL}/meal-plan/estimate?recipeIds=${recipeIds.join(",")}`,
-      {
-        cache: "no-store",
-      },
-    );
+  const response = await fetch(
+    `${EXPRESS_URL}/meal-plan/estimate?recipeIds=${recipeIds.join(",")}`,
+    {
+      cache: "no-store",
+    },
+  );
 
-    if (!response.ok) {
-      throw new Error(`Failed to get meal plan estimate: ${response.status}`);
-    }
-
-    const data = await response.json();
-
-    if ("error" in data) {
-      throw new Error(data.error);
-    }
-
-    return data as MealPlanEstimate;
-  } catch (error) {
-    const activeSpan = trace.getActiveSpan();
-    if (error instanceof Error) {
-      activeSpan?.recordException(error);
-      activeSpan?.setStatus({
-        code: SpanStatusCode.ERROR,
-        message: error.message,
-      });
-    }
-    return {
-      recipes: [],
-      totalWeeklyCost: 0,
-      averageMealCost: 0,
-      mealCount: 0,
-    };
+  if (!response.ok) {
+    throw new Error(`Failed to get meal plan estimate: ${response.status}`);
   }
+
+  const data = await response.json();
+
+  if ("error" in data) {
+    throw new Error(data.error);
+  }
+
+  return data as MealPlanEstimate;
 }
 
 const DAYS_OF_WEEK = [

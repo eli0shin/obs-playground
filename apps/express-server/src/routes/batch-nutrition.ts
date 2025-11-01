@@ -16,9 +16,7 @@ router.post("/batch/nutrition", async (req: Request, res: Response) => {
   });
 
   if (!recipeIds || !Array.isArray(recipeIds)) {
-    const error = new Error("recipeIds array is required");
-    activeSpan?.recordException(error);
-    return res.status(400).json({ error: error.message });
+    return res.status(400).json({ error: "recipeIds array is required" });
   }
 
   const allRecipes = await fetchRecipes();

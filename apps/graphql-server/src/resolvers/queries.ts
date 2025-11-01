@@ -18,7 +18,6 @@ export const Query = {
     const activeSpan = trace.getActiveSpan();
 
     activeSpan?.setAttributes({
-      "graphql.resolver": "recipeWithCost",
       "recipe.id": id,
     });
 
@@ -31,7 +30,6 @@ export const Query = {
     const category = categories.find((c) => c.id === recipe.categoryId);
 
     activeSpan?.setAttributes({
-      "recipe.found": true,
       "recipe.title": recipe.title,
       "recipe.category": category?.name || "Unknown",
       "recipe.difficulty": recipe.difficulty,
@@ -91,7 +89,6 @@ export const Query = {
     const activeSpan = trace.getActiveSpan();
 
     activeSpan?.setAttributes({
-      "graphql.resolver": "recipeWithNutrition",
       "recipe.id": id,
     });
 
@@ -104,7 +101,6 @@ export const Query = {
     const category = categories.find((c) => c.id === recipe.categoryId);
 
     activeSpan?.setAttributes({
-      "recipe.found": true,
       "recipe.title": recipe.title,
       "recipe.category": category?.name || "Unknown",
       "recipe.difficulty": recipe.difficulty,
@@ -191,10 +187,10 @@ export const Query = {
       : undefined;
     activeSpan?.setAttributes({
       "filter.applied_count": filtersApplied.length,
-      "filter.applied": filtersApplied.join(",") || "none",
-      "filter.category_id": categoryId || "none",
-      "filter.category_name": category?.name || "none",
-      "filter.difficulty": difficulty || "none",
+      "filter.applied": filtersApplied,
+      "filter.category_id": categoryId,
+      "filter.category_name": category?.name,
+      "filter.difficulty": difficulty,
       "recipes.total_count": recipes.length,
       "recipes.result_count": filtered.length,
       "recipes.filter_match_rate": filtered.length / recipes.length,
@@ -221,8 +217,7 @@ export const Query = {
     ).length;
 
     activeSpan?.setAttributes({
-      "search.query": query,
-      "search.query_length": query.length,
+      "search.query": lowerQuery,
       "search.result_count": results.length,
       "search.matched_title_count": titleMatches,
       "search.matched_description_count": descriptionMatches,
