@@ -1,8 +1,8 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { trace, SpanStatusCode } from "@opentelemetry/api";
-import { GRAPHQL_URL } from "@/config";
+import { trace } from "@opentelemetry/api";
+import { graphqlRequest } from "@obs-playground/graphql-client";
 
 export async function createRecipeAction(formData: FormData) {
   const activeSpan = trace.getActiveSpan();
@@ -27,50 +27,33 @@ export async function createRecipeAction(formData: FormData) {
     "recipe.ingredient_count": ingredients.length,
   });
 
-  const response = await fetch(GRAPHQL_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      query: `
-          mutation CreateRecipe($input: CreateRecipeInput!) {
-            createRecipe(input: $input) {
-              id
-              title
-              description
-            }
-          }
-        `,
-      variables: {
-        input: {
-          recipe: {
-            title,
-            description,
-            prepTime,
-            cookTime,
-            difficulty,
-            servings,
-            categoryId,
-          },
-          ingredients,
+  const { createRecipe: createdRecipe } = await graphqlRequest<{
+    createRecipe: { id: string; title: string; description: string };
+  }>(
+    `
+      mutation CreateRecipe($input: CreateRecipeInput!) {
+        createRecipe(input: $input) {
+          id
+          title
+          description
+        }
+      }
+    `,
+    {
+      input: {
+        recipe: {
+          title,
+          description,
+          prepTime,
+          cookTime,
+          difficulty,
+          servings,
+          categoryId,
         },
+        ingredients,
       },
-    }),
-    cache: "no-store",
-  });
-
-  const result = await response.json();
-
-  if (result.errors) {
-    const error = new Error(`GraphQL error: ${result.errors[0].message}`);
-    activeSpan?.recordException(error);
-    activeSpan?.setStatus({
-      code: SpanStatusCode.ERROR,
-      message: result.errors[0].message,
-    });
-    throw error;
-  }
-
-  const createdRecipe = result.data.createRecipe;
+    },
+  );
 
   activeSpan?.setAttributes({
     "recipe.id": createdRecipe.id,
@@ -101,46 +84,31 @@ export async function updateRecipeAction(id: string, formData: FormData) {
     "recipe.cook_time": cookTime,
   });
 
-  const response = await fetch(GRAPHQL_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      query: `
-          mutation UpdateRecipe($id: ID!, $recipe: RecipeInput!) {
-            updateRecipe(id: $id, recipe: $recipe) {
-              id
-              title
-              description
-            }
-          }
-        `,
-      variables: {
-        id,
-        recipe: {
-          title,
-          description,
-          prepTime,
-          cookTime,
-          difficulty,
-          servings,
-          categoryId,
-        },
+  await graphqlRequest<{
+    updateRecipe: { id: string; title: string; description: string };
+  }>(
+    `
+      mutation UpdateRecipe($id: ID!, $recipe: RecipeInput!) {
+        updateRecipe(id: $id, recipe: $recipe) {
+          id
+          title
+          description
+        }
+      }
+    `,
+    {
+      id,
+      recipe: {
+        title,
+        description,
+        prepTime,
+        cookTime,
+        difficulty,
+        servings,
+        categoryId,
       },
-    }),
-    cache: "no-store",
-  });
-
-  const result = await response.json();
-
-  if (result.errors) {
-    const error = new Error(`GraphQL error: ${result.errors[0].message}`);
-    activeSpan?.recordException(error);
-    activeSpan?.setStatus({
-      code: SpanStatusCode.ERROR,
-      message: result.errors[0].message,
-    });
-    throw error;
-  }
+    },
+  );
 
   redirect(`/recipes/${id}`);
 }
@@ -154,33 +122,16 @@ export async function deleteRecipeAction(id: string) {
     "recipe.id": id,
   });
 
-  const response = await fetch(GRAPHQL_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      query: `
-          mutation DeleteRecipe($id: ID!) {
-            deleteRecipe(id: $id)
-          }
-        `,
-      variables: { id },
-    }),
-    cache: "no-store",
-  });
-
-  const result = await response.json();
-
-  if (result.errors) {
-    const error = new Error(`GraphQL error: ${result.errors[0].message}`);
-    activeSpan?.recordException(error);
-    activeSpan?.setStatus({
-      code: SpanStatusCode.ERROR,
-      message: result.errors[0].message,
-    });
-    throw error;
-  }
-
-  const success = result.data.deleteRecipe;
+  const { deleteRecipe: success } = await graphqlRequest<{
+    deleteRecipe: boolean;
+  }>(
+    `
+      mutation DeleteRecipe($id: ID!) {
+        deleteRecipe(id: $id)
+      }
+    `,
+    { id },
+  );
 
   activeSpan?.setAttributes({
     "recipe.deletion_success": success,
@@ -194,22 +145,11 @@ export async function deleteRecipeAction(id: string) {
 }
 
 export async function brokenCreateRecipeAction(_formData: FormData) {
-  const response = await fetch(GRAPHQL_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      query: `
-        mutation ErrorMutation {
-          errorMutation(input: "test")
-        }
-      `,
-    }),
-    cache: "no-store",
-  });
-
-  const result = await response.json();
-
-  if (result.errors) {
-    throw new Error(`GraphQL error: ${result.errors[0].message}`);
-  }
+  await graphqlRequest<{ errorMutation: string }>(
+    `
+      mutation ErrorMutation {
+        errorMutation(input: "test")
+      }
+    `,
+  );
 }

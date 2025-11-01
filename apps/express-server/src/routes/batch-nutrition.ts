@@ -1,8 +1,12 @@
 import { Router, Request, Response } from "express";
 import { trace } from "@opentelemetry/api";
-import { fetchRecipes } from "../graphql-client.js";
+import { graphqlRequest } from "@obs-playground/graphql-client";
 import { ingredientNutrition } from "../data.js";
-import type { BatchNutritionRequest, RecipeNutrition } from "../types.js";
+import type {
+  BatchNutritionRequest,
+  RecipeNutrition,
+  GraphQLRecipe,
+} from "../types.js";
 
 const router = Router();
 
@@ -19,7 +23,24 @@ router.post("/batch/nutrition", async (req: Request, res: Response) => {
     return res.status(400).json({ error: "recipeIds array is required" });
   }
 
-  const allRecipes = await fetchRecipes();
+  const { recipes: allRecipes } = await graphqlRequest<{
+    recipes: GraphQLRecipe[];
+  }>(`
+    query GetAllRecipes {
+      recipes {
+        id
+        title
+        ingredients {
+          ingredient {
+            id
+            name
+            unit
+          }
+          quantity
+        }
+      }
+    }
+  `);
   const selectedRecipes = allRecipes.filter((r) => recipeIds.includes(r.id));
 
   // Calculate nutrition for each recipe

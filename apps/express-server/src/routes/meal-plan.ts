@@ -1,7 +1,8 @@
 import { Router, Request, Response } from "express";
 import { trace } from "@opentelemetry/api";
-import { fetchRecipes } from "../graphql-client.js";
+import { graphqlRequest } from "@obs-playground/graphql-client";
 import { ingredientPrices } from "../data.js";
+import type { GraphQLRecipe } from "../types.js";
 
 const router = Router();
 
@@ -22,7 +23,24 @@ router.get("/meal-plan/estimate", async (req: Request, res: Response) => {
     "meal_plan.recipe_count": idsArray.length,
   });
 
-  const allRecipes = await fetchRecipes();
+  const { recipes: allRecipes } = await graphqlRequest<{
+    recipes: GraphQLRecipe[];
+  }>(`
+    query GetAllRecipes {
+      recipes {
+        id
+        title
+        ingredients {
+          ingredient {
+            id
+            name
+            unit
+          }
+          quantity
+        }
+      }
+    }
+  `);
   const selectedRecipes = allRecipes.filter((r) => idsArray.includes(r.id));
 
   // Calculate cost for each recipe

@@ -1,8 +1,12 @@
 import { Router, Request, Response } from "express";
 import { trace } from "@opentelemetry/api";
-import { fetchRecipes } from "../graphql-client.js";
+import { graphqlRequest } from "@obs-playground/graphql-client";
 import { ingredientPrices, ingredientInventory } from "../data.js";
-import type { ShoppingListRequest, ShoppingListItem } from "../types.js";
+import type {
+  ShoppingListRequest,
+  ShoppingListItem,
+  GraphQLRecipe,
+} from "../types.js";
 
 const router = Router();
 
@@ -21,7 +25,24 @@ router.post("/shopping-list/generate", async (req: Request, res: Response) => {
     return res.status(400).json({ error: "recipeIds array is required" });
   }
 
-  const allRecipes = await fetchRecipes();
+  const { recipes: allRecipes } = await graphqlRequest<{
+    recipes: GraphQLRecipe[];
+  }>(`
+    query GetAllRecipes {
+      recipes {
+        id
+        title
+        ingredients {
+          ingredient {
+            id
+            name
+            unit
+          }
+          quantity
+        }
+      }
+    }
+  `);
   const selectedRecipes = allRecipes.filter((r) => recipeIds.includes(r.id));
 
   activeSpan?.setAttributes({
