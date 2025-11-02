@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-
-const GRAPHQL_URL = "/graphql";
+import { graphqlRequest } from "@obs-playground/graphql-client";
 
 export default function BrokenMutationPage() {
   const [loading, setLoading] = useState(false);
@@ -18,26 +17,14 @@ export default function BrokenMutationPage() {
     setResponse(null);
 
     try {
-      const res = await fetch(GRAPHQL_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          query: `
-            mutation ErrorMutation {
-              errorMutation(input: "test")
-            }
-          `,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (data.errors && data.errors.length > 0) {
-        setError(`GraphQL Error: ${data.errors[0].message}`);
-        setResponse(data);
-      } else {
-        setResponse(data);
-      }
+      const data = await graphqlRequest<{ errorMutation: string }>(
+        `
+          mutation ErrorMutation {
+            errorMutation(input: "test")
+          }
+        `,
+      );
+      setResponse(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
@@ -51,40 +38,30 @@ export default function BrokenMutationPage() {
     setResponse(null);
 
     try {
-      const res = await fetch(GRAPHQL_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          query: `
-            mutation ValidationError {
-              validationErrorMutation(input: {
-                recipe: {
-                  title: "Short"
-                  description: "Test"
-                  prepTime: -5
-                  cookTime: 10
-                  difficulty: "Easy"
-                  servings: 4
-                  categoryId: "1"
-                }
-                ingredients: []
-              }) {
-                id
-                title
+      const data = await graphqlRequest<{
+        validationErrorMutation: { id: string; title: string };
+      }>(
+        `
+          mutation ValidationError {
+            validationErrorMutation(input: {
+              recipe: {
+                title: "Short"
+                description: "Test"
+                prepTime: -5
+                cookTime: 10
+                difficulty: "Easy"
+                servings: 4
+                categoryId: "1"
               }
+              ingredients: []
+            }) {
+              id
+              title
             }
-          `,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (data.errors && data.errors.length > 0) {
-        setError(`GraphQL Error: ${data.errors[0].message}`);
-        setResponse(data);
-      } else {
-        setResponse(data);
-      }
+          }
+        `,
+      );
+      setResponse(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
@@ -98,26 +75,43 @@ export default function BrokenMutationPage() {
     setResponse(null);
 
     try {
-      const res = await fetch(GRAPHQL_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          query: `
-            query ErrorQuery {
-              errorQuery
+      const data = await graphqlRequest<{ errorQuery: string }>(
+        `
+          query ErrorQuery {
+            errorQuery
+          }
+        `,
+      );
+      setResponse(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unknown error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSchemaValidationError = async () => {
+    setLoading(true);
+    setError(null);
+    setResponse(null);
+
+    try {
+      const data = await graphqlRequest<{
+        recipes: Array<{ id: string; title: string }>;
+      }>(
+        `
+          query RecipeQuery($unusedVariable: ID!) {
+            recipes {
+              id
+              title
             }
-          `,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (data.errors && data.errors.length > 0) {
-        setError(`GraphQL Error: ${data.errors[0].message}`);
-        setResponse(data);
-      } else {
-        setResponse(data);
-      }
+          }
+        `,
+        {
+          unusedVariable: "recipe-1",
+        },
+      );
+      setResponse(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
@@ -181,6 +175,17 @@ export default function BrokenMutationPage() {
               <span className="block text-sm">Error Query</span>
               <span className="block text-xs opacity-75">
                 query errorQuery (always throws)
+              </span>
+            </button>
+
+            <button
+              onClick={handleSchemaValidationError}
+              disabled={loading}
+              className="w-full rounded-md bg-yellow-600 px-4 py-3 text-left font-medium text-white hover:bg-yellow-700 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-yellow-700 dark:hover:bg-yellow-800"
+            >
+              <span className="block text-sm">Schema Validation Error</span>
+              <span className="block text-xs opacity-75">
+                unused variable (GraphQL validation fails)
               </span>
             </button>
           </div>

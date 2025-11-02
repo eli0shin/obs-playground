@@ -175,6 +175,13 @@ Frontend makes REST calls to Express â†’ Express orchestrates calls to GraphQL â
 - Bad: `if (activeSpan) { activeSpan.setAttributes({ ... }) }`
 - Applies to: `setAttributes()`, `setAttribute()`, `recordException()`, `setStatus()`
 
+**GraphQL Client:**
+
+- ALWAYS use the `graphqlRequest` function from `@obs-playground/graphql-client` for all GraphQL requests
+- NEVER use raw `fetch()` calls to `/graphql` or `GRAPHQL_URL`
+- The shared client provides automatic error handling and OTEL span instrumentation
+- Located at: `packages/graphql-client/src/index.ts`
+
 **Testing:**
 
 - No test framework currently configured
