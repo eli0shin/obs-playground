@@ -6,24 +6,36 @@ import {
   categories,
   ingredients,
 } from "../data/index.js";
+import { getOperationSpan } from "../utils/otel.js";
 
 const EXPRESS_URL = process.env.EXPRESS_URL || "http://localhost:3001";
 
 export const Query = {
   recipe: (_: unknown, { id }: { id: string }) => {
+    const operationSpan = getOperationSpan();
+
+    operationSpan?.setAttribute("resolver.recipe.id", id);
+
     return recipes.find((r) => r.id === id);
   },
 
   recipeWithCost: async (_: unknown, { id }: { id: string }) => {
     const activeSpan = trace.getActiveSpan();
+    const operationSpan = getOperationSpan();
 
     activeSpan?.setAttributes({
       "recipe.id": id,
     });
 
+    operationSpan?.setAttributes({
+      "resolver.recipe_with_cost.id": id,
+      "resolver.recipe_with_cost.includes_pricing": true,
+    });
+
     const recipe = recipes.find((r) => r.id === id);
     if (!recipe) {
       activeSpan?.setAttribute("recipe.found", false);
+      operationSpan?.setAttribute("resolver.recipe_with_cost.found", false);
       return null;
     }
 
@@ -76,6 +88,12 @@ export const Query = {
     activeSpan?.setAttributes({
       "recipe.total_cost": totalCost,
       "recipe.cost_per_serving": costPerServing,
+    });
+
+    operationSpan?.setAttributes({
+      "resolver.recipe_with_cost.total_cost": totalCost,
+      "resolver.recipe_with_cost.cost_per_serving": costPerServing,
+      "resolver.recipe_with_cost.ingredient_count": ingredientCosts.length,
     });
 
     return {

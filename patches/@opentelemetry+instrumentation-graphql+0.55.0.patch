@@ -1,8 +1,31 @@
 diff --git a/node_modules/@opentelemetry/instrumentation-graphql/build/src/instrumentation.js b/node_modules/@opentelemetry/instrumentation-graphql/build/src/instrumentation.js
-index 733bffc..c1a25fc 100644
+index 733bffc..2d9475c 100644
 --- a/node_modules/@opentelemetry/instrumentation-graphql/build/src/instrumentation.js
 +++ b/node_modules/@opentelemetry/instrumentation-graphql/build/src/instrumentation.js
-@@ -126,7 +126,7 @@ class GraphQLInstrumentation extends instrumentation_1.InstrumentationBase {
+@@ -23,6 +23,9 @@ const AttributeNames_1 = require("./enums/AttributeNames");
+ const symbols_1 = require("./symbols");
+ const internal_types_1 = require("./internal-types");
+ const utils_1 = require("./utils");
++// Create a context key for storing the GraphQL operation span
++// This allows resolvers to access the operation span without manual context propagation
++const OPERATION_SPAN_KEY = api_1.createContextKey('graphql.operation.span');
+ /** @knipignore */
+ const version_1 = require("./version");
+ const DEFAULT_CONFIG = {
+@@ -112,7 +115,11 @@ class GraphQLInstrumentation extends instrumentation_1.InstrumentationBase {
+                     span,
+                     fields: {},
+                 };
+-                return api_1.context.with(api_1.trace.setSpan(api_1.context.active(), span), () => {
++                // Store the operation span in OTEL context for retrieval from nested resolvers
++                const contextWithOperationSpan = api_1.context.active().setValue(OPERATION_SPAN_KEY, span);
++                // Combine with setSpan to also mark it as the active span
++                const fullContext = api_1.trace.setSpan(contextWithOperationSpan, span);
++                return api_1.context.with(fullContext, () => {
+                     return (0, instrumentation_1.safeExecuteInTheMiddle)(() => {
+                         return original.apply(this, [
+                             processedArgs,
+@@ -126,7 +133,7 @@ class GraphQLInstrumentation extends instrumentation_1.InstrumentationBase {
      }
      _handleExecutionResult(span, err, result) {
          const config = this.getConfig();
@@ -11,7 +34,7 @@ index 733bffc..c1a25fc 100644
              (0, utils_1.endSpan)(span, err);
              return;
          }
-@@ -136,7 +136,7 @@ class GraphQLInstrumentation extends instrumentation_1.InstrumentationBase {
+@@ -136,7 +143,7 @@ class GraphQLInstrumentation extends instrumentation_1.InstrumentationBase {
                      (0, utils_1.endSpan)(span);
                      return;
                  }
@@ -20,7 +43,7 @@ index 733bffc..c1a25fc 100644
              }, error => {
                  (0, utils_1.endSpan)(span, error);
              });
-@@ -146,16 +146,16 @@ class GraphQLInstrumentation extends instrumentation_1.InstrumentationBase {
+@@ -146,16 +153,16 @@ class GraphQLInstrumentation extends instrumentation_1.InstrumentationBase {
                  (0, utils_1.endSpan)(span);
                  return;
              }
@@ -40,7 +63,7 @@ index 733bffc..c1a25fc 100644
          }, err => {
              if (err) {
                  this._diag.error('Error running response hook', err);
-@@ -213,6 +213,10 @@ class GraphQLInstrumentation extends instrumentation_1.InstrumentationBase {
+@@ -213,6 +220,10 @@ class GraphQLInstrumentation extends instrumentation_1.InstrumentationBase {
                          name: AttributeNames_1.AttributeNames.ERROR_VALIDATION_NAME,
                          message: JSON.stringify(errors),
                      });
@@ -51,7 +74,7 @@ index 733bffc..c1a25fc 100644
                  }
                  (0, utils_1.endSpan)(span, err);
              });
-@@ -220,7 +224,9 @@ class GraphQLInstrumentation extends instrumentation_1.InstrumentationBase {
+@@ -220,7 +231,9 @@ class GraphQLInstrumentation extends instrumentation_1.InstrumentationBase {
      }
      _createExecuteSpan(operation, processedArgs) {
          const config = this.getConfig();

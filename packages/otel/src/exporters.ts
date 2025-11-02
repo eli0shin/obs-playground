@@ -5,10 +5,12 @@ import {
   BatchSpanProcessor,
   SpanProcessor,
 } from "@opentelemetry/sdk-trace-node";
+import { ConsoleSpanExporter } from "@opentelemetry/sdk-trace-base";
 import {
   BatchLogRecordProcessor,
   LogRecordProcessor,
 } from "@opentelemetry/sdk-logs";
+import { ConsoleLogRecordExporter } from "@opentelemetry/sdk-logs";
 import {
   PeriodicExportingMetricReader,
   MetricReader,
@@ -80,6 +82,11 @@ export function createSpanProcessors(): SpanProcessor[] {
           ),
         ]
       : []),
+
+    // Console exporter for local debugging
+    ...(process.env.OTEL_EXPORTER_CONSOLE
+      ? [new BatchSpanProcessor(new ConsoleSpanExporter(), batchConfig)]
+      : []),
   ];
 
   return processors;
@@ -139,6 +146,11 @@ export function createLogProcessors(): LogRecordProcessor[] {
             }),
           ),
         ]
+      : []),
+
+    // Console exporter for local debugging
+    ...(process.env.OTEL_EXPORTER_CONSOLE
+      ? [new BatchLogRecordProcessor(new ConsoleLogRecordExporter())]
       : []),
   ];
 
