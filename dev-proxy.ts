@@ -18,7 +18,6 @@ app.use(
   createProxyMiddleware({
     target: "http://localhost:4000",
     changeOrigin: true,
-    logLevel: "info",
     pathRewrite: {
       "^/": "/graphql",
     },
@@ -31,7 +30,6 @@ app.use(
   createProxyMiddleware({
     target: "http://localhost:3001",
     changeOrigin: true,
-    logLevel: "info",
     pathRewrite: {
       "^/": "/api/",
     },
@@ -44,7 +42,6 @@ app.use(
   createProxyMiddleware({
     target: "http://localhost:3000",
     changeOrigin: true,
-    logLevel: "info",
     ws: true, // Enable WebSocket support for Next.js HMR
   }),
 );
