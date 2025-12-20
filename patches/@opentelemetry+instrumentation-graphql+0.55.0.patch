@@ -25,44 +25,6 @@ index 733bffc..2d9475c 100644
                      return (0, instrumentation_1.safeExecuteInTheMiddle)(() => {
                          return original.apply(this, [
                              processedArgs,
-@@ -126,7 +133,7 @@ class GraphQLInstrumentation extends instrumentation_1.InstrumentationBase {
-     }
-     _handleExecutionResult(span, err, result) {
-         const config = this.getConfig();
--        if (result === undefined || err) {
-+        if (result === undefined) {
-             (0, utils_1.endSpan)(span, err);
-             return;
-         }
-@@ -136,7 +143,7 @@ class GraphQLInstrumentation extends instrumentation_1.InstrumentationBase {
-                     (0, utils_1.endSpan)(span);
-                     return;
-                 }
--                this._executeResponseHook(span, resultData);
-+                this._executeResponseHook(span, resultData, err);
-             }, error => {
-                 (0, utils_1.endSpan)(span, error);
-             });
-@@ -146,16 +153,16 @@ class GraphQLInstrumentation extends instrumentation_1.InstrumentationBase {
-                 (0, utils_1.endSpan)(span);
-                 return;
-             }
--            this._executeResponseHook(span, result);
-+            this._executeResponseHook(span, result, err);
-         }
-     }
--    _executeResponseHook(span, result) {
-+    _executeResponseHook(span, result, err) {
-         const { responseHook } = this.getConfig();
-         if (!responseHook) {
-             return;
-         }
-         (0, instrumentation_1.safeExecuteInTheMiddle)(() => {
--            responseHook(span, result);
-+            responseHook(span, result, err);
-         }, err => {
-             if (err) {
-                 this._diag.error('Error running response hook', err);
 @@ -213,6 +220,10 @@ class GraphQLInstrumentation extends instrumentation_1.InstrumentationBase {
                          name: AttributeNames_1.AttributeNames.ERROR_VALIDATION_NAME,
                          message: JSON.stringify(errors),
@@ -85,19 +47,6 @@ index 733bffc..2d9475c 100644
          if (operation) {
              const { operation: operationType, name: nameNode } = operation;
              span.setAttribute(AttributeNames_1.AttributeNames.OPERATION_TYPE, operationType);
-diff --git a/node_modules/@opentelemetry/instrumentation-graphql/build/src/types.d.ts b/node_modules/@opentelemetry/instrumentation-graphql/build/src/types.d.ts
-index fda88d3..b083e78 100644
---- a/node_modules/@opentelemetry/instrumentation-graphql/build/src/types.d.ts
-+++ b/node_modules/@opentelemetry/instrumentation-graphql/build/src/types.d.ts
-@@ -1,7 +1,7 @@
- import { InstrumentationConfig } from '@opentelemetry/instrumentation';
- import type * as api from '@opentelemetry/api';
- export interface GraphQLInstrumentationExecutionResponseHook {
--    (span: api.Span, data: any): void;
-+    (span: api.Span, data: any, error?: unknown): void;
- }
- export interface GraphQLInstrumentationConfig extends InstrumentationConfig {
-     /**
 diff --git a/node_modules/@opentelemetry/instrumentation-graphql/build/src/utils.js b/node_modules/@opentelemetry/instrumentation-graphql/build/src/utils.js
 index dbd0472..14e6f06 100644
 --- a/node_modules/@opentelemetry/instrumentation-graphql/build/src/utils.js

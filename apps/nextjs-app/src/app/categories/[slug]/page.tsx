@@ -1,6 +1,5 @@
 import Link from "next/link";
-
-import { GRAPHQL_URL } from "@/config";
+import { graphqlRequest } from "@obs-playground/graphql-client";
 
 type Category = {
   id: string;
@@ -20,34 +19,29 @@ type Recipe = {
 };
 
 async function getCategoryAndRecipes(slug: string) {
-  const response = await fetch(GRAPHQL_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      query: `
-        query GetCategoryRecipes {
-          categories {
-            id
-            name
-            slug
-          }
-          recipes {
-            id
-            title
-            description
-            prepTime
-            cookTime
-            difficulty
-            servings
-            categoryId
-          }
-        }
-      `,
-    }),
-    cache: "no-store",
-  });
+  const data = await graphqlRequest<{
+    categories: Category[];
+    recipes: Recipe[];
+  }>(`
+    query GetCategoryRecipes {
+      categories {
+        id
+        name
+        slug
+      }
+      recipes {
+        id
+        title
+        description
+        prepTime
+        cookTime
+        difficulty
+        servings
+        categoryId
+      }
+    }
+  `);
 
-  const { data } = await response.json();
   const category = data.categories.find((c: Category) => c.slug === slug);
   const recipes = category
     ? data.recipes.filter((r: Recipe) => r.categoryId === category.id)

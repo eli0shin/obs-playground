@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { GRAPHQL_URL } from "@/config";
+import { graphqlRequest } from "@obs-playground/graphql-client";
 
 const EXPRESS_URL = process.env.EXPRESS_URL || "http://localhost:3001";
 
@@ -12,16 +12,10 @@ type FetchResult = {
 
 async function fetchRecipe1() {
   try {
-    const response = await fetch(GRAPHQL_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        query: `query { recipe(id: "1") { id title } }`,
-      }),
-      cache: "no-store",
-    });
-    const result = await response.json();
-    return { name: "Recipe 1 (Success)", success: true, data: result.data };
+    const data = await graphqlRequest<{
+      recipe: { id: string; title: string };
+    }>(`query { recipe(id: "1") { id title } }`);
+    return { name: "Recipe 1 (Success)", success: true, data };
   } catch (error) {
     return {
       name: "Recipe 1",
@@ -33,21 +27,15 @@ async function fetchRecipe1() {
 
 async function fetchNonExistentRecipe() {
   try {
-    const response = await fetch(GRAPHQL_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        query: `query { notFoundRecipe { id title } }`,
-      }),
-      cache: "no-store",
-    });
-    const result = await response.json();
+    const data = await graphqlRequest<{
+      notFoundRecipe: { id: string; title: string } | null;
+    }>(`query { notFoundRecipe { id title } }`);
 
-    if (!result.data.notFoundRecipe) {
+    if (!data.notFoundRecipe) {
       throw new Error("Recipe not found");
     }
 
-    return { name: "Not Found Recipe", success: true, data: result.data };
+    return { name: "Not Found Recipe", success: true, data };
   } catch (error) {
     return {
       name: "Not Found Recipe (Expected Failure)",
@@ -80,16 +68,10 @@ async function fetchExpressError() {
 
 async function fetchRecipe2() {
   try {
-    const response = await fetch(GRAPHQL_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        query: `query { recipe(id: "2") { id title } }`,
-      }),
-      cache: "no-store",
-    });
-    const result = await response.json();
-    return { name: "Recipe 2 (Success)", success: true, data: result.data };
+    const data = await graphqlRequest<{
+      recipe: { id: string; title: string };
+    }>(`query { recipe(id: "2") { id title } }`);
+    return { name: "Recipe 2 (Success)", success: true, data };
   } catch (error) {
     return {
       name: "Recipe 2",

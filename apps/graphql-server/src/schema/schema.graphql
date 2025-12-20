@@ -94,7 +94,8 @@ type Query {
   ingredients: [Ingredient!]!
 
   # Testing queries that always fail
-  errorQuery: String!
+  errorQuery: String
+  secondErrorQuery: String
   slowQuery(delayMs: Int): String!
   notFoundRecipe: Recipe
 }

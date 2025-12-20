@@ -1,6 +1,5 @@
 import Link from "next/link";
-
-import { GRAPHQL_URL } from "@/config";
+import { graphqlRequest } from "@obs-playground/graphql-client";
 
 type IngredientCost = {
   ingredientId: string;
@@ -24,39 +23,33 @@ type RecipeWithCost = {
 };
 
 async function getRecipeWithCost(id: string) {
-  const response = await fetch(GRAPHQL_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      query: `
-        query GetRecipeWithCost($id: ID!) {
-          recipeWithCost(id: $id) {
-            id
-            title
-            description
-            prepTime
-            cookTime
-            difficulty
-            servings
-            ingredientCosts {
-              ingredientId
-              name
-              quantity
-              unit
-              pricePerUnit
-              totalCost
-            }
+  const data = await graphqlRequest<{ recipeWithCost: RecipeWithCost }>(
+    `
+      query GetRecipeWithCost($id: ID!) {
+        recipeWithCost(id: $id) {
+          id
+          title
+          description
+          prepTime
+          cookTime
+          difficulty
+          servings
+          ingredientCosts {
+            ingredientId
+            name
+            quantity
+            unit
+            pricePerUnit
             totalCost
           }
+          totalCost
         }
-      `,
-      variables: { id },
-    }),
-    cache: "no-store",
-  });
+      }
+    `,
+    { id },
+  );
 
-  const { data } = await response.json();
-  return data.recipeWithCost as RecipeWithCost;
+  return data.recipeWithCost;
 }
 
 export default async function RecipeWithCostPage({

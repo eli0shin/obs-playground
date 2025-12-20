@@ -1,27 +1,20 @@
 import Link from "next/link";
-import { GRAPHQL_URL } from "@/config";
+import { graphqlRequest } from "@obs-playground/graphql-client";
 
 export const dynamic = "force-dynamic";
 
 async function fetchNonExistentRecipe() {
-  const response = await fetch(GRAPHQL_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      query: `
-        query NotFoundRecipe {
-          notFoundRecipe {
-            id
-            title
-            description
-          }
-        }
-      `,
-    }),
-    cache: "no-store",
-  });
-
-  const { data } = await response.json();
+  const data = await graphqlRequest<{
+    notFoundRecipe: { id: string; title: string; description: string } | null;
+  }>(`
+    query NotFoundRecipe {
+      notFoundRecipe {
+        id
+        title
+        description
+      }
+    }
+  `);
 
   if (!data.notFoundRecipe) {
     throw new Error("Recipe not found - GraphQL returned null");

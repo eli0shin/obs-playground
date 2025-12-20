@@ -17,6 +17,13 @@ datadogRum.init({
   trackLongTasks: true,
   trackUserInteractions: true,
   allowedTracingUrls: ["https://localhost"],
+  allowedGraphQlUrls: [
+    {
+      match: /\/graphql$/,
+      trackPayload: true,
+      trackResponseErrors: true,
+    },
+  ],
 });
 
 export const onRouterTransitionStart = captureRouterTransitionStart;

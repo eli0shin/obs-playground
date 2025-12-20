@@ -1,6 +1,6 @@
 import Link from "next/link";
+import { graphqlRequest } from "@obs-playground/graphql-client";
 
-import { GRAPHQL_URL } from "@/config";
 const EXPRESS_URL = process.env.EXPRESS_URL || "http://localhost:3001";
 
 type Ingredient = {
@@ -25,11 +25,6 @@ type Recipe = {
   ingredients: RecipeIngredient[];
 };
 
-type PriceData = {
-  ingredientId: string;
-  price: number;
-};
-
 type NutritionData = {
   calories: number;
   protein: number;
@@ -43,38 +38,32 @@ type InventoryData = {
 };
 
 async function getRecipe(id: string) {
-  const response = await fetch(GRAPHQL_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      query: `
-        query GetRecipe($id: ID!) {
-          recipe(id: $id) {
-            id
-            title
-            description
-            prepTime
-            cookTime
-            difficulty
-            servings
-            ingredients {
-              ingredient {
-                id
-                name
-                unit
-              }
-              quantity
+  const data = await graphqlRequest<{ recipe: Recipe }>(
+    `
+      query GetRecipe($id: ID!) {
+        recipe(id: $id) {
+          id
+          title
+          description
+          prepTime
+          cookTime
+          difficulty
+          servings
+          ingredients {
+            ingredient {
+              id
+              name
+              unit
             }
+            quantity
           }
         }
-      `,
-      variables: { id },
-    }),
-    cache: "no-store",
-  });
+      }
+    `,
+    { id },
+  );
 
-  const { data } = await response.json();
-  return data.recipe as Recipe;
+  return data.recipe;
 }
 
 async function getIngredientPrices(ingredientIds: string[]) {

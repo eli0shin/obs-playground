@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { graphqlRequest } from "@obs-playground/graphql-client";
+import { graphqlRequest } from "@obs-playground/graphql-client/browser";
 
 export default function BrokenMutationPage() {
   const [loading, setLoading] = useState(false);
@@ -17,14 +17,19 @@ export default function BrokenMutationPage() {
     setResponse(null);
 
     try {
-      const data = await graphqlRequest<{ errorMutation: string }>(
+      const result = await graphqlRequest<{ errorMutation: string }>(
         `
           mutation ErrorMutation {
             errorMutation(input: "test")
           }
         `,
       );
-      setResponse(data);
+      if (result.errors && result.errors.length > 0) {
+        setError(JSON.stringify(result.errors));
+      }
+      if (result.data) {
+        setResponse(result.data);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
@@ -38,7 +43,7 @@ export default function BrokenMutationPage() {
     setResponse(null);
 
     try {
-      const data = await graphqlRequest<{
+      const result = await graphqlRequest<{
         validationErrorMutation: { id: string; title: string };
       }>(
         `
@@ -61,7 +66,12 @@ export default function BrokenMutationPage() {
           }
         `,
       );
-      setResponse(data);
+      if (result.errors && result.errors.length > 0) {
+        setError(JSON.stringify(result.errors));
+      }
+      if (result.data) {
+        setResponse(result.data);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
@@ -75,14 +85,19 @@ export default function BrokenMutationPage() {
     setResponse(null);
 
     try {
-      const data = await graphqlRequest<{ errorQuery: string }>(
+      const result = await graphqlRequest<{ errorQuery: string }>(
         `
           query ErrorQuery {
             errorQuery
           }
         `,
       );
-      setResponse(data);
+      if (result.errors && result.errors.length > 0) {
+        setError(JSON.stringify(result.errors));
+      }
+      if (result.data) {
+        setResponse(result.data);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
@@ -96,7 +111,7 @@ export default function BrokenMutationPage() {
     setResponse(null);
 
     try {
-      const data = await graphqlRequest<{
+      const result = await graphqlRequest<{
         recipes: Array<{ id: string; title: string }>;
       }>(
         `
@@ -111,7 +126,47 @@ export default function BrokenMutationPage() {
           unusedVariable: "recipe-1",
         },
       );
-      setResponse(data);
+      if (result.errors && result.errors.length > 0) {
+        setError(JSON.stringify(result.errors));
+      }
+      if (result.data) {
+        setResponse(result.data);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unknown error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleMultipleErrorsQuery = async () => {
+    setLoading(true);
+    setError(null);
+    setResponse(null);
+
+    try {
+      const result = await graphqlRequest<{
+        recipes: Array<{ id: string; title: string }>;
+        errorQuery: string;
+        secondErrorQuery: string;
+      }>(
+        `
+          query MultipleErrorsQuery {
+            recipes {
+              id
+              title
+            }
+            errorQuery
+            secondErrorQuery
+          }
+        `,
+      );
+      if (result.errors && result.errors.length > 0) {
+        setError(JSON.stringify(result.errors));
+      }
+      if (result.data) {
+        setResponse(result.data);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
@@ -186,6 +241,17 @@ export default function BrokenMutationPage() {
               <span className="block text-sm">Schema Validation Error</span>
               <span className="block text-xs opacity-75">
                 unused variable (GraphQL validation fails)
+              </span>
+            </button>
+
+            <button
+              onClick={handleMultipleErrorsQuery}
+              disabled={loading}
+              className="w-full rounded-md bg-teal-600 px-4 py-3 text-left font-medium text-white hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-teal-700 dark:hover:bg-teal-800"
+            >
+              <span className="block text-sm">Multiple Errors Query</span>
+              <span className="block text-xs opacity-75">
+                query with 1 success and 2 different errors
               </span>
             </button>
           </div>

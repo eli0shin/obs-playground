@@ -151,6 +151,7 @@ Frontend makes REST calls to Express â†’ Express orchestrates calls to GraphQL â
 - Prefer functions and types over classes/interfaces
 - Target: ES2022 for backends, ES2017 for Next.js
 - Module systems: ESM for GraphQL/root workspace, mixed for Express/Next.js
+- When changing a variable prefer to keep its name unless the meaning has fundamentally changed
 
 **ESLint:**
 

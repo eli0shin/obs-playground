@@ -21,6 +21,10 @@ initializeOtel({
           });
           span.setAttributes({
             "graphql.error.count": data.errors.length,
+            "graphql.error.messages": data.errors.map((e) => e.message),
+            "graphql.error.codes": data.errors.map(
+              (e) => e.extensions?.code as string | undefined,
+            ),
             "error.type": data.errors[0].name,
             "error.message": data.errors[0].message,
             "error.stack": data.errors[0].stack,

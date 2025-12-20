@@ -27,6 +27,21 @@ export function initializeOtel(config: OtelConfig): OtelResult {
       port: process.env.DD_TRACE_AGENT_PORT || "8126",
     });
 
+    ddTracer.use("graphql", {
+      depth: 1,
+      source: true,
+      variables: ["id"],
+    });
+
+    ddTracer.use("express", {
+      blocklist: [/^\/_/],
+    });
+
+    ddTracer.use("http", {
+      blocklist: [/^\/_/],
+    });
+
+    // eslint-disable-next-line no-console
     console.log(
       `Datadog native tracer (dd-trace) initialized for service: ${ddServiceName}`,
     );
@@ -73,6 +88,7 @@ export function initializeOtel(config: OtelConfig): OtelResult {
 
   sdk.start();
 
+  // eslint-disable-next-line no-console
   console.log(`OpenTelemetry initialized for service: ${serviceName}`);
 
   return { sdk };

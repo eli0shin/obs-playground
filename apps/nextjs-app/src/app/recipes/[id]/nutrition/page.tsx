@@ -1,6 +1,5 @@
 import Link from "next/link";
-
-import { GRAPHQL_URL } from "@/config";
+import { graphqlRequest } from "@obs-playground/graphql-client";
 
 type RecipeWithNutrition = {
   id: string;
@@ -17,34 +16,30 @@ type RecipeWithNutrition = {
 };
 
 async function getRecipeWithNutrition(id: string) {
-  const response = await fetch(GRAPHQL_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      query: `
-        query GetRecipeWithNutrition($id: ID!) {
-          recipeWithNutrition(id: $id) {
-            id
-            title
-            description
-            prepTime
-            cookTime
-            difficulty
-            servings
-            calories
-            protein
-            fat
-            carbs
-          }
+  const data = await graphqlRequest<{
+    recipeWithNutrition: RecipeWithNutrition;
+  }>(
+    `
+      query GetRecipeWithNutrition($id: ID!) {
+        recipeWithNutrition(id: $id) {
+          id
+          title
+          description
+          prepTime
+          cookTime
+          difficulty
+          servings
+          calories
+          protein
+          fat
+          carbs
         }
-      `,
-      variables: { id },
-    }),
-    cache: "no-store",
-  });
+      }
+    `,
+    { id },
+  );
 
-  const { data } = await response.json();
-  return data.recipeWithNutrition as RecipeWithNutrition;
+  return data.recipeWithNutrition;
 }
 
 export default async function RecipeNutritionPage({

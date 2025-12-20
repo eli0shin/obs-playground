@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { GRAPHQL_URL } from "@/config";
+import { graphqlRequest } from "@obs-playground/graphql-client";
 import { createRecipeAction } from "../actions";
 
 type Category = {
@@ -15,30 +15,22 @@ type Ingredient = {
 };
 
 async function getCategoriesAndIngredients() {
-  const response = await fetch(GRAPHQL_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      query: `
-        query GetCategoriesAndIngredients {
-          categories {
-            id
-            name
-            slug
-          }
-          ingredients {
-            id
-            name
-            unit
-          }
+  return graphqlRequest<{ categories: Category[]; ingredients: Ingredient[] }>(
+    `
+      query GetCategoriesAndIngredients {
+        categories {
+          id
+          name
+          slug
         }
-      `,
-    }),
-    cache: "no-store",
-  });
-
-  const { data } = await response.json();
-  return data as { categories: Category[]; ingredients: Ingredient[] };
+        ingredients {
+          id
+          name
+          unit
+        }
+      }
+    `,
+  );
 }
 
 export default async function NewRecipePage() {

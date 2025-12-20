@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { trace, SpanStatusCode } from "@opentelemetry/api";
+import { trace } from "@opentelemetry/api";
 
 const EXPRESS_URL = process.env.EXPRESS_URL || "http://localhost:3001";
 

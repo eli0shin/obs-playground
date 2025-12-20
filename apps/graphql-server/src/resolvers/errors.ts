@@ -1,9 +1,8 @@
 import { GraphQLError } from "graphql";
 import { getOperationSpan } from "../utils/otel.js";
-import { context, trace } from "@opentelemetry/api";
 
 export const ErrorQuery = {
-  errorQuery: () => {
+  errorQuery: async () => {
     const operationSpan = getOperationSpan();
 
     operationSpan?.setAttributes({
@@ -13,6 +12,23 @@ export const ErrorQuery = {
 
     throw new Error("Regular error thrown from a resolver", {
       cause: new Error("Just testing"),
+    });
+  },
+
+  secondErrorQuery: async () => {
+    const operationSpan = getOperationSpan();
+
+    operationSpan?.setAttributes({
+      "resolver.second_error_query.executed": true,
+      "resolver.second_error_query.error_type": "graphql_error",
+      "resolver.second_error_query.error_code": "QUERY_ERROR",
+    });
+
+    throw new GraphQLError("GraphQL error thrown from a resolver", {
+      extensions: {
+        code: "QUERY_ERROR",
+        intentional: true,
+      },
     });
   },
 

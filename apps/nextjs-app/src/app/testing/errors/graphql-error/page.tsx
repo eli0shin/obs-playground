@@ -1,28 +1,13 @@
-import { GRAPHQL_URL } from "@/config";
+import { graphqlRequest } from "@obs-playground/graphql-client";
 
 export const dynamic = "force-dynamic";
 
 async function callFailingGraphQLQuery() {
-  const response = await fetch(GRAPHQL_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      query: `
-        query ErrorQuery {
-          errorQuery
-        }
-      `,
-    }),
-    cache: "no-store",
-  });
-
-  const result = await response.json();
-
-  if (result.errors && result.errors.length > 0) {
-    throw new Error(`GraphQL Error: ${result.errors[0].message}`);
-  }
-
-  return result.data;
+  return graphqlRequest<{ errorQuery: unknown }>(`
+    query ErrorQuery {
+      errorQuery
+    }
+  `);
 }
 
 export default async function GraphQLErrorPage() {
