@@ -83,6 +83,18 @@ export function createSpanProcessors(): SpanProcessor[] {
         ]
       : []),
 
+    // ClickStack exporter
+    ...(process.env.CLICKSTACK_OTLP_ENDPOINT
+      ? [
+          new BatchSpanProcessor(
+            new OTLPTraceExporter({
+              url: `${process.env.CLICKSTACK_OTLP_ENDPOINT}/v1/traces`,
+            }),
+            batchConfig,
+          ),
+        ]
+      : []),
+
     // Console exporter for local debugging
     ...(process.env.OTEL_EXPORTER_CONSOLE
       ? [new BatchSpanProcessor(new ConsoleSpanExporter(), batchConfig)]
@@ -148,6 +160,17 @@ export function createLogProcessors(): LogRecordProcessor[] {
         ]
       : []),
 
+    // ClickStack exporter
+    ...(process.env.CLICKSTACK_OTLP_ENDPOINT
+      ? [
+          new BatchLogRecordProcessor(
+            new OTLPLogExporter({
+              url: `${process.env.CLICKSTACK_OTLP_ENDPOINT}/v1/logs`,
+            }),
+          ),
+        ]
+      : []),
+
     // Console exporter for local debugging
     ...(process.env.OTEL_EXPORTER_CONSOLE
       ? [new BatchLogRecordProcessor(new ConsoleLogRecordExporter())]
@@ -196,6 +219,18 @@ export function createMetricReaders(): MetricReader[] {
           new PeriodicExportingMetricReader({
             exporter: new OTLPMetricExporter({
               url: `${process.env.DATADOG_OTLP_ENDPOINT}/v1/metrics`,
+            }),
+            exportIntervalMillis: 60000,
+          }),
+        ]
+      : []),
+
+    // ClickStack exporter
+    ...(process.env.CLICKSTACK_OTLP_ENDPOINT
+      ? [
+          new PeriodicExportingMetricReader({
+            exporter: new OTLPMetricExporter({
+              url: `${process.env.CLICKSTACK_OTLP_ENDPOINT}/v1/metrics`,
             }),
             exportIntervalMillis: 60000,
           }),
