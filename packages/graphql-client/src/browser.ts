@@ -1,6 +1,7 @@
 import { datadogRum } from "@datadog/browser-rum";
 
-const GRAPHQL_URL = process.env.GRAPHQL_URL || "https://localhost/graphql";
+const GRAPHQL_URL =
+  process.env.NEXT_PUBLIC_GRAPHQL_URL || "https://localhost/graphql";
 
 export type GraphQLResponse<T> = {
   data?: T;

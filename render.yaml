@@ -1,0 +1,85 @@
+services:
+  # GraphQL Server
+  - type: web
+    name: obs-graphql
+    runtime: node
+    plan: free
+    # No rootDir - build from repo root for workspace dependencies
+    buildCommand: npm ci && npm run build --workspace=packages/otel --workspace=packages/graphql-client --workspace=apps/graphql-server
+    startCommand: node apps/graphql-server/dist/index.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: EXPRESS_URL
+        value: https://obs-express.onrender.com
+      # OTEL Endpoints (fill in your values)
+      - key: HONEYCOMB_ENDPOINT
+        value: https://api.honeycomb.io
+      - key: GRAFANA_OTLP_ENDPOINT
+        value: https://otlp-gateway-prod-us-east-0.grafana.net/otlp
+      - key: SENTRY_OTLP_ENDPOINT
+        value: https://o4510253247823872.ingest.us.sentry.io/api/4510253248937984/integration/otlp
+    buildFilter:
+      paths:
+        - apps/graphql-server/**
+        - packages/**
+
+  # Express Server
+  - type: web
+    name: obs-express
+    runtime: node
+    plan: free
+    buildCommand: npm ci && npm run build --workspace=packages/otel --workspace=packages/graphql-client --workspace=apps/express-server
+    startCommand: node apps/express-server/dist/index.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: GRAPHQL_URL
+        value: https://obs-graphql.onrender.com/graphql
+      # OTEL Endpoints
+      - key: HONEYCOMB_ENDPOINT
+        value: https://api.honeycomb.io
+      - key: GRAFANA_OTLP_ENDPOINT
+        value: https://otlp-gateway-prod-us-east-0.grafana.net/otlp
+      - key: SENTRY_OTLP_ENDPOINT
+        value: https://o4510253247823872.ingest.us.sentry.io/api/4510253248937984/integration/otlp
+    buildFilter:
+      paths:
+        - apps/express-server/**
+        - packages/**
+
+  # Next.js App
+  - type: web
+    name: obs-nextjs
+    runtime: node
+    plan: free
+    buildCommand: npm ci && npm run build --workspace=packages/otel --workspace=packages/graphql-client --workspace=apps/nextjs-app
+    startCommand: npm run start --workspace=apps/nextjs-app
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: GRAPHQL_URL
+        value: https://obs-graphql.onrender.com/graphql
+      - key: EXPRESS_URL
+        value: https://obs-express.onrender.com
+      - key: NEXT_PUBLIC_GRAPHQL_URL
+        value: https://obs-graphql.onrender.com/graphql
+      # OTEL Endpoints
+      - key: HONEYCOMB_ENDPOINT
+        value: https://api.honeycomb.io
+      - key: GRAFANA_OTLP_ENDPOINT
+        value: https://otlp-gateway-prod-us-east-0.grafana.net/otlp
+      - key: SENTRY_OTLP_ENDPOINT
+        value: https://o4510253247823872.ingest.us.sentry.io/api/4510253248937984/integration/otlp
+      - key: NEXT_PUBLIC_SENTRY_DSN
+        value: https://af69111f8c7cda34c8a69585fe19fa3c@o4510253247823872.ingest.us.sentry.io/4510253248937984
+    buildFilter:
+      paths:
+        - apps/nextjs-app/**
+        - packages/**

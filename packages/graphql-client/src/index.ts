@@ -1,6 +1,7 @@
 import { trace, SpanStatusCode } from "@opentelemetry/api";
 
-const GRAPHQL_URL = "http://localhost:4000/graphql";
+const GRAPHQL_URL =
+  process.env.GRAPHQL_URL || "http://localhost:4000/graphql";
 
 export type GraphQLResponse<T> = {
   data?: T;
