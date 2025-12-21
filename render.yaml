@@ -21,6 +21,7 @@ services:
         value: https://otlp-gateway-prod-us-east-0.grafana.net/otlp
       - key: SENTRY_OTLP_ENDPOINT
         value: https://o4510253247823872.ingest.us.sentry.io/api/4510253248937984/integration/otlp
+      - fromGroup: obs-playground
     buildFilter:
       paths:
         - apps/graphql-server/**
@@ -47,6 +48,7 @@ services:
         value: https://otlp-gateway-prod-us-east-0.grafana.net/otlp
       - key: SENTRY_OTLP_ENDPOINT
         value: https://o4510253247823872.ingest.us.sentry.io/api/4510253248937984/integration/otlp
+      - fromGroup: obs-playground
     buildFilter:
       paths:
         - apps/express-server/**
@@ -79,6 +81,7 @@ services:
         value: https://o4510253247823872.ingest.us.sentry.io/api/4510253248937984/integration/otlp
       - key: NEXT_PUBLIC_SENTRY_DSN
         value: https://af69111f8c7cda34c8a69585fe19fa3c@o4510253247823872.ingest.us.sentry.io/4510253248937984
+      - fromGroup: obs-playground
     buildFilter:
       paths:
         - apps/nextjs-app/**
