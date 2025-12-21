@@ -16,11 +16,11 @@
     "dev:all:custom": "bash scripts/dev.sh custom otel",
     "dev:dd:all": "bash scripts/dev.sh next dd",
     "dev:dd:custom": "bash scripts/dev.sh custom dd",
-    "build": "npx turbo run build",
-    "type-check": "npx turbo run type-check",
-    "lint": "npx turbo run lint",
-    "format": "npx prettier --write .",
-    "format:check": "npx prettier --check ."
+    "build": "turbo run build",
+    "type-check": "turbo run type-check",
+    "lint": "turbo run lint",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "keywords": [],
   "author": "elimelech.oshinsky@gmail.com",

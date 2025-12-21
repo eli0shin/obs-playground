@@ -5,7 +5,7 @@ services:
     runtime: node
     plan: free
     # No rootDir - build from repo root for workspace dependencies
-    buildCommand: npm ci && npm run build --workspace=packages/otel --workspace=packages/graphql-client --workspace=apps/graphql-server
+    buildCommand: npm ci --include=dev && npm run build --workspace=packages/otel --workspace=packages/graphql-client --workspace=apps/graphql-server && npm prune --omit=dev
     startCommand: node apps/graphql-server/dist/index.js
     envVars:
       - key: NODE_ENV
@@ -32,7 +32,7 @@ services:
     name: obs-express
     runtime: node
     plan: free
-    buildCommand: npm ci && npm run build --workspace=packages/otel --workspace=packages/graphql-client --workspace=apps/express-server
+    buildCommand: npm ci --include=dev && npm run build --workspace=packages/otel --workspace=packages/graphql-client --workspace=apps/express-server && npm prune --omit=dev
     startCommand: node apps/express-server/dist/index.js
     envVars:
       - key: NODE_ENV
@@ -59,7 +59,7 @@ services:
     name: obs-nextjs
     runtime: node
     plan: free
-    buildCommand: npm ci && npm run build --workspace=packages/otel --workspace=packages/graphql-client --workspace=apps/nextjs-app
+    buildCommand: npm ci --include=dev && npm run build --workspace=packages/otel --workspace=packages/graphql-client --workspace=apps/nextjs-app && npm prune --omit=dev
     startCommand: npm run start --workspace=apps/nextjs-app
     envVars:
       - key: NODE_ENV
