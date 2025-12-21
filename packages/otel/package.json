@@ -12,10 +12,10 @@
     }
   },
   "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch",
-    "type-check": "tsc --noEmit",
-    "lint": "eslint src"
+    "build": "npx tsc",
+    "dev": "npx tsc --watch",
+    "type-check": "npx tsc --noEmit",
+    "lint": "npx eslint src"
   },
   "dependencies": {
     "@opentelemetry/api": "^1.9.0",

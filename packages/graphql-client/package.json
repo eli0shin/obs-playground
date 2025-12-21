@@ -16,10 +16,10 @@
     }
   },
   "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch",
-    "type-check": "tsc --noEmit",
-    "lint": "eslint src"
+    "build": "npx tsc",
+    "dev": "npx tsc --watch",
+    "type-check": "npx tsc --noEmit",
+    "lint": "npx eslint src"
   },
   "dependencies": {
     "@datadog/browser-rum": "^6.23.0",

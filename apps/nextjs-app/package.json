@@ -3,12 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "dev:custom": "CUSTOM_SERVER=true tsx --env-file=../../.env server.ts",
-    "build": "next build",
-    "start": "next start",
-    "start:custom": "CUSTOM_SERVER=true tsx --env-file=../../.env server.ts",
-    "lint": "eslint"
+    "dev": "npx next dev",
+    "dev:custom": "CUSTOM_SERVER=true npx tsx --env-file=../../.env server.ts",
+    "build": "npx next build",
+    "start": "npx next start",
+    "start:custom": "CUSTOM_SERVER=true npx tsx --env-file=../../.env server.ts",
+    "lint": "npx eslint"
   },
   "dependencies": {
     "@datadog/browser-rum": "^6.23.0",
