@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-const EXPRESS_URL = process.env.EXPRESS_URL || "http://localhost:3001";
+const EXPRESS_URL = process.env.EXPRESS_BASE_URL || "http://localhost:3001";
 
 async function callSlowEndpoint() {
   const startTime = Date.now();

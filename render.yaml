@@ -1,3 +1,7 @@
+previews:
+  generation: automatic
+  expireAfterDays: 7
+
 services:
   # GraphQL Server
   - type: web
@@ -12,8 +16,11 @@ services:
         value: production
       - key: PORT
         value: 10000
-      - key: EXPRESS_URL
-        value: https://obs-express.onrender.com
+      - key: EXPRESS_BASE_URL
+        fromService:
+          name: obs-express
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL
       # OTEL Endpoints (fill in your values)
       - key: HONEYCOMB_ENDPOINT
         value: https://api.honeycomb.io
@@ -39,8 +46,11 @@ services:
         value: production
       - key: PORT
         value: 10000
-      - key: GRAPHQL_URL
-        value: https://obs-graphql.onrender.com/graphql
+      - key: GRAPHQL_BASE_URL
+        fromService:
+          name: obs-graphql
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL
       # OTEL Endpoints
       - key: HONEYCOMB_ENDPOINT
         value: https://api.honeycomb.io
@@ -66,12 +76,21 @@ services:
         value: production
       - key: PORT
         value: 10000
-      - key: GRAPHQL_URL
-        value: https://obs-graphql.onrender.com/graphql
-      - key: EXPRESS_URL
-        value: https://obs-express.onrender.com
-      - key: NEXT_PUBLIC_GRAPHQL_URL
-        value: https://obs-graphql.onrender.com/graphql
+      - key: GRAPHQL_BASE_URL
+        fromService:
+          name: obs-graphql
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL
+      - key: EXPRESS_BASE_URL
+        fromService:
+          name: obs-express
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL
+      - key: NEXT_PUBLIC_GRAPHQL_BASE_URL
+        fromService:
+          name: obs-graphql
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL
       # OTEL Endpoints
       - key: HONEYCOMB_ENDPOINT
         value: https://api.honeycomb.io

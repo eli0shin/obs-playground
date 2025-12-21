@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { trace } from "@opentelemetry/api";
 
-const EXPRESS_URL = process.env.EXPRESS_URL || "http://localhost:3001";
+const EXPRESS_URL = process.env.EXPRESS_BASE_URL || "http://localhost:3001";
 
 type ShoppingListItem = {
   ingredientId: string;

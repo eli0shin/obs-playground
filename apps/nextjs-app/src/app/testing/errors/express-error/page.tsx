@@ -1,6 +1,6 @@
 export const dynamic = "force-dynamic";
 
-const EXPRESS_URL = process.env.EXPRESS_URL || "http://localhost:3001";
+const EXPRESS_URL = process.env.EXPRESS_BASE_URL || "http://localhost:3001";
 
 async function callFailingExpressEndpoint() {
   const response = await fetch(`${EXPRESS_URL}/api/error/test`, {

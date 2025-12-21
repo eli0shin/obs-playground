@@ -8,7 +8,7 @@ import {
 } from "../data/index.js";
 import { getOperationSpan } from "../utils/otel.js";
 
-const EXPRESS_URL = process.env.EXPRESS_URL || "http://localhost:3001";
+const EXPRESS_URL = process.env.EXPRESS_BASE_URL || "http://localhost:3001";
 
 export const Query = {
   recipe: (_: unknown, { id }: { id: string }) => {

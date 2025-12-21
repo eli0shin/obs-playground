@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { graphqlRequest } from "@obs-playground/graphql-client";
 
-const EXPRESS_URL = process.env.EXPRESS_URL || "http://localhost:3001";
+const EXPRESS_URL = process.env.EXPRESS_BASE_URL || "http://localhost:3001";
 
 type Ingredient = {
   id: string;
