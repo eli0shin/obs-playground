@@ -101,3 +101,47 @@ services:
       paths:
         - apps/nextjs-app/**
         - packages/**
+
+  # Next.js App (Custom Server)
+  - type: web
+    name: obs-nextjs-custom
+    runtime: node
+    plan: free
+    buildCommand: npm ci --include=dev && npm run build --workspace=packages/otel --workspace=packages/graphql-client --workspace=apps/nextjs-app && npm prune --omit=dev
+    startCommand: npm run start:custom --workspace=apps/nextjs-app
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: CUSTOM_SERVER
+        value: "true"
+      - key: GRAPHQL_BASE_URL
+        fromService:
+          name: obs-graphql
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL
+      - key: EXPRESS_BASE_URL
+        fromService:
+          name: obs-express
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL
+      - key: NEXT_PUBLIC_GRAPHQL_BASE_URL
+        fromService:
+          name: obs-graphql
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL
+      # OTEL Endpoints
+      - key: HONEYCOMB_ENDPOINT
+        value: https://api.honeycomb.io
+      - key: GRAFANA_OTLP_ENDPOINT
+        value: https://otlp-gateway-prod-us-east-0.grafana.net/otlp
+      - key: SENTRY_OTLP_ENDPOINT
+        value: https://o4510253247823872.ingest.us.sentry.io/api/4510253248937984/integration/otlp
+      - key: NEXT_PUBLIC_SENTRY_DSN
+        value: https://af69111f8c7cda34c8a69585fe19fa3c@o4510253247823872.ingest.us.sentry.io/4510253248937984
+      - fromGroup: obs-playground
+    buildFilter:
+      paths:
+        - apps/nextjs-app/**
+        - packages/**
