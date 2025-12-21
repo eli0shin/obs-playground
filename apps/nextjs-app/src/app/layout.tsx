@@ -5,6 +5,10 @@ import * as Sentry from "@sentry/nextjs";
 import MyStatsig from "./my-statsig";
 import SentryInit from "./sentry-init";
 
+// Force all pages to be dynamically rendered at runtime
+// This ensures GraphQL/API requests happen during runtime for proper tracing
+export const dynamic = "force-dynamic";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
