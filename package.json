@@ -10,7 +10,7 @@
     "packages/*"
   ],
   "scripts": {
-    "postinstall": "patch-package",
+    "postinstall": "npx patch-package",
     "clean": "rm -rf node_modules packages/*/node_modules apps/*/node_modules && npm install",
     "dev:all": "bash scripts/dev.sh next otel",
     "dev:all:custom": "bash scripts/dev.sh custom otel",
