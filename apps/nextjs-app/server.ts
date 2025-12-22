@@ -1,4 +1,4 @@
-import "./src/otel.js";
+import "./src/otel.ts";
 import express from "express";
 import next from "next";
 

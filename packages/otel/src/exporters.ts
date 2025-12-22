@@ -89,6 +89,9 @@ export function createSpanProcessors(): SpanProcessor[] {
           new BatchSpanProcessor(
             new OTLPTraceExporter({
               url: `${process.env.CLICKSTACK_OTLP_ENDPOINT}/v1/traces`,
+              headers: {
+                "authorization": process.env.CLICKSTACK_API_KEY || "",
+              },
             }),
             batchConfig,
           ),
@@ -166,6 +169,9 @@ export function createLogProcessors(): LogRecordProcessor[] {
           new BatchLogRecordProcessor(
             new OTLPLogExporter({
               url: `${process.env.CLICKSTACK_OTLP_ENDPOINT}/v1/logs`,
+              headers: {
+                "authorization": process.env.CLICKSTACK_API_KEY || "",
+              },
             }),
           ),
         ]
@@ -231,6 +237,9 @@ export function createMetricReaders(): MetricReader[] {
           new PeriodicExportingMetricReader({
             exporter: new OTLPMetricExporter({
               url: `${process.env.CLICKSTACK_OTLP_ENDPOINT}/v1/metrics`,
+              headers: {
+                "authorization": process.env.CLICKSTACK_API_KEY || "",
+              },
             }),
             exportIntervalMillis: 60000,
           }),
