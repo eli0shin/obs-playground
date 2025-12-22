@@ -7,7 +7,7 @@
     "dev:custom": "CUSTOM_SERVER=true tsx --env-file=../../.env server.ts",
     "build": "next build",
     "start": "next start",
-    "start:custom": "CUSTOM_SERVER=true tsx server.ts",
+    "start:custom": "node server.ts",
     "lint": "eslint"
   },
   "dependencies": {
@@ -22,7 +22,6 @@
     "@vercel/otel": "^2.1.0",
     "express": "^5.1.0",
     "next": "^16.1.0",
-    "tsx": "^4",
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "typescript": "^5"
@@ -35,6 +34,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "^16.1.0",
-    "tailwindcss": "^4"
+    "tailwindcss": "^4",
+    "tsx": "^4"
   }
 }

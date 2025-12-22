@@ -7,7 +7,11 @@ services:
     # No rootDir - build from repo root for workspace dependencies
     buildCommand: npm ci --include=dev && npm run build --workspace=packages/otel --workspace=packages/graphql-client --workspace=apps/graphql-server && npm prune --omit=dev
     startCommand: node apps/graphql-server/dist/index.js
+    previews:
+      generation: automatic
     envVars:
+      - key: NODE_VERSION
+        value: "24"
       - key: NODE_ENV
         value: production
       - key: PORT
@@ -37,7 +41,11 @@ services:
     plan: free
     buildCommand: npm ci --include=dev && npm run build --workspace=packages/otel --workspace=packages/graphql-client --workspace=apps/express-server && npm prune --omit=dev
     startCommand: node apps/express-server/dist/index.js
+    previews:
+      generation: automatic
     envVars:
+      - key: NODE_VERSION
+        value: "24"
       - key: NODE_ENV
         value: production
       - key: PORT
@@ -67,7 +75,11 @@ services:
     plan: free
     buildCommand: npm ci --include=dev && npm run build --workspace=packages/otel --workspace=packages/graphql-client --workspace=apps/nextjs-app && npm prune --omit=dev
     startCommand: npm run start --workspace=apps/nextjs-app
+    previews:
+      generation: automatic
     envVars:
+      - key: NODE_VERSION
+        value: "24"
       - key: NODE_ENV
         value: production
       - key: PORT
@@ -108,8 +120,12 @@ services:
     runtime: node
     plan: free
     buildCommand: npm ci --include=dev && npm run build --workspace=packages/otel --workspace=packages/graphql-client --workspace=apps/nextjs-app && npm prune --omit=dev
-    startCommand: npm run start:custom --workspace=apps/nextjs-app
+    startCommand: node apps/nextjs-app/server.ts
+    previews:
+      generation: automatic
     envVars:
+      - key: NODE_VERSION
+        value: "24"
       - key: NODE_ENV
         value: production
       - key: PORT
