@@ -120,7 +120,7 @@ services:
     runtime: node
     plan: free
     buildCommand: npm ci --include=dev && npm run build --workspace=packages/otel --workspace=packages/graphql-client --workspace=apps/nextjs-app && npm prune --omit=dev
-    startCommand: cd apps/nextjs-app && node server.ts
+    startCommand: node apps/nextjs-app/server.ts
     previews:
       generation: automatic
     envVars:
