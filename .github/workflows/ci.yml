@@ -1,0 +1,138 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-and-typecheck:
+    name: Lint & Type Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run lint
+        run: npm run lint
+
+      - name: Run type-check
+        run: npm run type-check
+
+  e2e-tests:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    needs: lint-and-typecheck
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate SSL certificates
+        run: bash scripts/generate-cert.sh
+
+      - name: Create .env files
+        run: |
+          cat > .env << EOF
+          # Service URLs
+          GRAPHQL_BASE_URL=http://localhost:4000
+          EXPRESS_BASE_URL=http://localhost:3001
+          NEXT_PUBLIC_GRAPHQL_BASE_URL=https://localhost:3443
+          NEXT_PUBLIC_EXPRESS_BASE_URL=https://localhost:3443
+
+          # OTEL backends
+          HONEYCOMB_ENDPOINT=${{ secrets.HONEYCOMB_ENDPOINT }}
+          HONEYCOMB_API_KEY=${{ secrets.HONEYCOMB_API_KEY }}
+          GRAFANA_OTLP_ENDPOINT=${{ secrets.GRAFANA_OTLP_ENDPOINT }}
+          GRAFANA_OTLP_AUTH=${{ secrets.GRAFANA_OTLP_AUTH }}
+          SENTRY_OTLP_ENDPOINT=${{ secrets.SENTRY_OTLP_ENDPOINT }}
+          SENTRY_AUTH=${{ secrets.SENTRY_AUTH }}
+          NEXT_PUBLIC_SENTRY_DSN=${{ secrets.NEXT_PUBLIC_SENTRY_DSN }}
+          EOF
+
+          cat > apps/nextjs-app/.env.local << EOF
+          # Service URLs
+          GRAPHQL_BASE_URL=http://localhost:4000
+          EXPRESS_BASE_URL=http://localhost:3001
+          NEXT_PUBLIC_GRAPHQL_BASE_URL=https://localhost:3443
+          NEXT_PUBLIC_EXPRESS_BASE_URL=https://localhost:3443
+
+          # OTEL backends
+          HONEYCOMB_ENDPOINT=${{ secrets.HONEYCOMB_ENDPOINT }}
+          HONEYCOMB_API_KEY=${{ secrets.HONEYCOMB_API_KEY }}
+          GRAFANA_OTLP_ENDPOINT=${{ secrets.GRAFANA_OTLP_ENDPOINT }}
+          GRAFANA_OTLP_AUTH=${{ secrets.GRAFANA_OTLP_AUTH }}
+          SENTRY_OTLP_ENDPOINT=${{ secrets.SENTRY_OTLP_ENDPOINT }}
+          SENTRY_AUTH=${{ secrets.SENTRY_AUTH }}
+          NEXT_PUBLIC_SENTRY_DSN=${{ secrets.NEXT_PUBLIC_SENTRY_DSN }}
+          EOF
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Build all services
+        run: npm run build
+
+      - name: Start all services
+        run: PROXY_PORT=3443 PROXY_PORT_CUSTOM=8443 npm run dev:all &
+        env:
+          CI: true
+
+      - name: Wait for services to be healthy
+        run: |
+          echo "Waiting for services to start..."
+
+          # Wait for normal mode proxy
+          for i in {1..60}; do
+            if curl -ks https://localhost:3443 > /dev/null 2>&1; then
+              echo "Normal mode proxy is ready"
+              break
+            fi
+            echo "Waiting for normal mode proxy... ($i/60)"
+            sleep 1
+          done
+
+          # Wait for custom mode proxy
+          for i in {1..60}; do
+            if curl -ks https://localhost:8443 > /dev/null 2>&1; then
+              echo "Custom mode proxy is ready"
+              break
+            fi
+            echo "Waiting for custom mode proxy... ($i/60)"
+            sleep 1
+          done
+
+          # Verify all services are responding
+          curl -ks https://localhost:3443 || (echo "Normal mode proxy failed" && exit 1)
+          curl -ks https://localhost:8443 || (echo "Custom mode proxy failed" && exit 1)
+          echo "All services are ready!"
+
+      - name: Run Playwright tests (normal mode)
+        run: npm run playwright:normal
+        env:
+          NORMAL_URL: https://localhost:3443
+
+      - name: Run Playwright tests (custom mode)
+        run: npm run playwright:custom
+        env:
+          CUSTOM_URL: https://localhost:8443

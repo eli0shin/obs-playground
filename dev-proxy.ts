@@ -3,6 +3,10 @@ import https from "https";
 import fs from "fs";
 import { createProxyMiddleware } from "http-proxy-middleware";
 
+// Configurable ports via environment variables (for CI where port 443 requires sudo)
+const PROXY_PORT = parseInt(process.env.PROXY_PORT || "443", 10);
+const PROXY_PORT_CUSTOM = parseInt(process.env.PROXY_PORT_CUSTOM || "8443", 10);
+
 // Load SSL certificate
 const httpsOptions = {
   key: fs.readFileSync("certs/key.pem"),
@@ -60,22 +64,26 @@ customApp.use(
   }),
 );
 
-https.createServer(httpsOptions, normalApp).listen(443, () => {
+const normalUrl =
+  PROXY_PORT === 443 ? "https://localhost" : `https://localhost:${PROXY_PORT}`;
+const customUrl = `https://localhost:${PROXY_PORT_CUSTOM}`;
+
+https.createServer(httpsOptions, normalApp).listen(PROXY_PORT, () => {
   console.log(`
 ╭───────────────────────────────────────────────────────────────╮
 │  Proxy servers running                                        │
 │                                                               │
-│  Normal mode (port 443):                                      │
-│  • https://localhost          → Next.js (built-in server)     │
-│  • https://localhost/api      → Express                       │
-│  • https://localhost/graphql  → GraphQL                       │
+│  Normal mode (port ${PROXY_PORT}):${" ".repeat(Math.max(0, 39 - PROXY_PORT.toString().length))}│
+│  • ${normalUrl.padEnd(24)} → Next.js (built-in server)     │
+│  • ${(normalUrl + "/api").padEnd(24)} → Express                       │
+│  • ${(normalUrl + "/graphql").padEnd(24)} → GraphQL                       │
 │                                                               │
-│  Custom mode (port 8443):                                     │
-│  • https://localhost:8443          → Next.js (custom server)  │
-│  • https://localhost:8443/api      → Express                  │
-│  • https://localhost:8443/graphql  → GraphQL                  │
+│  Custom mode (port ${PROXY_PORT_CUSTOM}):${" ".repeat(Math.max(0, 37 - PROXY_PORT_CUSTOM.toString().length))}│
+│  • ${customUrl.padEnd(24)} → Next.js (custom server)  │
+│  • ${(customUrl + "/api").padEnd(24)} → Express                  │
+│  • ${(customUrl + "/graphql").padEnd(24)} → GraphQL                  │
 ╰───────────────────────────────────────────────────────────────╯
   `);
 });
 
-https.createServer(httpsOptions, customApp).listen(8443);
+https.createServer(httpsOptions, customApp).listen(PROXY_PORT_CUSTOM);
