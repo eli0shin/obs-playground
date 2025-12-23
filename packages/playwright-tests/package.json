@@ -1,0 +1,17 @@
+{
+  "name": "@obs-playground/playwright-tests",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:headed": "playwright test --headed",
+    "test:slow": "playwright test --grep @slow",
+    "test:repeat": "for i in {1..10}; do echo \"Run $i of 10\"; playwright test; done"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.57.0",
+    "typescript": "^5.9.3"
+  }
+}

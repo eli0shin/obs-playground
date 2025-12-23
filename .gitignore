@@ -6,3 +6,4 @@ certs/
 .env.local
 *.tsbuildinfo
 datadog.yaml
+test-results/

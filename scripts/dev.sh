@@ -27,13 +27,21 @@ else
   DD_PREFIX=""
 fi
 
+# Build Next.js command based on mode
+# Custom server runs from root (matches production), standard dev runs from app directory
+if [ "$NEXTJS_MODE" = "custom" ]; then
+  NEXTJS_CMD="${DD_PREFIX}CUSTOM_SERVER=true PORT=3000 tsx --env-file=.env apps/nextjs-app/server.ts"
+else
+  NEXTJS_CMD="cd apps/nextjs-app && ${DD_PREFIX}PORT=3000 npm run $NEXTJS_SCRIPT"
+fi
+
 # Run all services with concurrently
 npx concurrently \
   --names "OTEL,GQL-CLIENT,$NEXTJS_LABEL,EXPRESS,GRAPHQL,PROXY" \
   --prefix-colors "blue,white,cyan,magenta,yellow,green" \
   "cd packages/otel && npm run dev" \
   "cd packages/graphql-client && npm run dev" \
-  "cd apps/nextjs-app && ${DD_PREFIX}PORT=3000 npm run $NEXTJS_SCRIPT" \
+  "$NEXTJS_CMD" \
   "cd apps/express-server && ${DD_PREFIX}PORT=3001 npm run dev" \
   "cd apps/graphql-server && ${DD_PREFIX}PORT=4000 npm run dev" \
   "tsx dev-proxy.ts"

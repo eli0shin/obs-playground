@@ -20,7 +20,9 @@
     "type-check": "turbo run type-check",
     "lint": "turbo run lint",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "playwright": "npm run test -w @obs-playground/playwright-tests",
+    "playwright:repeat": "npm run test:repeat -w @obs-playground/playwright-tests"
   },
   "keywords": [],
   "author": "elimelech.oshinsky@gmail.com",
