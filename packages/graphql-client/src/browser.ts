@@ -1,7 +1,5 @@
 import { datadogRum } from "@datadog/browser-rum";
-
-const GRAPHQL_URL =
-  process.env.NEXT_PUBLIC_GRAPHQL_URL || "https://localhost/graphql";
+import { getPublicGraphqlUrl } from "@obs-playground/env";
 
 export type GraphQLResponse<T> = {
   data?: T;
@@ -23,7 +21,7 @@ export async function graphqlRequest<T>(
   query: string,
   variables?: Record<string, unknown>,
 ): Promise<GraphQLResponse<T>> {
-  const response = await fetch(GRAPHQL_URL, {
+  const response = await fetch(getPublicGraphqlUrl(), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ query, variables }),

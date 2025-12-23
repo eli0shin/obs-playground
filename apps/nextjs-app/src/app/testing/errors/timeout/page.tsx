@@ -1,11 +1,10 @@
 import Link from "next/link";
-
-const EXPRESS_URL = process.env.EXPRESS_BASE_URL || "http://localhost:3001";
+import { getExpressUrl } from "@obs-playground/env";
 
 async function callSlowEndpoint() {
   const startTime = Date.now();
 
-  const response = await fetch(`${EXPRESS_URL}/api/slow/timeout`, {
+  const response = await fetch(`${getExpressUrl()}/api/slow/timeout`, {
     cache: "no-store",
   });
 

@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs";
 
 const nextConfig: NextConfig = {
+  distDir: process.env.CUSTOM_SERVER === "true" ? ".next-custom" : ".next",
   serverExternalPackages: [
     "@opentelemetry/api",
     "@opentelemetry/sdk-node",

@@ -1,4 +1,5 @@
 import { trace } from "@opentelemetry/api";
+import { getExpressUrl } from "@obs-playground/env";
 import type { IngredientCost, NutritionData } from "../types/index.js";
 import {
   recipes,
@@ -7,8 +8,6 @@ import {
   ingredients,
 } from "../data/index.js";
 import { getOperationSpan } from "../utils/otel.js";
-
-const EXPRESS_URL = process.env.EXPRESS_BASE_URL || "http://localhost:3001";
 
 export const Query = {
   recipe: (_: unknown, { id }: { id: string }) => {
@@ -60,7 +59,7 @@ export const Query = {
     });
 
     const response = await fetch(
-      `${EXPRESS_URL}/ingredients/prices?ids=${ingredientIds.join(",")}`,
+      `${getExpressUrl()}/ingredients/prices?ids=${ingredientIds.join(",")}`,
     );
     const prices = (await response.json()) as Record<string, number>;
 
@@ -137,7 +136,7 @@ export const Query = {
 
     const nutritionPromises = recipeIngs.map(async (ri) => {
       const response = await fetch(
-        `${EXPRESS_URL}/nutrition/ingredient/${ri.ingredientId}`,
+        `${getExpressUrl()}/nutrition/ingredient/${ri.ingredientId}`,
       );
       const nutrition = (await response.json()) as NutritionData;
 

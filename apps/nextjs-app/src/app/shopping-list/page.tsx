@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { trace } from "@opentelemetry/api";
-
-const EXPRESS_URL = process.env.EXPRESS_BASE_URL || "http://localhost:3001";
+import { getExpressUrl } from "@obs-playground/env";
 
 type ShoppingListItem = {
   ingredientId: string;
@@ -29,7 +28,7 @@ async function generateShoppingList(recipeIds: string[], isDefault: boolean) {
     "shopping_list.using_default_ids": isDefault,
   });
 
-  const response = await fetch(`${EXPRESS_URL}/shopping-list/generate`, {
+  const response = await fetch(`${getExpressUrl()}/shopping-list/generate`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ recipeIds }),

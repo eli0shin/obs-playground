@@ -1,6 +1,5 @@
 import Link from "next/link";
-
-const EXPRESS_URL = process.env.EXPRESS_BASE_URL || "http://localhost:3001";
+import { getExpressUrl } from "@obs-playground/env";
 
 type RecipeNutrition = {
   recipeId: string;
@@ -17,7 +16,7 @@ type BatchNutritionResponse = {
 };
 
 async function getBatchNutrition(recipeIds: string[]) {
-  const response = await fetch(`${EXPRESS_URL}/batch/nutrition`, {
+  const response = await fetch(`${getExpressUrl()}/batch/nutrition`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ recipeIds }),

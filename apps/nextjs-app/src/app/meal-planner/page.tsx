@@ -1,6 +1,5 @@
 import Link from "next/link";
-
-const EXPRESS_URL = process.env.EXPRESS_BASE_URL || "http://localhost:3001";
+import { getExpressUrl } from "@obs-playground/env";
 
 type RecipeCost = {
   recipeId: string;
@@ -17,7 +16,7 @@ type MealPlanEstimate = {
 
 async function getMealPlanEstimate(recipeIds: string[]) {
   const response = await fetch(
-    `${EXPRESS_URL}/meal-plan/estimate?recipeIds=${recipeIds.join(",")}`,
+    `${getExpressUrl()}/meal-plan/estimate?recipeIds=${recipeIds.join(",")}`,
     {
       cache: "no-store",
     },
