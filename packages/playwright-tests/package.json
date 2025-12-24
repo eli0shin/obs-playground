@@ -8,10 +8,15 @@
     "test:ui": "playwright test --ui",
     "test:headed": "playwright test --headed",
     "test:slow": "playwright test --grep @slow",
-    "test:repeat": "for i in {1..10}; do echo \"Run $i of 10\"; playwright test; done"
+    "test:repeat": "for i in {1..10}; do echo \"Run $i of 10\"; playwright test; done",
+    "lint": "eslint",
+    "type-check": "tsc --noEmit"
   },
   "devDependencies": {
     "@playwright/test": "^1.57.0",
+    "@typescript-eslint/eslint-plugin": "^8.46.2",
+    "@typescript-eslint/parser": "^8.46.2",
+    "eslint": "^9.39.2",
     "typescript": "^5.9.3"
   }
 }

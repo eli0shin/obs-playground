@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { graphqlRequest } from "@obs-playground/graphql-client";
-
-const EXPRESS_URL = process.env.EXPRESS_BASE_URL || "http://localhost:3001";
+import { getExpressUrl } from "@obs-playground/env";
 
 type Ingredient = {
   id: string;
@@ -68,7 +67,7 @@ async function getRecipe(id: string) {
 
 async function getIngredientPrices(ingredientIds: string[]) {
   const response = await fetch(
-    `${EXPRESS_URL}/ingredients/prices?ids=${ingredientIds.join(",")}`,
+    `${getExpressUrl()}/ingredients/prices?ids=${ingredientIds.join(",")}`,
     { cache: "no-store" },
   );
   return response.json() as Promise<Record<string, number>>;
@@ -76,7 +75,7 @@ async function getIngredientPrices(ingredientIds: string[]) {
 
 async function getIngredientNutrition(ingredientId: string) {
   const response = await fetch(
-    `${EXPRESS_URL}/nutrition/ingredient/${ingredientId}`,
+    `${getExpressUrl()}/nutrition/ingredient/${ingredientId}`,
     {
       cache: "no-store",
     },
@@ -86,7 +85,7 @@ async function getIngredientNutrition(ingredientId: string) {
 
 async function getIngredientStock(ingredientId: string) {
   const response = await fetch(
-    `${EXPRESS_URL}/inventory/stock/${ingredientId}`,
+    `${getExpressUrl()}/inventory/stock/${ingredientId}`,
     {
       cache: "no-store",
     },

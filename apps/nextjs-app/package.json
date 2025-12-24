@@ -5,15 +5,18 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
-    "dev:custom": "CUSTOM_SERVER=true tsx --env-file=../../.env server.ts",
+    "dev:custom": "CUSTOM_SERVER=true tsx --env-file=.env.local server.ts",
     "build": "next build",
     "start": "next start",
     "start:custom": "node server.ts",
-    "lint": "eslint"
+    "lint": "eslint",
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "@datadog/browser-rum": "^6.23.0",
     "@datadog/browser-rum-react": "^6.23.0",
+    "@obs-playground/env": "*",
+    "@obs-playground/graphql-client": "*",
     "@obs-playground/otel": "*",
     "@opentelemetry/api": "^1.9.0",
     "@sentry/nextjs": "^10.22.0",

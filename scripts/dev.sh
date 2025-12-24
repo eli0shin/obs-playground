@@ -1,23 +1,12 @@
 #!/bin/bash
 
-# Development script for running all services with optional configurations
-# Usage: bash scripts/dev.sh <nextjs_mode> <tracing_backend>
-#   nextjs_mode: "next" (built-in) or "custom" (custom server)
-#   tracing_backend: "otel" (OpenTelemetry) or "dd" (Datadog)
+# Development script for running all services
+# Usage: bash scripts/dev.sh [tracing_backend]
+#   tracing_backend: "otel" (OpenTelemetry, default) or "dd" (Datadog)
 
 set -e
 
-NEXTJS_MODE=${1:-next}
-TRACING_BACKEND=${2:-otel}
-
-# Map argument to npm script and console label
-if [ "$NEXTJS_MODE" = "custom" ]; then
-  NEXTJS_SCRIPT="dev:custom"
-  NEXTJS_LABEL="CUSTOM"
-else
-  NEXTJS_SCRIPT="dev"
-  NEXTJS_LABEL="NEXT"
-fi
+TRACING_BACKEND=${1:-otel}
 
 # Set up Datadog environment variable if using Datadog backend
 if [ "$TRACING_BACKEND" = "dd" ]; then
@@ -27,21 +16,17 @@ else
   DD_PREFIX=""
 fi
 
-# Build Next.js command based on mode
-# Custom server runs from root (matches production), standard dev runs from app directory
-if [ "$NEXTJS_MODE" = "custom" ]; then
-  NEXTJS_CMD="${DD_PREFIX}CUSTOM_SERVER=true PORT=3000 tsx --env-file=.env apps/nextjs-app/server.ts"
-else
-  NEXTJS_CMD="cd apps/nextjs-app && ${DD_PREFIX}PORT=3000 npm run $NEXTJS_SCRIPT"
-fi
+# Run all services with both Next.js modes
+NEXTJS_NORMAL_CMD="cd apps/nextjs-app && ${DD_PREFIX}PORT=3000 npm run dev"
+NEXTJS_CUSTOM_CMD="${DD_PREFIX}CUSTOM_SERVER=true PORT=3002 tsx --env-file=apps/nextjs-app/.env.local apps/nextjs-app/server.ts"
 
-# Run all services with concurrently
 npx concurrently \
-  --names "OTEL,GQL-CLIENT,$NEXTJS_LABEL,EXPRESS,GRAPHQL,PROXY" \
-  --prefix-colors "blue,white,cyan,magenta,yellow,green" \
+  --names "OTEL,GQL-CLIENT,NEXT,CUSTOM,EXPRESS,GRAPHQL,PROXY" \
+  --prefix-colors "blue,white,cyan,red,magenta,yellow,green" \
   "cd packages/otel && npm run dev" \
   "cd packages/graphql-client && npm run dev" \
-  "$NEXTJS_CMD" \
+  "$NEXTJS_NORMAL_CMD" \
+  "$NEXTJS_CUSTOM_CMD" \
   "cd apps/express-server && ${DD_PREFIX}PORT=3001 npm run dev" \
   "cd apps/graphql-server && ${DD_PREFIX}PORT=4000 npm run dev" \
   "tsx dev-proxy.ts"

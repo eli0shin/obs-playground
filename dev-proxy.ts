@@ -1,10 +1,11 @@
-import express from "express";
+import express, { Application } from "express";
 import https from "https";
 import fs from "fs";
 import { createProxyMiddleware } from "http-proxy-middleware";
 
-const app = express();
-const PORT = 443;
+// Configurable ports via environment variables (for CI where port 443 requires sudo)
+const PROXY_PORT = parseInt(process.env.PROXY_PORT || "443", 10);
+const PROXY_PORT_CUSTOM = parseInt(process.env.PROXY_PORT_CUSTOM || "8443", 10);
 
 // Load SSL certificate
 const httpsOptions = {
@@ -12,49 +13,77 @@ const httpsOptions = {
   cert: fs.readFileSync("certs/cert.pem"),
 };
 
-// GraphQL proxy - must come before /api to avoid conflicts
-app.use(
-  "/graphql",
-  createProxyMiddleware({
-    target: "http://localhost:4000",
-    changeOrigin: true,
-    pathRewrite: {
-      "^/": "/graphql",
-    },
-  }),
-);
+// Shared middleware for API and GraphQL routes
+function setupSharedRoutes(app: Application): void {
+  // GraphQL proxy - must come before /api to avoid conflicts
+  app.use(
+    "/graphql",
+    createProxyMiddleware({
+      target: "http://localhost:4000",
+      changeOrigin: true,
+      pathRewrite: {
+        "^/": "/graphql",
+      },
+    }),
+  );
 
-// Express API proxy
-app.use(
-  "/api",
-  createProxyMiddleware({
-    target: "http://localhost:3001",
-    changeOrigin: true,
-    pathRewrite: {
-      "^/": "/api/",
-    },
-  }),
-);
+  // Express API proxy
+  app.use(
+    "/api",
+    createProxyMiddleware({
+      target: "http://localhost:3001",
+      changeOrigin: true,
+      pathRewrite: {
+        "^/": "/api/",
+      },
+    }),
+  );
+}
 
-// Next.js app proxy - catch all remaining routes
-app.use(
+// Normal mode proxy (port 443 → Next.js port 3000)
+const normalApp = express();
+setupSharedRoutes(normalApp);
+normalApp.use(
   "/",
   createProxyMiddleware({
     target: "http://localhost:3000",
     changeOrigin: true,
-    ws: true, // Enable WebSocket support for Next.js HMR
+    ws: true,
   }),
 );
 
-https.createServer(httpsOptions, app).listen(PORT, () => {
+// Custom mode proxy (port 8443 → Next.js port 3002)
+const customApp = express();
+setupSharedRoutes(customApp);
+customApp.use(
+  "/",
+  createProxyMiddleware({
+    target: "http://localhost:3002",
+    changeOrigin: true,
+    ws: true,
+  }),
+);
+
+const normalUrl =
+  PROXY_PORT === 443 ? "https://localhost" : `https://localhost:${PROXY_PORT}`;
+const customUrl = `https://localhost:${PROXY_PORT_CUSTOM}`;
+
+https.createServer(httpsOptions, normalApp).listen(PROXY_PORT, () => {
   console.log(`
-╭──────────────────────────────────────────╮
-│  Proxy server running on port 443        │
-│                                          │
-│  Routes:                                 │
-│  • https://localhost          → Next.js  │
-│  • https://localhost/api      → Express  │
-│  • https://localhost/graphql  → GraphQL  │
-╰──────────────────────────────────────────╯
+╭───────────────────────────────────────────────────────────────╮
+│  Proxy servers running                                        │
+│                                                               │
+│  Normal mode (port ${PROXY_PORT}):${" ".repeat(Math.max(0, 39 - PROXY_PORT.toString().length))}│
+│  • ${normalUrl.padEnd(24)} → Next.js (built-in server)     │
+│  • ${(normalUrl + "/api").padEnd(24)} → Express                       │
+│  • ${(normalUrl + "/graphql").padEnd(24)} → GraphQL                       │
+│                                                               │
+│  Custom mode (port ${PROXY_PORT_CUSTOM}):${" ".repeat(Math.max(0, 37 - PROXY_PORT_CUSTOM.toString().length))}│
+│  • ${customUrl.padEnd(24)} → Next.js (custom server)  │
+│  • ${(customUrl + "/api").padEnd(24)} → Express                  │
+│  • ${(customUrl + "/graphql").padEnd(24)} → GraphQL                  │
+╰───────────────────────────────────────────────────────────────╯
   `);
 });
+
+https.createServer(httpsOptions, customApp).listen(PROXY_PORT_CUSTOM);

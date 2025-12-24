@@ -18,6 +18,7 @@
   "dependencies": {
     "@apollo/server": "^5.0.0",
     "@as-integrations/express5": "^1.1.2",
+    "@obs-playground/env": "*",
     "@obs-playground/otel": "*",
     "@opentelemetry/api": "^1.9.0",
     "body-parser": "^2.2.0",

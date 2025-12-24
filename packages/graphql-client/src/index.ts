@@ -1,7 +1,5 @@
 import { trace, SpanStatusCode } from "@opentelemetry/api";
-
-const GRAPHQL_URL =
-  process.env.GRAPHQL_URL || "http://localhost:4000/graphql";
+import { getGraphqlUrl } from "@obs-playground/env";
 
 export type GraphQLResponse<T> = {
   data?: T;
@@ -25,7 +23,7 @@ export async function graphqlRequest<T>(
   const activeSpan = trace.getActiveSpan();
 
   try {
-    const response = await fetch(GRAPHQL_URL, {
+    const response = await fetch(getGraphqlUrl(), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ query, variables }),

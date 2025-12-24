@@ -1,7 +1,7 @@
 {
-  "name": "@obs-playground/graphql-client",
+  "name": "@obs-playground/env",
   "version": "1.0.0",
-  "description": "Minimal shared GraphQL client with OpenTelemetry error recording",
+  "description": "Shared environment variable utilities",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -9,10 +9,6 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
-    },
-    "./browser": {
-      "types": "./dist/browser.d.ts",
-      "default": "./dist/browser.js"
     }
   },
   "scripts": {
@@ -20,11 +16,6 @@
     "dev": "tsc --watch",
     "type-check": "tsc --noEmit",
     "lint": "eslint src"
-  },
-  "dependencies": {
-    "@datadog/browser-rum": "^6.23.0",
-    "@obs-playground/env": "*",
-    "@opentelemetry/api": "^1.9.0"
   },
   "devDependencies": {
     "@types/node": "^20",

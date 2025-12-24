@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { graphqlRequest } from "@obs-playground/graphql-client";
-
-const EXPRESS_URL = process.env.EXPRESS_BASE_URL || "http://localhost:3001";
+import { getExpressUrl } from "@obs-playground/env";
 
 type FetchResult = {
   name: string;
@@ -47,7 +46,7 @@ async function fetchNonExistentRecipe() {
 
 async function fetchExpressError() {
   try {
-    const response = await fetch(`${EXPRESS_URL}/api/error/test`, {
+    const response = await fetch(`${getExpressUrl()}/api/error/test`, {
       cache: "no-store",
     });
 
