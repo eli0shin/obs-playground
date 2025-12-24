@@ -5,7 +5,7 @@ services:
     runtime: node
     plan: free
     # No rootDir - build from repo root for workspace dependencies
-    buildCommand: npm ci --include=dev && npm run build --workspace=packages/otel --workspace=packages/graphql-client --workspace=apps/graphql-server && npm prune --omit=dev
+    buildCommand: npm ci --include=dev && npx turbo run build --filter=graphql-server && npm prune --omit=dev
     startCommand: node apps/graphql-server/dist/index.js
     previews:
       generation: automatic
@@ -39,7 +39,7 @@ services:
     name: obs-express
     runtime: node
     plan: free
-    buildCommand: npm ci --include=dev && npm run build --workspace=packages/otel --workspace=packages/graphql-client --workspace=apps/express-server && npm prune --omit=dev
+    buildCommand: npm ci --include=dev && npx turbo run build --filter=express-server && npm prune --omit=dev
     startCommand: node apps/express-server/dist/index.js
     previews:
       generation: automatic
@@ -73,7 +73,7 @@ services:
     name: obs-nextjs
     runtime: node
     plan: free
-    buildCommand: npm ci --include=dev && npm run build --workspace=packages/otel --workspace=packages/graphql-client --workspace=apps/nextjs-app && npm prune --omit=dev
+    buildCommand: npm ci --include=dev && npx turbo run build --filter=nextjs-app && npm prune --omit=dev
     startCommand: npm run start --workspace=apps/nextjs-app
     previews:
       generation: automatic
@@ -119,7 +119,7 @@ services:
     name: obs-nextjs-custom
     runtime: node
     plan: free
-    buildCommand: npm ci --include=dev && npm run build --workspace=packages/otel --workspace=packages/graphql-client --workspace=apps/nextjs-app && npm prune --omit=dev
+    buildCommand: npm ci --include=dev && npx turbo run build --filter=nextjs-app && npm prune --omit=dev
     startCommand: node apps/nextjs-app/server.ts
     previews:
       generation: automatic
