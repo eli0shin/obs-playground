@@ -9,7 +9,8 @@
     "build": "next build",
     "start": "next start",
     "start:custom": "node server.ts",
-    "lint": "eslint"
+    "lint": "eslint",
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "@datadog/browser-rum": "^6.23.0",
