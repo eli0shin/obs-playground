@@ -1,5 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
+const isSlowTests = process.env.SLOW_TESTS === "true";
+
 export default defineConfig({
   testDir: "./tests",
   fullyParallel: true,
@@ -17,13 +19,9 @@ export default defineConfig({
     {
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
-      grepInvert: /@slow/,
-    },
-    {
-      name: "chromium-slow",
-      use: { ...devices["Desktop Chrome"] },
-      grep: /@slow/,
-      timeout: 60000,
+      grep: isSlowTests ? /@slow/ : undefined,
+      grepInvert: isSlowTests ? undefined : /@slow/,
+      timeout: isSlowTests ? 60000 : undefined,
     },
   ],
 });
