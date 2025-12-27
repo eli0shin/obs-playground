@@ -18,10 +18,10 @@ export const Mutation = {
     },
   ) => {
     const activeSpan = trace.getActiveSpan();
-    const newRecipe: Recipe = {
+    const newRecipe = {
       id: String(incrementRecipeIdCounter()),
       ...input.recipe,
-    };
+    } satisfies Recipe;
     recipes.push(newRecipe);
 
     input.ingredients.forEach((ing) => {

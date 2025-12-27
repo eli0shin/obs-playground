@@ -23,8 +23,8 @@ type Recipe = {
   ingredients: RecipeIngredient[];
 };
 
-async function getRecipe(id: string) {
-  const data = await graphqlRequest<{ recipe: Recipe }>(
+async function getRecipe(id: string): Promise<Recipe | null> {
+  const data = await graphqlRequest<{ recipe: Recipe | null }>(
     `
       query GetRecipe($id: ID!) {
         recipe(id: $id) {

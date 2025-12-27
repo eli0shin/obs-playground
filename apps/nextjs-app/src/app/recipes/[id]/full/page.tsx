@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { graphqlRequest } from "@obs-playground/graphql-client";
 import { getExpressUrl } from "@obs-playground/env";
+import { z } from "zod";
 
 type Ingredient = {
   id: string;
@@ -24,20 +25,25 @@ type Recipe = {
   ingredients: RecipeIngredient[];
 };
 
-type NutritionData = {
-  calories: number;
-  protein: number;
-  fat: number;
-  carbs: number;
-};
+const pricesSchema = z.record(z.string(), z.number());
 
-type InventoryData = {
-  inStock: boolean;
-  quantity: number;
-};
+const nutritionSchema = z.object({
+  calories: z.number(),
+  protein: z.number(),
+  fat: z.number(),
+  carbs: z.number(),
+});
 
-async function getRecipe(id: string) {
-  const data = await graphqlRequest<{ recipe: Recipe }>(
+const inventorySchema = z.object({
+  inStock: z.boolean(),
+  quantity: z.number(),
+});
+
+type NutritionData = z.infer<typeof nutritionSchema>;
+type InventoryData = z.infer<typeof inventorySchema>;
+
+async function getRecipe(id: string): Promise<Recipe | null> {
+  const data = await graphqlRequest<{ recipe: Recipe | null }>(
     `
       query GetRecipe($id: ID!) {
         recipe(id: $id) {
@@ -65,32 +71,44 @@ async function getRecipe(id: string) {
   return data.recipe;
 }
 
-async function getIngredientPrices(ingredientIds: string[]) {
+async function getIngredientPrices(
+  ingredientIds: string[],
+): Promise<Record<string, number>> {
   const response = await fetch(
     `${getExpressUrl()}/ingredients/prices?ids=${ingredientIds.join(",")}`,
     { cache: "no-store" },
   );
-  return response.json() as Promise<Record<string, number>>;
+  const json: unknown = await response.json();
+  const result = pricesSchema.safeParse(json);
+  return result.success ? result.data : {};
 }
 
-async function getIngredientNutrition(ingredientId: string) {
+async function getIngredientNutrition(
+  ingredientId: string,
+): Promise<NutritionData> {
   const response = await fetch(
     `${getExpressUrl()}/nutrition/ingredient/${ingredientId}`,
     {
       cache: "no-store",
     },
   );
-  return response.json() as Promise<NutritionData>;
+  const json: unknown = await response.json();
+  const result = nutritionSchema.safeParse(json);
+  return result.success
+    ? result.data
+    : { calories: 0, protein: 0, fat: 0, carbs: 0 };
 }
 
-async function getIngredientStock(ingredientId: string) {
+async function getIngredientStock(ingredientId: string): Promise<InventoryData> {
   const response = await fetch(
     `${getExpressUrl()}/inventory/stock/${ingredientId}`,
     {
       cache: "no-store",
     },
   );
-  return response.json() as Promise<InventoryData>;
+  const json: unknown = await response.json();
+  const result = inventorySchema.safeParse(json);
+  return result.success ? result.data : { inStock: false, quantity: 0 };
 }
 
 export default async function FullRecipePage({
@@ -100,14 +118,11 @@ export default async function FullRecipePage({
 }) {
   const { id } = await params;
 
-  // Parallel fetches from GraphQL and Express
-  const [recipe, prices] = await Promise.all([
-    getRecipe(id),
-    // We'll fetch prices after getting the recipe to know which ingredients to price
-    getRecipe(id).then((r) =>
-      getIngredientPrices(r.ingredients.map((i) => i.ingredient.id)),
-    ),
-  ]);
+  // Fetch recipe first, then prices for its ingredients
+  const recipe = await getRecipe(id);
+  const prices = recipe
+    ? await getIngredientPrices(recipe.ingredients.map((i) => i.ingredient.id))
+    : {};
 
   if (!recipe) {
     return (

@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from "express";
+import type { Request, Response, NextFunction } from "express";
 import { trace, SpanStatusCode } from "@opentelemetry/api";
 
 export function errorHandler(

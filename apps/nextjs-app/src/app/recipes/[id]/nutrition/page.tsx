@@ -15,9 +15,11 @@ type RecipeWithNutrition = {
   carbs: number;
 };
 
-async function getRecipeWithNutrition(id: string) {
+async function getRecipeWithNutrition(
+  id: string,
+): Promise<RecipeWithNutrition | null> {
   const data = await graphqlRequest<{
-    recipeWithNutrition: RecipeWithNutrition;
+    recipeWithNutrition: RecipeWithNutrition | null;
   }>(
     `
       query GetRecipeWithNutrition($id: ID!) {

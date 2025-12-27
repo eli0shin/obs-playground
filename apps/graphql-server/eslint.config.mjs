@@ -1,23 +1,7 @@
-import tsParser from "@typescript-eslint/parser";
-import tsPlugin from "@typescript-eslint/eslint-plugin";
+import forAi from "eslint-for-ai";
 
 export default [
-  {
-    files: ["**/*.ts"],
-    languageOptions: {
-      parser: tsParser,
-      parserOptions: {
-        ecmaVersion: "latest",
-        sourceType: "module",
-      },
-    },
-    plugins: {
-      "@typescript-eslint": tsPlugin,
-    },
-    rules: {
-      "no-console": "error",
-    },
-  },
+  ...forAi.configs.recommended,
   {
     files: ["**/otel.ts"],
     rules: {

@@ -1,25 +1,35 @@
 import Link from "next/link";
 import { trace } from "@opentelemetry/api";
 import { getExpressUrl } from "@obs-playground/env";
+import { z } from "zod";
 
-type ShoppingListItem = {
-  ingredientId: string;
-  name: string;
-  quantity: number;
-  unit: string;
-  pricePerUnit: number;
-  totalCost: number;
-  inStock: boolean;
-};
+const shoppingListItemSchema = z.object({
+  ingredientId: z.string(),
+  name: z.string(),
+  quantity: z.number(),
+  unit: z.string(),
+  pricePerUnit: z.number(),
+  totalCost: z.number(),
+  inStock: z.boolean(),
+});
 
-type ShoppingListResponse = {
-  items: ShoppingListItem[];
-  totalCost: number;
-  outOfStock: string[];
-  recipeCount: number;
-};
+const shoppingListResponseSchema = z.object({
+  items: z.array(shoppingListItemSchema),
+  totalCost: z.number(),
+  outOfStock: z.array(z.string()),
+  recipeCount: z.number(),
+});
 
-async function generateShoppingList(recipeIds: string[], isDefault: boolean) {
+const errorResponseSchema = z.object({
+  error: z.unknown(),
+});
+
+type ShoppingListResponse = z.infer<typeof shoppingListResponseSchema>;
+
+async function generateShoppingList(
+  recipeIds: string[],
+  isDefault: boolean,
+): Promise<ShoppingListResponse> {
   const activeSpan = trace.getActiveSpan();
 
   activeSpan?.setAttributes({
@@ -39,21 +49,27 @@ async function generateShoppingList(recipeIds: string[], isDefault: boolean) {
     throw new Error(`Failed to generate shopping list: ${response.status}`);
   }
 
-  const data = await response.json();
+  const json: unknown = await response.json();
 
-  if ("error" in data) {
-    throw new Error(data.error);
+  const errorResult = errorResponseSchema.safeParse(json);
+  if (errorResult.success) {
+    throw new Error(String(errorResult.data.error));
+  }
+
+  const result = shoppingListResponseSchema.safeParse(json);
+  if (!result.success) {
+    throw new Error("Invalid response format");
   }
 
   activeSpan?.setAttributes({
-    "shopping_list.total_items": data.items?.length || 0,
-    "shopping_list.total_cost": data.totalCost || 0,
-    "shopping_list.out_of_stock_count": data.outOfStock?.length || 0,
-    "shopping_list.out_of_stock_names": data.outOfStock,
-    "shopping_list.has_out_of_stock": (data.outOfStock?.length || 0) > 0,
+    "shopping_list.total_items": result.data.items.length,
+    "shopping_list.total_cost": result.data.totalCost,
+    "shopping_list.out_of_stock_count": result.data.outOfStock.length,
+    "shopping_list.out_of_stock_names": result.data.outOfStock,
+    "shopping_list.has_out_of_stock": result.data.outOfStock.length > 0,
   });
 
-  return data as ShoppingListResponse;
+  return result.data;
 }
 
 export default async function ShoppingListPage({

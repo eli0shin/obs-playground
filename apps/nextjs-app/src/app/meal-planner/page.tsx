@@ -1,20 +1,27 @@
 import Link from "next/link";
 import { getExpressUrl } from "@obs-playground/env";
+import { z } from "zod";
 
-type RecipeCost = {
-  recipeId: string;
-  title: string;
-  cost: number;
-};
+const recipeCostSchema = z.object({
+  recipeId: z.string(),
+  title: z.string(),
+  cost: z.number(),
+});
 
-type MealPlanEstimate = {
-  recipes: RecipeCost[];
-  totalWeeklyCost: number;
-  averageMealCost: number;
-  mealCount: number;
-};
+const mealPlanEstimateSchema = z.object({
+  recipes: z.array(recipeCostSchema),
+  totalWeeklyCost: z.number(),
+  averageMealCost: z.number(),
+  mealCount: z.number(),
+});
 
-async function getMealPlanEstimate(recipeIds: string[]) {
+const errorResponseSchema = z.object({
+  error: z.unknown(),
+});
+
+type MealPlanEstimate = z.infer<typeof mealPlanEstimateSchema>;
+
+async function getMealPlanEstimate(recipeIds: string[]): Promise<MealPlanEstimate> {
   const response = await fetch(
     `${getExpressUrl()}/meal-plan/estimate?recipeIds=${recipeIds.join(",")}`,
     {
@@ -26,13 +33,19 @@ async function getMealPlanEstimate(recipeIds: string[]) {
     throw new Error(`Failed to get meal plan estimate: ${response.status}`);
   }
 
-  const data = await response.json();
+  const json: unknown = await response.json();
 
-  if ("error" in data) {
-    throw new Error(data.error);
+  const errorResult = errorResponseSchema.safeParse(json);
+  if (errorResult.success) {
+    throw new Error(String(errorResult.data.error));
   }
 
-  return data as MealPlanEstimate;
+  const result = mealPlanEstimateSchema.safeParse(json);
+  if (!result.success) {
+    throw new Error("Invalid response format");
+  }
+
+  return result.data;
 }
 
 const DAYS_OF_WEEK = [
@@ -118,10 +131,11 @@ export default async function MealPlannerPage({
             </h2>
             <div className="space-y-3">
               {mealPlan.recipes.map((recipe, index) => {
-                const day = DAYS_OF_WEEK[index % 7];
+                const dayIndex = index % 7;
+                const day = DAYS_OF_WEEK[dayIndex];
                 return (
                   <div
-                    key={`${recipe.recipeId}-${index}`}
+                    key={`day-${dayIndex}-meal-${index}`}
                     className="flex items-center justify-between rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-600 dark:bg-zinc-700"
                   >
                     <div className="flex items-center gap-4">
@@ -161,7 +175,7 @@ export default async function MealPlannerPage({
             <div className="space-y-2">
               {mealPlan.recipes.map((recipe, index) => (
                 <div
-                  key={`${recipe.recipeId}-${index}`}
+                  key={`cost-${index}`}
                   className="flex justify-between text-sm"
                 >
                   <span className="text-zinc-700 dark:text-zinc-300">

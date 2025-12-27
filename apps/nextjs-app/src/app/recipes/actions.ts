@@ -3,20 +3,36 @@
 import { redirect } from "next/navigation";
 import { trace } from "@opentelemetry/api";
 import { graphqlRequest } from "@obs-playground/graphql-client";
+import { z } from "zod";
+
+function getFormString(formData: FormData, key: string): string {
+  const value = formData.get(key);
+  return typeof value === "string" ? value : "";
+}
+
+const ingredientSchema = z.array(
+  z.object({
+    ingredientId: z.string(),
+    quantity: z.number(),
+  }),
+);
 
 export async function createRecipeAction(formData: FormData) {
   const activeSpan = trace.getActiveSpan();
 
-  const title = formData.get("title") as string;
-  const description = formData.get("description") as string;
-  const prepTime = parseInt(formData.get("prepTime") as string, 10);
-  const cookTime = parseInt(formData.get("cookTime") as string, 10);
-  const difficulty = formData.get("difficulty") as string;
-  const servings = parseInt(formData.get("servings") as string, 10);
-  const categoryId = formData.get("categoryId") as string;
+  const title = getFormString(formData, "title");
+  const description = getFormString(formData, "description");
+  const prepTime = parseInt(getFormString(formData, "prepTime"), 10);
+  const cookTime = parseInt(getFormString(formData, "cookTime"), 10);
+  const difficulty = getFormString(formData, "difficulty");
+  const servings = parseInt(getFormString(formData, "servings"), 10);
+  const categoryId = getFormString(formData, "categoryId");
 
-  const ingredientsJson = formData.get("ingredients") as string;
-  const ingredients = JSON.parse(ingredientsJson);
+  const ingredientsJson = getFormString(formData, "ingredients");
+  const ingredientsResult = ingredientSchema.safeParse(
+    JSON.parse(ingredientsJson || "[]"),
+  );
+  const ingredients = ingredientsResult.success ? ingredientsResult.data : [];
 
   activeSpan?.setAttributes({
     "recipe.title": title,
@@ -69,13 +85,13 @@ export async function updateRecipeAction(id: string, formData: FormData) {
     "recipe.id": id,
   });
 
-  const title = formData.get("title") as string;
-  const description = formData.get("description") as string;
-  const prepTime = parseInt(formData.get("prepTime") as string, 10);
-  const cookTime = parseInt(formData.get("cookTime") as string, 10);
-  const difficulty = formData.get("difficulty") as string;
-  const servings = parseInt(formData.get("servings") as string, 10);
-  const categoryId = formData.get("categoryId") as string;
+  const title = getFormString(formData, "title");
+  const description = getFormString(formData, "description");
+  const prepTime = parseInt(getFormString(formData, "prepTime"), 10);
+  const cookTime = parseInt(getFormString(formData, "cookTime"), 10);
+  const difficulty = getFormString(formData, "difficulty");
+  const servings = parseInt(getFormString(formData, "servings"), 10);
+  const categoryId = getFormString(formData, "categoryId");
 
   activeSpan?.setAttributes({
     "recipe.title": title,

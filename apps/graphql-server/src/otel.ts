@@ -1,8 +1,22 @@
 import { SpanStatusCode } from "@opentelemetry/api";
 import type { Span } from "@opentelemetry/api";
 import { initializeOtel } from "@obs-playground/otel";
-import { GraphQLError } from "graphql";
+import type { GraphQLError } from "graphql";
 import { nestedObjectToDotNotatedPaths } from "./utils/nested-object-to-dot-notated-paths.js";
+
+function getErrorCode(error: GraphQLError): string | undefined {
+  const code = error.extensions.code;
+  return typeof code === "string" ? code : undefined;
+}
+
+function getErrorPath(error: GraphQLError): string[] {
+  if (!Array.isArray(error.path)) return [];
+  return error.path.filter((p): p is string => typeof p === "string");
+}
+
+function getExtensions(error: GraphQLError): Record<string, unknown> {
+  return error.extensions;
+}
 
 initializeOtel({
   serviceName: "graphql-server",
@@ -15,29 +29,28 @@ initializeOtel({
         data: { errors?: readonly GraphQLError[] },
       ) => {
         if (data.errors && data.errors.length > 0) {
+          const firstError = data.errors[0];
           span.setStatus({
             code: SpanStatusCode.ERROR,
-            message: data.errors[0].message,
+            message: firstError.message,
           });
           span.setAttributes({
             "graphql.error.count": data.errors.length,
             "graphql.error.messages": data.errors.map((e) => e.message),
-            "graphql.error.codes": data.errors.map(
-              (e) => e.extensions?.code as string | undefined,
-            ),
-            "error.type": data.errors[0].name,
-            "error.message": data.errors[0].message,
-            "error.stack": data.errors[0].stack,
+            "graphql.error.codes": data.errors.map(getErrorCode),
+            "error.type": firstError.name,
+            "error.message": firstError.message,
+            "error.stack": firstError.stack,
           });
           for (const error of data.errors) {
             const flattenedExtensions = nestedObjectToDotNotatedPaths(
-              error.extensions as Record<string, unknown>,
+              getExtensions(error),
               "graphql.error",
             );
 
             span.addEvent("graphql.error", {
               "graphql.error.message": error.message,
-              "graphql.error.path": error.path as string[],
+              "graphql.error.path": getErrorPath(error),
               "graphql.error.stacktrace": error.stack,
               ...flattenedExtensions,
             });
@@ -48,8 +61,9 @@ initializeOtel({
             ) {
               span.recordException(error.originalError);
             }
-            if (error.originalError?.cause) {
-              span.recordException(error.originalError.cause as Error);
+            const cause = error.originalError?.cause;
+            if (cause instanceof Error) {
+              span.recordException(cause);
             }
           }
         }

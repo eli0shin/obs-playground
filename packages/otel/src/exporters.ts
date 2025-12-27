@@ -3,17 +3,16 @@ import { OTLPLogExporter } from "@opentelemetry/exporter-logs-otlp-http";
 import { OTLPMetricExporter } from "@opentelemetry/exporter-metrics-otlp-http";
 import {
   BatchSpanProcessor,
-  SpanProcessor,
+  type SpanProcessor,
 } from "@opentelemetry/sdk-trace-node";
 import { ConsoleSpanExporter } from "@opentelemetry/sdk-trace-base";
 import {
   BatchLogRecordProcessor,
-  LogRecordProcessor,
+  type LogRecordProcessor, ConsoleLogRecordExporter 
 } from "@opentelemetry/sdk-logs";
-import { ConsoleLogRecordExporter } from "@opentelemetry/sdk-logs";
 import {
   PeriodicExportingMetricReader,
-  MetricReader,
+  type MetricReader,
 } from "@opentelemetry/sdk-metrics";
 
 // Batch processor configuration to prevent payload size errors

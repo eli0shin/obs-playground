@@ -1,35 +1,18 @@
-import tsParser from "@typescript-eslint/parser";
-import tsPlugin from "@typescript-eslint/eslint-plugin";
+import forAi from "eslint-for-ai";
 
 export default [
+  ...forAi.configs.recommended,
   {
-    files: ["**/*.ts"],
-    languageOptions: {
-      parser: tsParser,
-      parserOptions: {
-        ecmaVersion: "latest",
-        sourceType: "module",
-      },
-    },
-    plugins: {
-      "@typescript-eslint": tsPlugin,
-    },
+    files: ["**/otel.ts", "**/server.ts"],
     rules: {
-      "no-console": "error",
-      "@typescript-eslint/no-unused-vars": [
-        "error",
-        {
-          argsIgnorePattern: "^_",
-          varsIgnorePattern: "^_",
-          caughtErrorsIgnorePattern: "^_",
-        },
-      ],
+      "no-console": "off",
     },
   },
   {
-    files: ["**/otel.ts"],
+    // GraphQL client uses generics which require type assertions for the return type
+    files: ["packages/graphql-client/src/**/*.ts"],
     rules: {
-      "no-console": "off",
+      "@typescript-eslint/consistent-type-assertions": "off",
     },
   },
   {

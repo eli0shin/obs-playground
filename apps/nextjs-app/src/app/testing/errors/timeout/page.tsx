@@ -1,7 +1,15 @@
 import Link from "next/link";
 import { getExpressUrl } from "@obs-playground/env";
+import { z } from "zod";
 
-async function callSlowEndpoint() {
+const slowEndpointResponseSchema = z.record(z.string(), z.unknown());
+
+type SlowEndpointResponse = z.infer<typeof slowEndpointResponseSchema>;
+
+async function callSlowEndpoint(): Promise<{
+  data: SlowEndpointResponse;
+  duration: number;
+}> {
   const startTime = Date.now();
 
   const response = await fetch(`${getExpressUrl()}/api/slow/timeout`, {
@@ -11,7 +19,9 @@ async function callSlowEndpoint() {
   const endTime = Date.now();
   const duration = endTime - startTime;
 
-  const data = await response.json();
+  const json: unknown = await response.json();
+  const result = slowEndpointResponseSchema.safeParse(json);
+  const data = result.success ? result.data : {};
 
   return { data, duration };
 }

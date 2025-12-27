@@ -13,9 +13,11 @@ export default function MyStatsig({ children }: { children: React.ReactNode }) {
     // custom: { plan: 'premium' }
   };
 
+  const sdkKey = process.env.NEXT_PUBLIC_STATSIG_CLIENT_KEY ?? "";
+
   return (
     <StatsigProvider
-      sdkKey={process.env.NEXT_PUBLIC_STATSIG_CLIENT_KEY!}
+      sdkKey={sdkKey}
       user={user}
       options={{
         logLevel: LogLevel.Debug,

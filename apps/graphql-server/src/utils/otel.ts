@@ -13,6 +13,26 @@ import { context, createContextKey, type Span } from "@opentelemetry/api";
  */
 const OPERATION_SPAN_KEY = createContextKey("graphql.operation.span");
 
+function hasSpanMethods(
+  value: object,
+): value is { setAttribute: unknown; setAttributes: unknown; setStatus: unknown } {
+  return (
+    "setAttribute" in value &&
+    "setAttributes" in value &&
+    "setStatus" in value
+  );
+}
+
+function isSpan(value: unknown): value is Span {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+  if (!hasSpanMethods(value)) {
+    return false;
+  }
+  return typeof value.setAttribute === "function";
+}
+
 /**
  * Retrieves the operation-level (EXECUTE) span from OpenTelemetry context.
  *
@@ -41,5 +61,6 @@ const OPERATION_SPAN_KEY = createContextKey("graphql.operation.span");
  * ```
  */
 export function getOperationSpan(): Span | undefined {
-  return context.active().getValue(OPERATION_SPAN_KEY) as Span | undefined;
+  const value = context.active().getValue(OPERATION_SPAN_KEY);
+  return isSpan(value) ? value : undefined;
 }

@@ -1,27 +1,27 @@
-import { Router, Request, Response } from "express";
+import { Router, type Request, type Response } from "express";
 import { trace } from "@opentelemetry/api";
 import { graphqlRequest } from "@obs-playground/graphql-client";
 import { ingredientNutrition } from "../data.js";
-import type {
-  BatchNutritionRequest,
-  RecipeNutrition,
-  GraphQLRecipe,
-} from "../types.js";
+import type { RecipeNutrition, GraphQLRecipe } from "../types.js";
+import { batchNutritionSchema } from "../schemas.js";
 
 const router = Router();
 
 router.post("/batch/nutrition", async (req: Request, res: Response) => {
   const activeSpan = trace.getActiveSpan();
-  const { recipeIds } = req.body as BatchNutritionRequest;
+  const parsed = batchNutritionSchema.safeParse(req.body);
+
+  if (!parsed.success) {
+    activeSpan?.recordException(parsed.error);
+    return res.status(400).json({ error: parsed.error.issues });
+  }
+
+  const { recipeIds } = parsed.data;
 
   activeSpan?.setAttributes({
     "batch_nutrition.recipe_ids": recipeIds,
-    "batch_nutrition.recipe_count": recipeIds?.length || 0,
+    "batch_nutrition.recipe_count": recipeIds.length,
   });
-
-  if (!recipeIds || !Array.isArray(recipeIds)) {
-    return res.status(400).json({ error: "recipeIds array is required" });
-  }
 
   const { recipes: allRecipes } = await graphqlRequest<{
     recipes: GraphQLRecipe[];

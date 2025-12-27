@@ -1,8 +1,8 @@
-export const dynamic = "force-dynamic";
-
 import { getExpressUrl } from "@obs-playground/env";
 
-async function callFailingExpressEndpoint() {
+export const dynamic = "force-dynamic";
+
+async function callFailingExpressEndpoint(): Promise<void> {
   const response = await fetch(`${getExpressUrl()}/api/error/test`, {
     cache: "no-store",
   });
@@ -13,7 +13,8 @@ async function callFailingExpressEndpoint() {
     );
   }
 
-  return await response.json();
+  // We don't actually need the response, just verify the call succeeded
+  await response.json();
 }
 
 export default async function ExpressErrorPage() {

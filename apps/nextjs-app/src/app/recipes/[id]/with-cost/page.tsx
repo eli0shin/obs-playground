@@ -22,8 +22,8 @@ type RecipeWithCost = {
   totalCost: number;
 };
 
-async function getRecipeWithCost(id: string) {
-  const data = await graphqlRequest<{ recipeWithCost: RecipeWithCost }>(
+async function getRecipeWithCost(id: string): Promise<RecipeWithCost | null> {
+  const data = await graphqlRequest<{ recipeWithCost: RecipeWithCost | null }>(
     `
       query GetRecipeWithCost($id: ID!) {
         recipeWithCost(id: $id) {

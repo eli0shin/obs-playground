@@ -8,7 +8,7 @@ export function nestedObjectToDotNotatedPaths(
   obj: NestedObject,
   prefix = "",
 ): Record<string, unknown> {
-  const result: Record<string, unknown> = {};
+  const entries: Array<[string, unknown]> = [];
 
   for (const [key, value] of Object.entries(obj)) {
     const newKey = prefix ? `${prefix}.${key}` : key;
@@ -23,18 +23,18 @@ export function nestedObjectToDotNotatedPaths(
 
         if (isObject(item)) {
           const flattened = nestedObjectToDotNotatedPaths(item, arrayKey);
-          Object.assign(result, flattened);
+          entries.push(...Object.entries(flattened));
         } else {
-          result[arrayKey] = item;
+          entries.push([arrayKey, item]);
         }
       });
     } else if (isObject(value)) {
       const flattened = nestedObjectToDotNotatedPaths(value, newKey);
-      Object.assign(result, flattened);
+      entries.push(...Object.entries(flattened));
     } else {
-      result[newKey] = value;
+      entries.push([newKey, value]);
     }
   }
 
-  return result;
+  return Object.fromEntries(entries);
 }

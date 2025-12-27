@@ -1,10 +1,22 @@
 import { trace, SpanStatusCode } from "@opentelemetry/api";
 import { getGraphqlUrl } from "@obs-playground/env";
+import { z } from "zod";
 
 export type GraphQLResponse<T> = {
   data?: T;
   errors?: Array<{ message: string }>;
 };
+
+const graphqlResponseSchema = z.object({
+  data: z.unknown().optional(),
+  errors: z
+    .array(
+      z.object({
+        message: z.string(),
+      }),
+    )
+    .optional(),
+});
 
 /**
  * Minimal GraphQL client that handles errors and OTEL instrumentation.
@@ -33,7 +45,10 @@ export async function graphqlRequest<T>(
       throw new Error(`GraphQL request failed: ${response.status}`);
     }
 
-    const { data, errors } = (await response.json()) as GraphQLResponse<T>;
+    const json: unknown = await response.json();
+    const parsed = graphqlResponseSchema.parse(json);
+    const data = parsed.data as T | undefined;
+    const errors = parsed.errors;
 
     if (errors && errors.length > 0) {
       throw new Error(`GraphQL error: ${errors[0].message}`);

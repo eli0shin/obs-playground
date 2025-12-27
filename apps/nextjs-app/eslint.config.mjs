@@ -1,38 +1,54 @@
-import { defineConfig, globalIgnores } from "eslint/config";
-import nextVitals from "eslint-config-next/core-web-vitals";
-import nextTs from "eslint-config-next/typescript";
+import forAi from "eslint-for-ai";
+import nextPlugin from "@next/eslint-plugin-next";
 
-const eslintConfig = defineConfig([
-  ...nextVitals,
-  ...nextTs,
+export default [
+  ...forAi.configs.recommended,
   {
+    plugins: {
+      "@next/next": nextPlugin,
+    },
     rules: {
-      "no-console": "error",
-      "@typescript-eslint/no-unused-vars": [
-        "error",
-        {
-          argsIgnorePattern: "^_",
-          varsIgnorePattern: "^_",
-          caughtErrorsIgnorePattern: "^_",
-        },
-      ],
+      ...nextPlugin.configs.recommended.rules,
+      ...nextPlugin.configs["core-web-vitals"].rules,
     },
   },
   {
-    files: ["**/otel.ts", "**/server.ts"],
+    files: ["**/otel.ts"],
     rules: {
       "no-console": "off",
     },
   },
-  // Override default ignores of eslint-config-next.
-  globalIgnores([
-    // Default ignores of eslint-config-next:
-    ".next/**",
-    ".next-custom/**",
-    "out/**",
-    "build/**",
-    "next-env.d.ts",
-  ]),
-]);
-
-export default eslintConfig;
+  {
+    // Custom server bridges Express and Next.js request handlers with different type signatures
+    files: ["server.ts"],
+    rules: {
+      "no-console": "off",
+      "for-ai/no-bare-wrapper": "off",
+    },
+  },
+  {
+    // Sentry requires dynamic import for client-side initialization
+    files: ["**/sentry-init.tsx"],
+    rules: {
+      "no-restricted-syntax": "off",
+    },
+  },
+  {
+    // Next.js instrumentation hook requires dynamic imports
+    files: ["**/instrumentation.ts"],
+    rules: {
+      "no-restricted-syntax": "off",
+    },
+  },
+  {
+    // Meal planner displays repeated recipes across days - index is the only unique identifier
+    files: ["**/meal-planner/page.tsx"],
+    rules: {
+      "react/no-array-index-key": "off",
+      "@eslint-react/no-array-index-key": "off",
+    },
+  },
+  {
+    ignores: [".next/**", ".next-custom/**", "out/**", "build/**"],
+  },
+];

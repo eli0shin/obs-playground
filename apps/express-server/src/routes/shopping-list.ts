@@ -1,29 +1,29 @@
-import { Router, Request, Response } from "express";
+import { Router, type Request, type Response } from "express";
 import { trace } from "@opentelemetry/api";
 import { graphqlRequest } from "@obs-playground/graphql-client";
 import { ingredientPrices, ingredientInventory } from "../data.js";
-import type {
-  ShoppingListRequest,
-  ShoppingListItem,
-  GraphQLRecipe,
-} from "../types.js";
+import type { ShoppingListItem, GraphQLRecipe } from "../types.js";
+import { shoppingListSchema } from "../schemas.js";
 
 const router = Router();
 
 router.post("/shopping-list/generate", async (req: Request, res: Response) => {
   const activeSpan = trace.getActiveSpan();
-  const { recipeIds, servings = {} } = req.body as ShoppingListRequest;
+  const parsed = shoppingListSchema.safeParse(req.body);
+
+  if (!parsed.success) {
+    activeSpan?.recordException(parsed.error);
+    return res.status(400).json({ error: parsed.error.issues });
+  }
+
+  const { recipeIds, servings = {} } = parsed.data;
 
   // Capture inputs
   activeSpan?.setAttributes({
     "shopping_list.recipe_ids": JSON.stringify(recipeIds),
-    "shopping_list.recipe_count": recipeIds?.length || 0,
+    "shopping_list.recipe_count": recipeIds.length,
     "shopping_list.has_custom_servings": Object.keys(servings).length > 0,
   });
-
-  if (!recipeIds || !Array.isArray(recipeIds) || recipeIds.length === 0) {
-    return res.status(400).json({ error: "recipeIds array is required" });
-  }
 
   const { recipes: allRecipes } = await graphqlRequest<{
     recipes: GraphQLRecipe[];
@@ -57,7 +57,7 @@ router.post("/shopping-list/generate", async (req: Request, res: Response) => {
   >();
 
   selectedRecipes.forEach((recipe) => {
-    const recipeServings = servings[recipe.id] || 1;
+    const recipeServings = servings[recipe.id] ?? 1;
 
     recipe.ingredients.forEach(({ ingredient, quantity }) => {
       const existing = ingredientMap.get(ingredient.id);
@@ -81,7 +81,7 @@ router.post("/shopping-list/generate", async (req: Request, res: Response) => {
   const outOfStock: string[] = [];
 
   ingredientMap.forEach((item, ingredientId) => {
-    const pricePerUnit = ingredientPrices[ingredientId] || 0;
+    const pricePerUnit = ingredientPrices[ingredientId] ?? 0;
     const inventory = ingredientInventory[ingredientId];
     const itemTotalCost = pricePerUnit * item.quantity;
 
@@ -106,11 +106,14 @@ router.post("/shopping-list/generate", async (req: Request, res: Response) => {
   const recipeTitles = selectedRecipes.map((r) => r.title).join(",");
   const costPerServing =
     totalCost /
-    selectedRecipes.reduce((sum, r) => sum + (servings[r.id] || 1), 0);
-  const mostExpensiveItem = shoppingList.reduce(
-    (max, item) => (item.totalCost > (max?.totalCost || 0) ? item : max),
-    shoppingList[0],
-  );
+    selectedRecipes.reduce((sum, r) => sum + (servings[r.id] ?? 1), 0);
+
+  const mostExpensiveItem =
+    shoppingList.length > 0
+      ? shoppingList.reduce((max, item) =>
+          item.totalCost > max.totalCost ? item : max,
+        )
+      : undefined;
 
   activeSpan?.setAttributes({
     "shopping_list.recipe_titles": recipeTitles,

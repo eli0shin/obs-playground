@@ -1,21 +1,28 @@
 import Link from "next/link";
 import { getExpressUrl } from "@obs-playground/env";
+import { z } from "zod";
 
-type RecipeNutrition = {
-  recipeId: string;
-  title: string;
-  calories: number;
-  protein: number;
-  fat: number;
-  carbs: number;
-};
+const recipeNutritionSchema = z.object({
+  recipeId: z.string(),
+  title: z.string(),
+  calories: z.number(),
+  protein: z.number(),
+  fat: z.number(),
+  carbs: z.number(),
+});
 
-type BatchNutritionResponse = {
-  recipes: RecipeNutrition[];
-  count: number;
-};
+const batchNutritionResponseSchema = z.object({
+  recipes: z.array(recipeNutritionSchema),
+  count: z.number(),
+});
 
-async function getBatchNutrition(recipeIds: string[]) {
+const errorResponseSchema = z.object({
+  error: z.unknown(),
+});
+
+type BatchNutritionResponse = z.infer<typeof batchNutritionResponseSchema>;
+
+async function getBatchNutrition(recipeIds: string[]): Promise<BatchNutritionResponse> {
   const response = await fetch(`${getExpressUrl()}/batch/nutrition`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -27,13 +34,19 @@ async function getBatchNutrition(recipeIds: string[]) {
     throw new Error(`Failed to get batch nutrition: ${response.status}`);
   }
 
-  const data = await response.json();
+  const json: unknown = await response.json();
 
-  if ("error" in data) {
-    throw new Error(data.error);
+  const errorResult = errorResponseSchema.safeParse(json);
+  if (errorResult.success) {
+    throw new Error(String(errorResult.data.error));
   }
 
-  return data as BatchNutritionResponse;
+  const result = batchNutritionResponseSchema.safeParse(json);
+  if (!result.success) {
+    throw new Error("Invalid response format");
+  }
+
+  return result.data;
 }
 
 export default async function BatchNutritionPage({

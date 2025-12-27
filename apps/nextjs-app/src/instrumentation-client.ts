@@ -3,8 +3,8 @@ import { reactPlugin } from "@datadog/browser-rum-react";
 import { captureRouterTransitionStart } from "@sentry/nextjs";
 
 datadogRum.init({
-  applicationId: process.env.NEXT_PUBLIC_DATADOG_APP_ID!,
-  clientToken: process.env.NEXT_PUBLIC_DATADOG_CLIENT_TOKEN!,
+  applicationId: process.env.NEXT_PUBLIC_DATADOG_APP_ID ?? "",
+  clientToken: process.env.NEXT_PUBLIC_DATADOG_CLIENT_TOKEN ?? "",
   site: "us5.datadoghq.com",
   service: "nextjs-app",
   sessionSampleRate: 100,

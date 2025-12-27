@@ -1,5 +1,11 @@
-import { Request, Response, NextFunction } from "express";
-import { trace, Attributes } from "@opentelemetry/api";
+import type { Request, Response, NextFunction } from "express";
+import { trace } from "@opentelemetry/api";
+import { z } from "zod";
+
+const attributeSchema = z.record(
+  z.string(),
+  z.union([z.string(), z.number(), z.boolean()]),
+);
 
 export function responseInstrumentation(
   _req: Request,
@@ -23,8 +29,14 @@ export function responseInstrumentation(
 
   res.on("finish", () => {
     if (res.statusCode >= 400) {
-      // @ts-expect-error
-      responseBody = JSON.parse(responseBody);
+      if (typeof responseBody === "string") {
+        try {
+          responseBody = JSON.parse(responseBody);
+        } catch {
+          return;
+        }
+      }
+
       const activeSpan = trace.getActiveSpan();
       if (responseBody && typeof responseBody === "object") {
         if (
@@ -40,9 +52,12 @@ export function responseInstrumentation(
         }
 
         if ("errors" in responseBody && Array.isArray(responseBody.errors)) {
-          responseBody.errors.forEach((error) => {
-            activeSpan?.addEvent("error_details", error as Attributes);
-          });
+          for (const error of responseBody.errors) {
+            const parsed = attributeSchema.safeParse(error);
+            if (parsed.success) {
+              activeSpan?.addEvent("error_details", parsed.data);
+            }
+          }
         }
       }
     }

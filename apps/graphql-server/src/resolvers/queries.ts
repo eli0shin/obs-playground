@@ -1,6 +1,6 @@
 import { trace } from "@opentelemetry/api";
 import { getExpressUrl } from "@obs-playground/env";
-import type { IngredientCost, NutritionData } from "../types/index.js";
+import type { IngredientCost } from "../types/index.js";
 import {
   recipes,
   recipeIngredients,
@@ -8,6 +8,10 @@ import {
   ingredients,
 } from "../data/index.js";
 import { getOperationSpan } from "../utils/otel.js";
+import {
+  pricesResponseSchema,
+  nutritionResponseSchema,
+} from "../schemas.js";
 
 export const Query = {
   recipe: (_: unknown, { id }: { id: string }) => {
@@ -61,21 +65,26 @@ export const Query = {
     const response = await fetch(
       `${getExpressUrl()}/ingredients/prices?ids=${ingredientIds.join(",")}`,
     );
-    const prices = (await response.json()) as Record<string, number>;
+    const pricesResult = pricesResponseSchema.safeParse(await response.json());
+    const prices = pricesResult.success ? pricesResult.data : {};
 
-    const ingredientCosts: IngredientCost[] = recipeIngs.map((ri) => {
-      const ingredient = ingredients.find((i) => i.id === ri.ingredientId)!;
-      const pricePerUnit = prices[ri.ingredientId] || 0;
+    const ingredientCosts: IngredientCost[] = recipeIngs.flatMap((ri) => {
+      const ingredient = ingredients.find((i) => i.id === ri.ingredientId);
+      if (!ingredient) return [];
+
+      const pricePerUnit = prices[ri.ingredientId] ?? 0;
       const totalCost = pricePerUnit * ri.quantity;
 
-      return {
-        ingredientId: ri.ingredientId,
-        name: ingredient.name,
-        quantity: ri.quantity,
-        unit: ingredient.unit,
-        pricePerUnit,
-        totalCost,
-      };
+      return [
+        {
+          ingredientId: ri.ingredientId,
+          name: ingredient.name,
+          quantity: ri.quantity,
+          unit: ingredient.unit,
+          pricePerUnit,
+          totalCost,
+        },
+      ];
     });
 
     const totalCost = ingredientCosts.reduce(
@@ -138,7 +147,10 @@ export const Query = {
       const response = await fetch(
         `${getExpressUrl()}/nutrition/ingredient/${ri.ingredientId}`,
       );
-      const nutrition = (await response.json()) as NutritionData;
+      const result = nutritionResponseSchema.safeParse(await response.json());
+      const nutrition = result.success
+        ? result.data
+        : { calories: 0, protein: 0, fat: 0, carbs: 0 };
 
       return {
         calories: nutrition.calories * ri.quantity,

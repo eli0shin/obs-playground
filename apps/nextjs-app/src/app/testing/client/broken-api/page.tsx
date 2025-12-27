@@ -2,13 +2,16 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { z } from "zod";
+
+const apiResponseSchema = z.record(z.string(), z.unknown());
+
+type ApiResponse = z.infer<typeof apiResponseSchema>;
 
 export default function BrokenAPIPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [response, setResponse] = useState<Record<string, unknown> | null>(
-    null,
-  );
+  const [response, setResponse] = useState<ApiResponse | null>(null);
 
   const handleTestError = async () => {
     setLoading(true);
@@ -22,8 +25,11 @@ export default function BrokenAPIPage() {
         throw new Error(`HTTP ${res.status}: ${res.statusText}`);
       }
 
-      const data = await res.json();
-      setResponse(data);
+      const json: unknown = await res.json();
+      const result = apiResponseSchema.safeParse(json);
+      if (result.success) {
+        setResponse(result.data);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
@@ -38,10 +44,16 @@ export default function BrokenAPIPage() {
 
     try {
       const res = await fetch("/api/error/not-found");
-      const data = await res.json();
+      const json: unknown = await res.json();
+      const result = apiResponseSchema.safeParse(json);
+      const data = result.success ? result.data : {};
+      const message =
+        "message" in data && typeof data.message === "string"
+          ? data.message
+          : res.statusText;
 
       if (!res.ok) {
-        setError(`HTTP ${res.status}: ${data.message || res.statusText}`);
+        setError(`HTTP ${res.status}: ${message}`);
       } else {
         setResponse(data);
       }
@@ -59,10 +71,16 @@ export default function BrokenAPIPage() {
 
     try {
       const res = await fetch("/api/error/validation");
-      const data = await res.json();
+      const json: unknown = await res.json();
+      const result = apiResponseSchema.safeParse(json);
+      const data = result.success ? result.data : {};
+      const message =
+        "message" in data && typeof data.message === "string"
+          ? data.message
+          : res.statusText;
 
       if (!res.ok) {
-        setError(`HTTP ${res.status}: ${data.message || res.statusText}`);
+        setError(`HTTP ${res.status}: ${message}`);
         setResponse(data);
       } else {
         setResponse(data);

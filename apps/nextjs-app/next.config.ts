@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs";
 
-const nextConfig: NextConfig = {
+const nextConfig = {
   distDir: process.env.CUSTOM_SERVER === "true" ? ".next-custom" : ".next",
   serverExternalPackages: [
     "@opentelemetry/api",
@@ -12,7 +12,7 @@ const nextConfig: NextConfig = {
     "require-in-the-middle",
   ],
   /* config options here */
-};
+} satisfies NextConfig;
 
 export default withSentryConfig(nextConfig, {
   // Suppresses source map uploading logs during build

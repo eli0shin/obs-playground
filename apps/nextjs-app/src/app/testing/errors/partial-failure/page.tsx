@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { graphqlRequest } from "@obs-playground/graphql-client";
 import { getExpressUrl } from "@obs-playground/env";
+import { z } from "zod";
 
 type FetchResult = {
   name: string;
@@ -44,6 +45,8 @@ async function fetchNonExistentRecipe() {
   }
 }
 
+const expressResponseSchema = z.record(z.string(), z.unknown());
+
 async function fetchExpressError() {
   try {
     const response = await fetch(`${getExpressUrl()}/api/error/test`, {
@@ -54,7 +57,9 @@ async function fetchExpressError() {
       throw new Error(`HTTP ${response.status}`);
     }
 
-    const data = await response.json();
+    const json: unknown = await response.json();
+    const result = expressResponseSchema.safeParse(json);
+    const data = result.success ? result.data : {};
     return { name: "Express Error", success: true, data };
   } catch (error) {
     return {
@@ -138,9 +143,9 @@ export default async function PartialFailurePage() {
           </p>
 
           <div className="mt-6 space-y-4">
-            {results.map((result, index) => (
+            {results.map((result) => (
               <div
-                key={index}
+                key={result.name}
                 className={`rounded-lg border p-4 ${
                   result.success
                     ? "border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/20"

@@ -1,6 +1,7 @@
-import { Router, Request, Response } from "express";
+import { Router, type Request, type Response } from "express";
 import { trace } from "@opentelemetry/api";
 import { ingredientPrices } from "../data.js";
+import { priceUpdateSchema } from "../schemas.js";
 
 const router = Router();
 
@@ -27,7 +28,9 @@ router.get("/ingredients/prices", (req: Request, res: Response) => {
 
   if (!ids) {
     // Return all prices
-    const allPrices = Object.values(ingredientPrices);
+    const allPrices = Object.values(ingredientPrices).filter(
+      (p): p is number => p !== undefined,
+    );
     activeSpan?.setAttributes({
       "batch.ingredient_count": allPrices.length,
       "batch.prices": allPrices,
@@ -38,16 +41,13 @@ router.get("/ingredients/prices", (req: Request, res: Response) => {
   }
 
   // Return specific prices
-  const idArray = (ids as string).split(",");
-  const prices: Record<string, number> = {};
-  const priceValues: number[] = [];
-
-  idArray.forEach((id) => {
-    if (ingredientPrices[id] !== undefined) {
-      prices[id] = ingredientPrices[id];
-      priceValues.push(ingredientPrices[id]);
-    }
-  });
+  const idsStr = typeof ids === "string" ? ids : "";
+  const idArray = idsStr.split(",");
+  const priceEntries = idArray
+    .map((id) => [id, ingredientPrices[id]] as const)
+    .filter((entry): entry is [string, number] => entry[1] !== undefined);
+  const prices = Object.fromEntries(priceEntries);
+  const priceValues = priceEntries.map(([, price]) => price);
 
   activeSpan?.setAttributes({
     "batch.ingredient_ids_requested": idArray.length,
@@ -70,16 +70,24 @@ router.get("/ingredients/prices", (req: Request, res: Response) => {
 
 router.post("/ingredients/prices", (req: Request, res: Response) => {
   const activeSpan = trace.getActiveSpan();
-  const updates = req.body as Record<string, number>;
+  const parsed = priceUpdateSchema.safeParse(req.body);
+
+  if (!parsed.success) {
+    activeSpan?.recordException(parsed.error);
+    return res.status(400).json({ error: parsed.error.issues });
+  }
+
+  const updates = parsed.data;
+  const updateIds = Object.keys(updates);
   const updateValues = Object.values(updates);
 
-  Object.entries(updates).forEach(([id, price]) => {
+  for (const [id, price] of Object.entries(updates)) {
     ingredientPrices[id] = price;
-  });
+  }
 
   activeSpan?.setAttributes({
-    "pricing.updated_count": Object.keys(updates).length,
-    "pricing.updated_ids": Object.keys(updates).join(","),
+    "pricing.updated_count": updateIds.length,
+    "pricing.updated_ids": updateIds.join(","),
   });
 
   if (updateValues.length > 0) {
@@ -91,7 +99,7 @@ router.post("/ingredients/prices", (req: Request, res: Response) => {
     });
   }
 
-  res.json({ success: true, updated: Object.keys(updates) });
+  res.json({ success: true, updated: updateIds });
 });
 
 export default router;

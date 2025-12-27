@@ -11,9 +11,8 @@ const handle = app.getRequestHandler();
 const server = express();
 
 app.prepare().then(() => {
-  server.use((req, res) => {
-    return handle(req, res);
-  });
+  // Express and Next.js have different request handler signatures - this wrapper bridges them
+  server.all("*", (req, res) => handle(req, res));
 
   server.listen(port, () => {
     console.log(`> Ready on http://${hostname}:${port}`);
