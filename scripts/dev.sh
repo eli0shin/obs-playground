@@ -18,7 +18,7 @@ fi
 
 # Run all services with both Next.js modes
 NEXTJS_NORMAL_CMD="cd apps/nextjs-app && ${DD_PREFIX}PORT=3000 npm run dev"
-NEXTJS_CUSTOM_CMD="${DD_PREFIX}CUSTOM_SERVER=true PORT=3002 tsx --env-file=apps/nextjs-app/.env.local apps/nextjs-app/server.ts"
+NEXTJS_CUSTOM_CMD="cd apps/nextjs-app && ${DD_PREFIX}CUSTOM_SERVER=true PORT=3002 tsx --env-file=.env.local server.ts"
 
 npx concurrently \
   --names "OTEL,GQL-CLIENT,NEXT,CUSTOM,EXPRESS,GRAPHQL,PROXY" \

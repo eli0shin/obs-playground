@@ -6,13 +6,14 @@ const port = parseInt(process.env.PORT || "3000", 10);
 const dev = process.env.NODE_ENV !== "production";
 const hostname = "localhost";
 
-const app = next({ dev, hostname, port, dir: "./apps/nextjs-app" });
+const app = next({ dev, hostname, port });
 const handle = app.getRequestHandler();
 const server = express();
 
 app.prepare().then(() => {
-  // Express and Next.js have different request handler signatures - this wrapper bridges them
-  server.all("*", (req, res) => handle(req, res));
+  server.use((req, res) => {
+    return handle(req, res);
+  });
 
   server.listen(port, () => {
     console.log(`> Ready on http://${hostname}:${port}`);
