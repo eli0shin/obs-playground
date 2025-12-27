@@ -7,8 +7,9 @@
     "dev": "next dev",
     "dev:custom": "CUSTOM_SERVER=true tsx --env-file=.env.local server.ts",
     "build": "next build",
+    "build:custom": "CUSTOM_SERVER=true next build",
     "start": "next start",
-    "start:custom": "node server.ts",
+    "start:custom": "CUSTOM_SERVER=true NODE_ENV=production tsx server.ts",
     "lint": "eslint",
     "type-check": "tsc --noEmit"
   },

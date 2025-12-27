@@ -94,7 +94,7 @@ jobs:
         run: npm run build
 
       - name: Start all services
-        run: PROXY_PORT=3443 PROXY_PORT_CUSTOM=8443 npm run dev:all &
+        run: PROXY_PORT=3443 PROXY_PORT_CUSTOM=8443 npm run start:all &
         env:
           CI: true
 

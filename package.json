@@ -14,7 +14,8 @@
     "clean": "rm -rf node_modules packages/*/node_modules apps/*/node_modules && npm install",
     "dev:all": "bash scripts/dev.sh otel",
     "dev:dd:all": "bash scripts/dev.sh dd",
-    "build": "turbo run build",
+    "start:all": "bash scripts/start.sh",
+    "build": "turbo run build && npm run build:custom -w nextjs-app",
     "type-check": "turbo run type-check",
     "lint": "turbo run lint",
     "format": "prettier --write .",
@@ -22,6 +23,7 @@
     "playwright": "npm run playwright:normal && npm run playwright:custom",
     "playwright:normal": "BASE_URL=${NORMAL_URL:-https://localhost} npm run test -w @obs-playground/playwright-tests",
     "playwright:custom": "BASE_URL=${CUSTOM_URL:-https://localhost:8443} npm run test -w @obs-playground/playwright-tests",
+    "playwright:slow": "BASE_URL=${NORMAL_URL:-https://localhost} SLOW_TESTS=true npm run test -w @obs-playground/playwright-tests",
     "playwright:repeat": "npm run test:repeat -w @obs-playground/playwright-tests"
   },
   "keywords": [],
