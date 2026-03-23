@@ -15,6 +15,7 @@ export default function RecipesError({
         <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-950">
           <div className="flex items-center">
             <svg
+              aria-hidden="true"
               className="h-6 w-6 text-red-600 dark:text-red-400"
               fill="none"
               viewBox="0 0 24 24"
@@ -79,6 +80,7 @@ export default function RecipesError({
 
           <div className="mt-8 flex gap-4">
             <button
+              type="button"
               onClick={reset}
               className="rounded-md bg-blue-600 px-6 py-2 font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-900"
             >

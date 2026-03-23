@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { graphqlRequest } from "@obs-playground/graphql-client";
-import { trace } from "@opentelemetry/api";
+import { trace, SpanStatusCode } from "@opentelemetry/api";
 import type {
   Recipe,
   Category,
@@ -235,7 +235,13 @@ export const getNotFoundRecipe = createServerFn({
   );
 
   if (!result.recipe) {
-    throw new Error("Recipe not found - notFoundRecipe returned null");
+    const err = new Error("Recipe not found - notFoundRecipe returned null");
+    trace.getActiveSpan()?.recordException(err);
+    trace.getActiveSpan()?.setStatus({
+      code: SpanStatusCode.ERROR,
+      message: err.message,
+    });
+    throw err;
   }
 
   return result.recipe;

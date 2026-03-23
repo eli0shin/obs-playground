@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getExpressUrl } from "@obs-playground/env";
-import { trace } from "@opentelemetry/api";
+import { trace, SpanStatusCode } from "@opentelemetry/api";
 import { z } from "zod";
 import type { ShoppingListResponse } from "../types";
 
@@ -19,10 +19,6 @@ const shoppingListResponseSchema = z.object({
   totalCost: z.number(),
   outOfStock: z.array(z.string()),
   recipeCount: z.number(),
-});
-
-const errorResponseSchema = z.object({
-  error: z.unknown(),
 });
 
 export const generateShoppingList = createServerFn({ method: "GET" })
@@ -45,19 +41,27 @@ export const generateShoppingList = createServerFn({ method: "GET" })
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to generate shopping list: ${response.status}`);
+      const err = new Error(
+        `Failed to generate shopping list: ${response.status}`,
+      );
+      activeSpan?.recordException(err);
+      activeSpan?.setStatus({
+        code: SpanStatusCode.ERROR,
+        message: err.message,
+      });
+      throw err;
     }
 
     const json: unknown = await response.json();
-
-    const errorResult = errorResponseSchema.safeParse(json);
-    if (errorResult.success) {
-      throw new Error(String(errorResult.data.error));
-    }
-
     const result = shoppingListResponseSchema.safeParse(json);
     if (!result.success) {
-      throw new Error("Invalid response format");
+      const err = new Error("Invalid response format");
+      activeSpan?.recordException(err);
+      activeSpan?.setStatus({
+        code: SpanStatusCode.ERROR,
+        message: err.message,
+      });
+      throw err;
     }
 
     activeSpan?.setAttributes({

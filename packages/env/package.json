@@ -20,6 +20,7 @@
   "devDependencies": {
     "@types/node": "^20",
     "eslint": "^9.38.0",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vite": "^8.0.1"
   }
 }

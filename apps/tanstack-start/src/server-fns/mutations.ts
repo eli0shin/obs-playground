@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { graphqlRequest } from "@obs-playground/graphql-client";
 import { getExpressUrl } from "@obs-playground/env";
-import { trace } from "@opentelemetry/api";
+import { trace, SpanStatusCode } from "@opentelemetry/api";
 import { z } from "zod";
 import type { CreateRecipeInput } from "../types";
 
@@ -66,7 +66,13 @@ export const deleteRecipe = createServerFn({ method: "POST" })
     });
 
     if (!success) {
-      throw new Error("Failed to delete recipe");
+      const err = new Error("Failed to delete recipe");
+      activeSpan?.recordException(err);
+      activeSpan?.setStatus({
+        code: SpanStatusCode.ERROR,
+        message: err.message,
+      });
+      throw err;
     }
 
     return success;
@@ -91,9 +97,15 @@ export const getExpressError = createServerFn({
     cache: "no-store",
   });
   if (!response.ok) {
-    throw new Error(
+    const err = new Error(
       `Express API error: ${response.status} ${response.statusText}`,
     );
+    trace.getActiveSpan()?.recordException(err);
+    trace.getActiveSpan()?.setStatus({
+      code: SpanStatusCode.ERROR,
+      message: err.message,
+    });
+    throw err;
   }
   const text = await response.text();
   const json = z

@@ -15,30 +15,38 @@ function NewRecipePage() {
   const { categories, ingredients } = Route.useLoaderData();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setError(null);
 
-    const formData = new FormData(e.currentTarget);
+    try {
+      const formData = new FormData(e.currentTarget);
 
-    const input = {
-      recipe: {
-        title: String(formData.get("title") ?? ""),
-        description: String(formData.get("description") ?? ""),
-        prepTime: Number(formData.get("prepTime")),
-        cookTime: Number(formData.get("cookTime")),
-        difficulty: String(formData.get("difficulty") ?? ""),
-        servings: Number(formData.get("servings")),
-        categoryId: String(formData.get("categoryId") ?? ""),
-      },
-      ingredients: z
-        .array(z.object({ ingredientId: z.string(), quantity: z.number() }))
-        .parse(JSON.parse(String(formData.get("ingredients") ?? "[]"))),
-    } satisfies CreateRecipeInput;
+      const input = {
+        recipe: {
+          title: String(formData.get("title") ?? ""),
+          description: String(formData.get("description") ?? ""),
+          prepTime: Number(formData.get("prepTime")),
+          cookTime: Number(formData.get("cookTime")),
+          difficulty: String(formData.get("difficulty") ?? ""),
+          servings: Number(formData.get("servings")),
+          categoryId: String(formData.get("categoryId") ?? ""),
+        },
+        ingredients: z
+          .array(z.object({ ingredientId: z.string(), quantity: z.number() }))
+          .parse(JSON.parse(String(formData.get("ingredients") ?? "[]"))),
+      } satisfies CreateRecipeInput;
 
-    const result = await createRecipe({ data: input });
-    await navigate({ to: "/recipes/$id", params: { id: result.id } });
+      const result = await createRecipe({ data: input });
+      await navigate({ to: "/recipes/$id", params: { id: result.id } });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to create recipe");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -60,6 +68,14 @@ function NewRecipePage() {
               Add a new recipe using Server Functions
             </p>
           </header>
+
+          {error && (
+            <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-950">
+              <p className="text-sm font-medium text-red-800 dark:text-red-200">
+                {error}
+              </p>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
@@ -194,7 +210,10 @@ function NewRecipePage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-zinc-900 dark:text-zinc-50">
+              <label
+                htmlFor="ingredients"
+                className="block text-sm font-medium text-zinc-900 dark:text-zinc-50"
+              >
                 Ingredients
               </label>
               <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">
@@ -202,6 +221,7 @@ function NewRecipePage() {
               </p>
               <input
                 type="hidden"
+                id="ingredients"
                 name="ingredients"
                 value={JSON.stringify([
                   { ingredientId: "1", quantity: 2 },

@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { graphqlRequest } from "../../../lib/browser-graphql";
+import { graphqlRequest } from "@obs-playground/graphql-client/browser";
 
 export const Route = createFileRoute("/testing/client/broken-mutation")({
   component: BrokenMutationPage,
@@ -29,7 +29,7 @@ function BrokenMutationPage() {
       if (result.errors?.length) {
         setError(JSON.stringify(result.errors));
       }
-      setResponse(result.data);
+      setResponse(result.data ?? null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
@@ -69,7 +69,7 @@ function BrokenMutationPage() {
       if (result.errors?.length) {
         setError(JSON.stringify(result.errors));
       }
-      setResponse(result.data);
+      setResponse(result.data ?? null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
@@ -93,7 +93,7 @@ function BrokenMutationPage() {
       if (result.errors?.length) {
         setError(JSON.stringify(result.errors));
       }
-      setResponse(result.data);
+      setResponse(result.data ?? null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
@@ -125,7 +125,7 @@ function BrokenMutationPage() {
       if (result.errors?.length) {
         setError(JSON.stringify(result.errors));
       }
-      setResponse(result.data);
+      setResponse(result.data ?? null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
@@ -158,7 +158,7 @@ function BrokenMutationPage() {
       if (result.errors?.length) {
         setError(JSON.stringify(result.errors));
       }
-      setResponse(result.data);
+      setResponse(result.data ?? null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
     } finally {

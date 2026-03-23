@@ -7,12 +7,7 @@ const router = Router();
 
 router.get("/ingredients/:id/price", (req: Request, res: Response) => {
   const activeSpan = trace.getActiveSpan();
-  const { id } = req.params;
-
-  if (typeof id !== "string") {
-    return res.status(400).json({ error: "Invalid ingredient ID" });
-  }
-
+  const id = String(req.params.id);
   const price = ingredientPrices[id];
 
   activeSpan?.setAttributes({

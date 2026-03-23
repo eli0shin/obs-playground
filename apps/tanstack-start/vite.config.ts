@@ -17,7 +17,6 @@ export default defineConfig({
           /^@obs-playground\//,
           "import-in-the-middle",
           "require-in-the-middle",
-          "dd-trace",
         ],
       },
     }),
@@ -36,7 +35,6 @@ export default defineConfig({
       "@obs-playground/env",
       "import-in-the-middle",
       "require-in-the-middle",
-      "dd-trace",
     ],
   },
 });

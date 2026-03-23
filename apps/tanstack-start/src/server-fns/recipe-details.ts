@@ -59,10 +59,15 @@ export const getFullRecipeDetails = createServerFn({ method: "GET" })
 async function getIngredientPrices(
   ingredientIds: string[],
 ): Promise<Record<string, number>> {
-  const response = await fetch(
-    `${getExpressUrl()}/ingredients/prices?ids=${ingredientIds.join(",")}`,
-    { cache: "no-store" },
-  );
+  const url = `${getExpressUrl()}/ingredients/prices?ids=${ingredientIds.join(",")}`;
+  const response = await fetch(url, { cache: "no-store" });
+
+  if (!response.ok) {
+    const err = new Error(`HTTP ${response.status} fetching prices: ${url}`);
+    trace.getActiveSpan()?.recordException(err);
+    return {};
+  }
+
   const json: unknown = await response.json();
   const result = pricesSchema.safeParse(json);
   return result.success ? result.data : {};
@@ -71,10 +76,15 @@ async function getIngredientPrices(
 async function getIngredientNutrition(
   ingredientId: string,
 ): Promise<NutritionData> {
-  const response = await fetch(
-    `${getExpressUrl()}/nutrition/ingredient/${ingredientId}`,
-    { cache: "no-store" },
-  );
+  const url = `${getExpressUrl()}/nutrition/ingredient/${ingredientId}`;
+  const response = await fetch(url, { cache: "no-store" });
+
+  if (!response.ok) {
+    const err = new Error(`HTTP ${response.status} fetching nutrition: ${url}`);
+    trace.getActiveSpan()?.recordException(err);
+    return { calories: 0, protein: 0, fat: 0, carbs: 0 };
+  }
+
   const json: unknown = await response.json();
   const result = nutritionSchema.safeParse(json);
   return result.success
@@ -85,10 +95,15 @@ async function getIngredientNutrition(
 async function getIngredientStock(
   ingredientId: string,
 ): Promise<InventoryData> {
-  const response = await fetch(
-    `${getExpressUrl()}/inventory/stock/${ingredientId}`,
-    { cache: "no-store" },
-  );
+  const url = `${getExpressUrl()}/inventory/stock/${ingredientId}`;
+  const response = await fetch(url, { cache: "no-store" });
+
+  if (!response.ok) {
+    const err = new Error(`HTTP ${response.status} fetching stock: ${url}`);
+    trace.getActiveSpan()?.recordException(err);
+    return { inStock: false, quantity: 0 };
+  }
+
   const json: unknown = await response.json();
   const result = inventorySchema.safeParse(json);
   return result.success ? result.data : { inStock: false, quantity: 0 };

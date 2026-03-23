@@ -6,12 +6,7 @@ const router = Router();
 
 router.get("/nutrition/ingredient/:id", (req: Request, res: Response) => {
   const activeSpan = trace.getActiveSpan();
-  const { id } = req.params;
-
-  if (typeof id !== "string") {
-    return res.status(400).json({ error: "Invalid ingredient ID" });
-  }
-
+  const id = String(req.params.id);
   const nutrition = ingredientNutrition[id];
 
   activeSpan?.setAttributes({

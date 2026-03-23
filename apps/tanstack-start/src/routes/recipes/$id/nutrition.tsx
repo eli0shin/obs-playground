@@ -47,7 +47,8 @@ function RecipeNutritionPage() {
 
         <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950">
           <p className="text-sm text-blue-800 dark:text-blue-200">
-            <strong>Call Chain:</strong> Next.js &rarr; GraphQL &rarr; Express
+            <strong>Call Chain:</strong> TanStack Start &rarr; GraphQL &rarr;
+            Express
           </p>
           <p className="mt-1 text-xs text-blue-700 dark:text-blue-300">
             GraphQL resolver fetches recipe data and calls Express API for

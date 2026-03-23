@@ -1,6 +1,6 @@
 {
-  "short_name": "TanStack App",
-  "name": "Create TanStack App Sample",
+  "short_name": "OTEL Playground",
+  "name": "OTEL Playground - TanStack Start",
   "icons": [
     {
       "src": "favicon.ico",

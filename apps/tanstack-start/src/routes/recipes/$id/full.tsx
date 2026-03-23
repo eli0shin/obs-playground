@@ -90,7 +90,7 @@ function FullRecipePage() {
 
         <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 p-4 dark:border-emerald-800 dark:bg-emerald-950">
           <p className="text-sm text-emerald-800 dark:text-emerald-200">
-            <strong>Call Chain:</strong> Parallel Fetches (Next.js &rarr;
+            <strong>Call Chain:</strong> Parallel Fetches (TanStack Start &rarr;
             GraphQL & Express)
           </p>
           <p className="mt-1 text-xs text-emerald-700 dark:text-emerald-300">
