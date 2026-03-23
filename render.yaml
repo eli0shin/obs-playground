@@ -161,3 +161,47 @@ services:
       paths:
         - apps/nextjs-app/**
         - packages/**
+
+  # TanStack Start App
+  - type: web
+    name: obs-tanstack
+    runtime: node
+    plan: free
+    buildCommand: npm ci --include=dev && npm run build && npm prune --omit=dev
+    startCommand: node apps/tanstack-start/.output/server/index.mjs
+    previews:
+      generation: automatic
+    envVars:
+      - key: NODE_VERSION
+        value: "24"
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: GRAPHQL_BASE_URL
+        fromService:
+          name: obs-graphql
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL
+      - key: EXPRESS_BASE_URL
+        fromService:
+          name: obs-express
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL
+      - key: VITE_GRAPHQL_BASE_URL
+        fromService:
+          name: obs-graphql
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL
+      # OTEL Endpoints
+      - key: HONEYCOMB_ENDPOINT
+        value: https://api.honeycomb.io
+      - key: GRAFANA_OTLP_ENDPOINT
+        value: https://otlp-gateway-prod-us-east-0.grafana.net/otlp
+      - key: SENTRY_OTLP_ENDPOINT
+        value: https://o4510253247823872.ingest.us.sentry.io/api/4510253248937984/integration/otlp
+      - fromGroup: obs-playground
+    buildFilter:
+      paths:
+        - apps/tanstack-start/**
+        - packages/**
