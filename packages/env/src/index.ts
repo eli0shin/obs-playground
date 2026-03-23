@@ -12,9 +12,12 @@ export function getExpressUrl(): string {
   return process.env.EXPRESS_BASE_URL;
 }
 
+// Resolves a client-exposed env var across framework boundaries:
+//   - Vite (TanStack Start): VITE_ prefix, exposed on import.meta.env
+//   - Next.js: NEXT_PUBLIC_ prefix, exposed on process.env
+// Callers pass the full key including prefix (e.g. "VITE_GRAPHQL_BASE_URL").
+// Vite is checked first; falls back to process.env for Next.js/Node.
 function getPublicEnv(key: string): string | undefined {
-  // Vite exposes public env vars on import.meta.env
-  // Node/Next.js uses process.env
   const viteVal = String(import.meta.env[key] ?? "");
   if (viteVal) return viteVal;
 

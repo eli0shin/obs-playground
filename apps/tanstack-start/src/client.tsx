@@ -1,0 +1,34 @@
+import { datadogRum } from "@datadog/browser-rum";
+import { StartClient } from "@tanstack/react-start/client";
+import { StrictMode } from "react";
+import { hydrateRoot } from "react-dom/client";
+
+datadogRum.init({
+  applicationId: String(import.meta.env.VITE_DATADOG_APP_ID ?? ""),
+  clientToken: String(import.meta.env.VITE_DATADOG_CLIENT_TOKEN ?? ""),
+  site: "us5.datadoghq.com",
+  service: "tanstack-start-app",
+  sessionSampleRate: 100,
+  sessionReplaySampleRate: 100,
+  defaultPrivacyLevel: "mask-user-input",
+  traceSampleRate: 100,
+  propagateTraceBaggage: true,
+  trackResources: true,
+  trackLongTasks: true,
+  trackUserInteractions: true,
+  allowedTracingUrls: ["https://localhost"],
+  allowedGraphQlUrls: [
+    {
+      match: /\/graphql$/,
+      trackPayload: true,
+      trackResponseErrors: true,
+    },
+  ],
+});
+
+hydrateRoot(
+  document,
+  <StrictMode>
+    <StartClient />
+  </StrictMode>,
+);

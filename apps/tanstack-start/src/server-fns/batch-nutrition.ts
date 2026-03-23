@@ -22,42 +22,55 @@ export const getBatchNutrition = createServerFn({ method: "GET" })
   .inputValidator((ids: string) => ids)
   .handler(async ({ data: ids }): Promise<BatchNutritionResponse> => {
     const activeSpan = trace.getActiveSpan();
-    const recipeIds = ids.split(",");
+    try {
+      const recipeIds = ids
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
 
-    activeSpan?.setAttributes({
-      "batch_nutrition.recipe_count": recipeIds.length,
-    });
+      activeSpan?.setAttributes({
+        "batch_nutrition.recipe_count": recipeIds.length,
+      });
 
-    const response = await fetch(`${getExpressUrl()}/batch/nutrition`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ recipeIds }),
-      cache: "no-store",
-    });
+      const response = await fetch(`${getExpressUrl()}/batch/nutrition`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ recipeIds }),
+        cache: "no-store",
+      });
 
-    if (!response.ok) {
-      const err = new Error(
-        `Failed to get batch nutrition: ${response.status}`,
-      );
-      activeSpan?.recordException(err);
+      if (!response.ok) {
+        const err = new Error(
+          `Failed to get batch nutrition: ${response.status}`,
+        );
+        activeSpan?.recordException(err);
+        activeSpan?.setStatus({
+          code: SpanStatusCode.ERROR,
+          message: err.message,
+        });
+        throw err;
+      }
+
+      const json: unknown = await response.json();
+      const result = batchNutritionResponseSchema.safeParse(json);
+      if (!result.success) {
+        const err = new Error("Invalid response format");
+        activeSpan?.recordException(err);
+        activeSpan?.setStatus({
+          code: SpanStatusCode.ERROR,
+          message: err.message,
+        });
+        throw err;
+      }
+
+      return result.data;
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      activeSpan?.recordException(error);
       activeSpan?.setStatus({
         code: SpanStatusCode.ERROR,
-        message: err.message,
+        message: error.message,
       });
       throw err;
     }
-
-    const json: unknown = await response.json();
-    const result = batchNutritionResponseSchema.safeParse(json);
-    if (!result.success) {
-      const err = new Error("Invalid response format");
-      activeSpan?.recordException(err);
-      activeSpan?.setStatus({
-        code: SpanStatusCode.ERROR,
-        message: err.message,
-      });
-      throw err;
-    }
-
-    return result.data;
   });
