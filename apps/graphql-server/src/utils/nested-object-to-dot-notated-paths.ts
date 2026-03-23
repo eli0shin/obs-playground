@@ -8,7 +8,7 @@ export function nestedObjectToDotNotatedPaths(
   obj: NestedObject,
   prefix = "",
 ): Record<string, unknown> {
-  const entries: Array<[string, unknown]> = [];
+  const entries: [string, unknown][] = [];
 
   for (const [key, value] of Object.entries(obj)) {
     const newKey = prefix ? `${prefix}.${key}` : key;
