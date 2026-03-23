@@ -38,27 +38,13 @@ export const getMealPlanEstimate = createServerFn({ method: "GET" })
       );
 
       if (!response.ok) {
-        const err = new Error(
-          `Failed to get meal plan estimate: ${response.status}`,
-        );
-        activeSpan?.recordException(err);
-        activeSpan?.setStatus({
-          code: SpanStatusCode.ERROR,
-          message: err.message,
-        });
-        throw err;
+        throw new Error(`Failed to get meal plan estimate: ${response.status}`);
       }
 
       const json: unknown = await response.json();
       const result = mealPlanEstimateSchema.safeParse(json);
       if (!result.success) {
-        const err = new Error("Invalid response format");
-        activeSpan?.recordException(err);
-        activeSpan?.setStatus({
-          code: SpanStatusCode.ERROR,
-          message: err.message,
-        });
-        throw err;
+        throw new Error("Invalid response format");
       }
 
       return result.data;

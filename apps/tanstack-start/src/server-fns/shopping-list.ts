@@ -48,27 +48,13 @@ export const generateShoppingList = createServerFn({ method: "GET" })
       );
 
       if (!response.ok) {
-        const err = new Error(
-          `Failed to generate shopping list: ${response.status}`,
-        );
-        activeSpan?.recordException(err);
-        activeSpan?.setStatus({
-          code: SpanStatusCode.ERROR,
-          message: err.message,
-        });
-        throw err;
+        throw new Error(`Failed to generate shopping list: ${response.status}`);
       }
 
       const json: unknown = await response.json();
       const result = shoppingListResponseSchema.safeParse(json);
       if (!result.success) {
-        const err = new Error("Invalid response format");
-        activeSpan?.recordException(err);
-        activeSpan?.setStatus({
-          code: SpanStatusCode.ERROR,
-          message: err.message,
-        });
-        throw err;
+        throw new Error("Invalid response format");
       }
 
       activeSpan?.setAttributes({
