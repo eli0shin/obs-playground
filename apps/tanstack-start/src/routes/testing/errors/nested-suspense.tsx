@@ -17,6 +17,6 @@ const getNestedData = createServerFn({ method: "GET" }).handler(async () => {
 });
 
 export const Route = createFileRoute("/testing/errors/nested-suspense")({
-  loader: () => getNestedData(),
+  loader: getNestedData,
   component: () => <div>This should never render</div>,
 });

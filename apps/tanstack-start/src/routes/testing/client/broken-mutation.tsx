@@ -26,12 +26,10 @@ function BrokenMutationPage() {
           }
         `,
       );
-      if (result.errors && result.errors.length > 0) {
+      if (result.errors?.length) {
         setError(JSON.stringify(result.errors));
       }
-      if (result.data) {
-        setResponse(result.data);
-      }
+      setResponse(result.data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
@@ -68,12 +66,10 @@ function BrokenMutationPage() {
           }
         `,
       );
-      if (result.errors && result.errors.length > 0) {
+      if (result.errors?.length) {
         setError(JSON.stringify(result.errors));
       }
-      if (result.data) {
-        setResponse(result.data);
-      }
+      setResponse(result.data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
@@ -94,12 +90,10 @@ function BrokenMutationPage() {
           }
         `,
       );
-      if (result.errors && result.errors.length > 0) {
+      if (result.errors?.length) {
         setError(JSON.stringify(result.errors));
       }
-      if (result.data) {
-        setResponse(result.data);
-      }
+      setResponse(result.data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
@@ -114,7 +108,7 @@ function BrokenMutationPage() {
 
     try {
       const result = await graphqlRequest<{
-        recipes: Array<{ id: string; title: string }>;
+        recipes: { id: string; title: string }[];
       }>(
         `
           query RecipeQuery($unusedVariable: ID!) {
@@ -128,12 +122,10 @@ function BrokenMutationPage() {
           unusedVariable: "recipe-1",
         },
       );
-      if (result.errors && result.errors.length > 0) {
+      if (result.errors?.length) {
         setError(JSON.stringify(result.errors));
       }
-      if (result.data) {
-        setResponse(result.data);
-      }
+      setResponse(result.data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
@@ -148,7 +140,7 @@ function BrokenMutationPage() {
 
     try {
       const result = await graphqlRequest<{
-        recipes: Array<{ id: string; title: string }>;
+        recipes: { id: string; title: string }[];
         errorQuery: string;
         secondErrorQuery: string;
       }>(
@@ -163,12 +155,10 @@ function BrokenMutationPage() {
           }
         `,
       );
-      if (result.errors && result.errors.length > 0) {
+      if (result.errors?.length) {
         setError(JSON.stringify(result.errors));
       }
-      if (result.data) {
-        setResponse(result.data);
-      }
+      setResponse(result.data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
     } finally {

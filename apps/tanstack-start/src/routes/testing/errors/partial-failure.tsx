@@ -24,7 +24,7 @@ const getPartialData = createServerFn({ method: "GET" }).handler(async () => {
 });
 
 export const Route = createFileRoute("/testing/errors/partial-failure")({
-  loader: () => getPartialData(),
+  loader: getPartialData,
   component: PartialFailurePage,
 });
 
@@ -43,15 +43,15 @@ function PartialFailurePage() {
           Partial Failure Test
         </h1>
         <div className="space-y-4">
-          {results.map((result, i) => (
+          {results.map((result, resultIndex) => (
             <div
-              key={i}
+              key={`${result.status}-${result.status === "fulfilled" ? result.value : result.reason}`}
               className={`rounded-lg border p-4 ${result.status === "fulfilled" ? "border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950" : "border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950"}`}
             >
               <p
                 className={`font-medium ${result.status === "fulfilled" ? "text-green-900 dark:text-green-100" : "text-red-900 dark:text-red-100"}`}
               >
-                Request {i + 1}: {result.status}
+                Request {resultIndex + 1}: {result.status}
               </p>
               <p
                 className={`mt-1 text-sm ${result.status === "fulfilled" ? "text-green-700 dark:text-green-300" : "text-red-700 dark:text-red-300"}`}

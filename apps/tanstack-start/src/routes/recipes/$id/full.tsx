@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { getRecipe } from "../../../server-fns/recipes";
 import { getFullRecipeDetails } from "../../../server-fns/recipe-details";
+
 export const Route = createFileRoute("/recipes/$id/full")({
   loader: async ({ params }) => {
     const recipe = await getRecipe({ data: params.id });

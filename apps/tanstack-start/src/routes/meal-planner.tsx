@@ -97,7 +97,7 @@ function MealPlannerPage() {
                 const day = DAYS_OF_WEEK[dayIndex];
                 return (
                   <div
-                    key={`day-${dayIndex}-meal-${index}`}
+                    key={`day-${dayIndex}-meal-${recipe.recipeId}`}
                     className="flex items-center justify-between rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-600 dark:bg-zinc-700"
                   >
                     <div className="flex items-center gap-4">
@@ -136,9 +136,9 @@ function MealPlannerPage() {
               Cost Breakdown
             </h3>
             <div className="space-y-2">
-              {mealPlan.recipes.map((recipe: RecipeCost, index: number) => (
+              {mealPlan.recipes.map((recipe: RecipeCost) => (
                 <div
-                  key={`cost-${index}`}
+                  key={`cost-${recipe.recipeId}`}
                   className="flex justify-between text-sm"
                 >
                   <span className="text-zinc-700 dark:text-zinc-300">

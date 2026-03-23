@@ -1,11 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
+import { z } from "zod";
 import { getCategoriesAndIngredients } from "../../server-fns/recipes";
 import { createRecipe } from "../../server-fns/mutations";
 import type { CreateRecipeInput } from "../../types";
 
 export const Route = createFileRoute("/recipes/new")({
-  loader: () => getCategoriesAndIngredients(),
+  loader: getCategoriesAndIngredients,
   component: NewRecipePage,
 });
 
@@ -20,18 +21,20 @@ function NewRecipePage() {
 
     const formData = new FormData(e.currentTarget);
 
-    const input: CreateRecipeInput = {
+    const input = {
       recipe: {
-        title: formData.get("title") as string,
-        description: formData.get("description") as string,
+        title: String(formData.get("title") ?? ""),
+        description: String(formData.get("description") ?? ""),
         prepTime: Number(formData.get("prepTime")),
         cookTime: Number(formData.get("cookTime")),
-        difficulty: formData.get("difficulty") as string,
+        difficulty: String(formData.get("difficulty") ?? ""),
         servings: Number(formData.get("servings")),
-        categoryId: formData.get("categoryId") as string,
+        categoryId: String(formData.get("categoryId") ?? ""),
       },
-      ingredients: JSON.parse(formData.get("ingredients") as string),
-    };
+      ingredients: z
+        .array(z.object({ ingredientId: z.string(), quantity: z.number() }))
+        .parse(JSON.parse(String(formData.get("ingredients") ?? "[]"))),
+    } satisfies CreateRecipeInput;
 
     const result = await createRecipe({ data: input });
     await navigate({ to: "/recipes/$id", params: { id: result.id } });

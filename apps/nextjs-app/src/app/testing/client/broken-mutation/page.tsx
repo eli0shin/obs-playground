@@ -112,7 +112,7 @@ export default function BrokenMutationPage() {
 
     try {
       const result = await graphqlRequest<{
-        recipes: Array<{ id: string; title: string }>;
+        recipes: { id: string; title: string }[];
       }>(
         `
           query RecipeQuery($unusedVariable: ID!) {
@@ -146,7 +146,7 @@ export default function BrokenMutationPage() {
 
     try {
       const result = await graphqlRequest<{
-        recipes: Array<{ id: string; title: string }>;
+        recipes: { id: string; title: string }[];
         errorQuery: string;
         secondErrorQuery: string;
       }>(

@@ -1,6 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { graphqlRequest } from "@obs-playground/graphql-client";
+import { getExpressUrl } from "@obs-playground/env";
 import { trace } from "@opentelemetry/api";
+import { z } from "zod";
 import type { CreateRecipeInput } from "../types";
 
 export const createRecipe = createServerFn({ method: "POST" })
@@ -85,7 +87,6 @@ export const brokenCreateRecipe = createServerFn({
 export const getExpressError = createServerFn({
   method: "GET",
 }).handler(async () => {
-  const { getExpressUrl } = await import("@obs-playground/env");
   const response = await fetch(`${getExpressUrl()}/error/test`, {
     cache: "no-store",
   });
@@ -94,13 +95,16 @@ export const getExpressError = createServerFn({
       `Express API error: ${response.status} ${response.statusText}`,
     );
   }
-  return response.json();
+  const text = await response.text();
+  const json = z
+    .object({ status: z.string(), message: z.string() })
+    .parse(JSON.parse(text));
+  return json;
 });
 
 export const getExpressTimeout = createServerFn({
   method: "GET",
 }).handler(async () => {
-  const { getExpressUrl } = await import("@obs-playground/env");
   const start = Date.now();
   const response = await fetch(`${getExpressUrl()}/slow/timeout`, {
     cache: "no-store",

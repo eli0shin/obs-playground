@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { getRecipesAndCategories } from "../server-fns/recipes";
 
 export const Route = createFileRoute("/")({
-  loader: () => getRecipesAndCategories(),
+  loader: getRecipesAndCategories,
   component: Home,
 });
 

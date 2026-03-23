@@ -1,3 +1,10 @@
+import { z } from "zod";
+
+const graphqlResponseSchema = z.object({
+  data: z.unknown(),
+  errors: z.array(z.unknown()).optional(),
+});
+
 export async function graphqlRequest<T>(
   query: string,
   variables?: Record<string, unknown>,
@@ -8,5 +15,10 @@ export async function graphqlRequest<T>(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ query, variables }),
   });
-  return response.json() as Promise<{ data: T; errors?: unknown[] }>;
+  const text = await response.text();
+  const { data, errors } = graphqlResponseSchema.parse(JSON.parse(text));
+  return { data: data satisfies unknown, errors } satisfies {
+    data: unknown;
+    errors?: unknown[];
+  };
 }

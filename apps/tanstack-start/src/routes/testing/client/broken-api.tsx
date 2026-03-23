@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
+import { z } from "zod";
 
 export const Route = createFileRoute("/testing/client/broken-api")({
   component: BrokenApiPage,
@@ -24,8 +25,9 @@ function BrokenApiPage() {
         throw new Error(`HTTP ${res.status}: ${res.statusText}`);
       }
 
-      const json: unknown = await res.json();
-      setResponse(json as Record<string, unknown>);
+      const text = await res.text();
+      const json = z.record(z.string(), z.unknown()).parse(JSON.parse(text));
+      setResponse(json);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
@@ -40,7 +42,8 @@ function BrokenApiPage() {
 
     try {
       const res = await fetch("/api/error/not-found");
-      const json = (await res.json()) as Record<string, unknown>;
+      const text = await res.text();
+      const json = z.record(z.string(), z.unknown()).parse(JSON.parse(text));
       const message =
         "message" in json && typeof json.message === "string"
           ? json.message
@@ -65,7 +68,8 @@ function BrokenApiPage() {
 
     try {
       const res = await fetch("/api/error/validation");
-      const json = (await res.json()) as Record<string, unknown>;
+      const text = await res.text();
+      const json = z.record(z.string(), z.unknown()).parse(JSON.parse(text));
       const message =
         "message" in json && typeof json.message === "string"
           ? json.message

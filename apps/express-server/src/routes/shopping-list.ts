@@ -1,9 +1,9 @@
 import { Router, type Request, type Response } from "express";
 import { trace } from "@opentelemetry/api";
 import { graphqlRequest } from "@obs-playground/graphql-client";
-import { ingredientPrices, ingredientInventory } from "../data.js";
-import type { ShoppingListItem, GraphQLRecipe } from "../types.js";
-import { shoppingListSchema } from "../schemas.js";
+import { ingredientPrices, ingredientInventory } from "../data";
+import type { ShoppingListItem, GraphQLRecipe } from "../types";
+import { shoppingListSchema } from "../schemas";
 
 const router = Router();
 

@@ -1,13 +1,18 @@
 import { Router, type Request, type Response } from "express";
 import { trace } from "@opentelemetry/api";
-import { ingredientPrices } from "../data.js";
-import { priceUpdateSchema } from "../schemas.js";
+import { ingredientPrices } from "../data";
+import { priceUpdateSchema } from "../schemas";
 
 const router = Router();
 
 router.get("/ingredients/:id/price", (req: Request, res: Response) => {
   const activeSpan = trace.getActiveSpan();
   const { id } = req.params;
+
+  if (typeof id !== "string") {
+    return res.status(400).json({ error: "Invalid ingredient ID" });
+  }
+
   const price = ingredientPrices[id];
 
   activeSpan?.setAttributes({
