@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { graphqlRequest } from "@obs-playground/graphql-client";
+import { getExpressUrl } from "@obs-playground/env";
 
 const getPartialData = createServerFn({ method: "GET" }).handler(async () => {
   const results = await Promise.allSettled([
@@ -11,7 +12,7 @@ const getPartialData = createServerFn({ method: "GET" }).handler(async () => {
       `query { recipe(id: "2") { id title } }`,
     ),
     graphqlRequest<{ errorQuery: string }>(`query { errorQuery }`),
-    fetch("http://localhost:3001/error/test").then((r) => {
+    fetch(`${getExpressUrl()}/error/test`).then((r) => {
       if (!r.ok) throw new Error(`Express error: ${r.status}`);
       return r.json();
     }),
