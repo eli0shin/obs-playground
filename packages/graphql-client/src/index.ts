@@ -4,7 +4,7 @@ import { z } from "zod";
 
 export type GraphQLResponse<T> = {
   data?: T;
-  errors?: Array<{ message: string }>;
+  errors?: { message: string }[];
 };
 
 const graphqlResponseSchema = z.object({

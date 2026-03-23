@@ -3,7 +3,7 @@ import { getPublicGraphqlUrl } from "@obs-playground/env";
 
 export type GraphQLResponse<T> = {
   data?: T;
-  errors?: Array<{ message: string }>;
+  errors?: { message: string }[];
 };
 
 /**
