@@ -38,6 +38,16 @@ function setupSharedRoutes(app: Application): void {
       },
     }),
   );
+
+  // TanStack Start proxy
+  app.use(
+    "/tanstack",
+    createProxyMiddleware({
+      target: "http://localhost:3100",
+      changeOrigin: true,
+      ws: true,
+    }),
+  );
 }
 
 // Normal mode proxy (port 443 → Next.js port 3000)
@@ -77,11 +87,13 @@ https.createServer(httpsOptions, normalApp).listen(PROXY_PORT, () => {
 │  • ${normalUrl.padEnd(24)} → Next.js (built-in server)     │
 │  • ${(normalUrl + "/api").padEnd(24)} → Express                       │
 │  • ${(normalUrl + "/graphql").padEnd(24)} → GraphQL                       │
+│  • ${(normalUrl + "/tanstack").padEnd(24)} → TanStack Start                 │
 │                                                               │
 │  Custom mode (port ${PROXY_PORT_CUSTOM}):${" ".repeat(Math.max(0, 37 - PROXY_PORT_CUSTOM.toString().length))}│
 │  • ${customUrl.padEnd(24)} → Next.js (custom server)  │
 │  • ${(customUrl + "/api").padEnd(24)} → Express                  │
 │  • ${(customUrl + "/graphql").padEnd(24)} → GraphQL                  │
+│  • ${(customUrl + "/tanstack").padEnd(24)} → TanStack Start            │
 ╰───────────────────────────────────────────────────────────────╯
   `);
 });

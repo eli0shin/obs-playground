@@ -28,14 +28,14 @@ export type ShoppingListItem = {
 export type GraphQLRecipe = {
   id: string;
   title: string;
-  ingredients: Array<{
+  ingredients: {
     ingredient: {
       id: string;
       name: string;
       unit: string;
     };
     quantity: number;
-  }>;
+  }[];
 };
 
 export type BatchNutritionRequest = {

@@ -112,7 +112,7 @@ export default function BrokenMutationPage() {
 
     try {
       const result = await graphqlRequest<{
-        recipes: Array<{ id: string; title: string }>;
+        recipes: { id: string; title: string }[];
       }>(
         `
           query RecipeQuery($unusedVariable: ID!) {
@@ -146,7 +146,7 @@ export default function BrokenMutationPage() {
 
     try {
       const result = await graphqlRequest<{
-        recipes: Array<{ id: string; title: string }>;
+        recipes: { id: string; title: string }[];
         errorQuery: string;
         secondErrorQuery: string;
       }>(
@@ -201,6 +201,7 @@ export default function BrokenMutationPage() {
 
           <div className="mt-8 space-y-4">
             <button
+              type="button"
               onClick={handleErrorMutation}
               disabled={loading}
               className="w-full rounded-md bg-red-600 px-4 py-3 text-left font-medium text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-red-700 dark:hover:bg-red-800"
@@ -212,6 +213,7 @@ export default function BrokenMutationPage() {
             </button>
 
             <button
+              type="button"
               onClick={handleValidationMutation}
               disabled={loading}
               className="w-full rounded-md bg-orange-600 px-4 py-3 text-left font-medium text-white hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-orange-700 dark:hover:bg-orange-800"
@@ -223,6 +225,7 @@ export default function BrokenMutationPage() {
             </button>
 
             <button
+              type="button"
               onClick={handleErrorQuery}
               disabled={loading}
               className="w-full rounded-md bg-purple-600 px-4 py-3 text-left font-medium text-white hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-purple-700 dark:hover:bg-purple-800"
@@ -234,6 +237,7 @@ export default function BrokenMutationPage() {
             </button>
 
             <button
+              type="button"
               onClick={handleSchemaValidationError}
               disabled={loading}
               className="w-full rounded-md bg-yellow-600 px-4 py-3 text-left font-medium text-white hover:bg-yellow-700 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-yellow-700 dark:hover:bg-yellow-800"
@@ -245,6 +249,7 @@ export default function BrokenMutationPage() {
             </button>
 
             <button
+              type="button"
               onClick={handleMultipleErrorsQuery}
               disabled={loading}
               className="w-full rounded-md bg-teal-600 px-4 py-3 text-left font-medium text-white hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-teal-700 dark:hover:bg-teal-800"

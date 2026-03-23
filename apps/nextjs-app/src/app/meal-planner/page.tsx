@@ -21,7 +21,9 @@ const errorResponseSchema = z.object({
 
 type MealPlanEstimate = z.infer<typeof mealPlanEstimateSchema>;
 
-async function getMealPlanEstimate(recipeIds: string[]): Promise<MealPlanEstimate> {
+async function getMealPlanEstimate(
+  recipeIds: string[],
+): Promise<MealPlanEstimate> {
   const response = await fetch(
     `${getExpressUrl()}/meal-plan/estimate?recipeIds=${recipeIds.join(",")}`,
     {
@@ -135,7 +137,7 @@ export default async function MealPlannerPage({
                 const day = DAYS_OF_WEEK[dayIndex];
                 return (
                   <div
-                    key={`day-${dayIndex}-meal-${index}`}
+                    key={`day-${dayIndex}-${recipe.recipeId}`}
                     className="flex items-center justify-between rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-600 dark:bg-zinc-700"
                   >
                     <div className="flex items-center gap-4">
@@ -173,9 +175,9 @@ export default async function MealPlannerPage({
               Cost Breakdown
             </h3>
             <div className="space-y-2">
-              {mealPlan.recipes.map((recipe, index) => (
+              {mealPlan.recipes.map((recipe) => (
                 <div
-                  key={`cost-${index}`}
+                  key={`cost-${recipe.recipeId}`}
                   className="flex justify-between text-sm"
                 >
                   <span className="text-zinc-700 dark:text-zinc-300">

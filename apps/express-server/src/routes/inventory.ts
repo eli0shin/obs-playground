@@ -1,12 +1,12 @@
 import { Router, type Request, type Response } from "express";
 import { trace } from "@opentelemetry/api";
-import { ingredientInventory } from "../data.js";
+import { ingredientInventory } from "../data";
 
 const router = Router();
 
 router.get("/inventory/stock/:ingredientId", (req: Request, res: Response) => {
   const activeSpan = trace.getActiveSpan();
-  const { ingredientId } = req.params;
+  const ingredientId = String(req.params.ingredientId);
   const inventory = ingredientInventory[ingredientId];
 
   activeSpan?.setAttributes({

@@ -12,11 +12,27 @@ export function getExpressUrl(): string {
   return process.env.EXPRESS_BASE_URL;
 }
 
+// Resolves a client-exposed env var across framework boundaries:
+//   - Vite (TanStack Start): VITE_ prefix, exposed on import.meta.env
+//   - Next.js: NEXT_PUBLIC_ prefix, exposed on process.env
+// Callers pass the full key including prefix (e.g. "VITE_GRAPHQL_BASE_URL").
+// Vite is checked first; falls back to process.env for Next.js/Node.
+function getPublicEnv(key: string): string | undefined {
+  const viteVal = String(import.meta.env[key] ?? "");
+  if (viteVal) return viteVal;
+
+  return process.env[key];
+}
+
 export function getPublicGraphqlUrl(): string {
-  if (!process.env.NEXT_PUBLIC_GRAPHQL_BASE_URL) {
+  const base =
+    getPublicEnv("VITE_GRAPHQL_BASE_URL") ??
+    getPublicEnv("NEXT_PUBLIC_GRAPHQL_BASE_URL");
+
+  if (!base) {
     throw new Error(
-      "NEXT_PUBLIC_GRAPHQL_BASE_URL environment variable is required",
+      "VITE_GRAPHQL_BASE_URL or NEXT_PUBLIC_GRAPHQL_BASE_URL environment variable is required",
     );
   }
-  return `${process.env.NEXT_PUBLIC_GRAPHQL_BASE_URL}/graphql`;
+  return `${base}/graphql`;
 }

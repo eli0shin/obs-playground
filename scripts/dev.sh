@@ -20,13 +20,16 @@ fi
 NEXTJS_NORMAL_CMD="cd apps/nextjs-app && ${DD_PREFIX}PORT=3000 npm run dev"
 NEXTJS_CUSTOM_CMD="cd apps/nextjs-app && ${DD_PREFIX}CUSTOM_SERVER=true PORT=3002 tsx --env-file=.env.local server.ts"
 
+TANSTACK_CMD="cd apps/tanstack-start && ${DD_PREFIX}PORT=3100 npm run dev"
+
 npx concurrently \
-  --names "OTEL,GQL-CLIENT,NEXT,CUSTOM,EXPRESS,GRAPHQL,PROXY" \
-  --prefix-colors "blue,white,cyan,red,magenta,yellow,green" \
+  --names "OTEL,GQL-CLIENT,NEXT,CUSTOM,EXPRESS,GRAPHQL,TANSTACK,PROXY" \
+  --prefix-colors "blue,white,cyan,red,magenta,yellow,#ff6600,green" \
   "cd packages/otel && npm run dev" \
   "cd packages/graphql-client && npm run dev" \
   "$NEXTJS_NORMAL_CMD" \
   "$NEXTJS_CUSTOM_CMD" \
   "cd apps/express-server && ${DD_PREFIX}PORT=3001 npm run dev" \
   "cd apps/graphql-server && ${DD_PREFIX}PORT=4000 npm run dev" \
+  "$TANSTACK_CMD" \
   "tsx dev-proxy.ts"

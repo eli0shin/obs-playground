@@ -3,20 +3,9 @@ import { getPublicGraphqlUrl } from "@obs-playground/env";
 
 export type GraphQLResponse<T> = {
   data?: T;
-  errors?: Array<{ message: string }>;
+  errors?: { message: string }[];
 };
 
-/**
- * Browser-specific GraphQL client with Datadog RUM error tracking.
- *
- * @param query - GraphQL query or mutation string
- * @param variables - Optional variables object
- * @returns Promise resolving to GraphQL response with data and errors
- * @throws Error only on HTTP failure
- *
- * Reports all GraphQL errors to Datadog RUM but still returns the response.
- * Caller is responsible for handling errors and partial data.
- */
 export async function graphqlRequest<T>(
   query: string,
   variables?: Record<string, unknown>,
@@ -34,7 +23,6 @@ export async function graphqlRequest<T>(
   const { data, errors } = (await response.json()) as GraphQLResponse<T>;
 
   if (errors && errors.length > 0) {
-    // Report each error to Datadog RUM
     errors.forEach((err) => {
       datadogRum.addError(new Error(err.message), {
         "graphql.document": query,

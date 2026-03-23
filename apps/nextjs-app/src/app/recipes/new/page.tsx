@@ -189,7 +189,10 @@ export default async function NewRecipePage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-zinc-900 dark:text-zinc-50">
+              <label
+                htmlFor="ingredients"
+                className="block text-sm font-medium text-zinc-900 dark:text-zinc-50"
+              >
                 Ingredients
               </label>
               <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">
@@ -197,6 +200,7 @@ export default async function NewRecipePage() {
               </p>
               <input
                 type="hidden"
+                id="ingredients"
                 name="ingredients"
                 value={JSON.stringify([
                   { ingredientId: "1", quantity: 2 },

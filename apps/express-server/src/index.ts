@@ -1,16 +1,16 @@
-import "./otel.js";
+import "./otel";
 import express from "express";
-import { errorHandler } from "./error-middleware.js";
-import { responseInstrumentation } from "./response-instrumentation.js";
-import healthRoutes from "./routes/health.js";
-import pricingRoutes from "./routes/pricing.js";
-import nutritionRoutes from "./routes/nutrition.js";
-import inventoryRoutes from "./routes/inventory.js";
-import shoppingListRoutes from "./routes/shopping-list.js";
-import mealPlanRoutes from "./routes/meal-plan.js";
-import batchNutritionRoutes from "./routes/batch-nutrition.js";
-import errorRoutes from "./routes/error.js";
-import slowRoutes from "./routes/slow.js";
+import { errorHandler } from "./error-middleware";
+import { responseInstrumentation } from "./response-instrumentation";
+import healthRoutes from "./routes/health";
+import pricingRoutes from "./routes/pricing";
+import nutritionRoutes from "./routes/nutrition";
+import inventoryRoutes from "./routes/inventory";
+import shoppingListRoutes from "./routes/shopping-list";
+import mealPlanRoutes from "./routes/meal-plan";
+import batchNutritionRoutes from "./routes/batch-nutrition";
+import errorRoutes from "./routes/error";
+import slowRoutes from "./routes/slow";
 
 const app = express();
 const PORT = process.env.PORT ?? 3001;
