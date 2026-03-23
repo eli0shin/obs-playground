@@ -6,7 +6,8 @@ import { createRecipe } from "../../server-fns/mutations";
 import type { CreateRecipeInput } from "../../types";
 
 export const Route = createFileRoute("/recipes/new")({
-  loader: getCategoriesAndIngredients,
+  // eslint-disable-next-line for-ai/no-bare-wrapper -- adapts OptionalFetcher to RouteLoaderFn
+  loader: () => getCategoriesAndIngredients(),
   component: NewRecipePage,
 });
 

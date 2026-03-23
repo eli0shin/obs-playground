@@ -2,7 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { getRecipesAndCategories } from "../server-fns/recipes";
 
 export const Route = createFileRoute("/")({
-  loader: getRecipesAndCategories,
+  // eslint-disable-next-line for-ai/no-bare-wrapper -- adapts OptionalFetcher to RouteLoaderFn
+  loader: () => getRecipesAndCategories(),
   component: Home,
 });
 

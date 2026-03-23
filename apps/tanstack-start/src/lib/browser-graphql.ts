@@ -1,9 +1,11 @@
 import { z } from "zod";
 
-const graphqlResponseSchema = z.object({
-  data: z.unknown(),
-  errors: z.array(z.unknown()).optional(),
-});
+function graphqlResponseSchema<T>() {
+  return z.object({
+    data: z.custom<T>(),
+    errors: z.array(z.unknown()).optional(),
+  });
+}
 
 export async function graphqlRequest<T>(
   query: string,
@@ -16,9 +18,6 @@ export async function graphqlRequest<T>(
     body: JSON.stringify({ query, variables }),
   });
   const text = await response.text();
-  const { data, errors } = graphqlResponseSchema.parse(JSON.parse(text));
-  return { data: data satisfies unknown, errors } satisfies {
-    data: unknown;
-    errors?: unknown[];
-  };
+  const parsed = graphqlResponseSchema<T>().parse(JSON.parse(text));
+  return { data: parsed.data, errors: parsed.errors };
 }

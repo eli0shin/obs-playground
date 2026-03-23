@@ -24,7 +24,8 @@ const getPartialData = createServerFn({ method: "GET" }).handler(async () => {
 });
 
 export const Route = createFileRoute("/testing/errors/partial-failure")({
-  loader: getPartialData,
+  // eslint-disable-next-line for-ai/no-bare-wrapper -- adapts OptionalFetcher to RouteLoaderFn
+  loader: () => getPartialData(),
   component: PartialFailurePage,
 });
 

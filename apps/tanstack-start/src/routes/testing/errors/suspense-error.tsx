@@ -7,6 +7,7 @@ const getDeferredError = createServerFn({ method: "GET" }).handler(async () => {
 });
 
 export const Route = createFileRoute("/testing/errors/suspense-error")({
-  loader: getDeferredError,
+  // eslint-disable-next-line for-ai/no-bare-wrapper -- adapts OptionalFetcher to RouteLoaderFn
+  loader: () => getDeferredError(),
   component: () => <div>This should never render</div>,
 });

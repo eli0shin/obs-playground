@@ -2,7 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { getExpressTimeout } from "../../../server-fns/mutations";
 
 export const Route = createFileRoute("/testing/errors/timeout")({
-  loader: getExpressTimeout,
+  // eslint-disable-next-line for-ai/no-bare-wrapper -- adapts OptionalFetcher to RouteLoaderFn
+  loader: () => getExpressTimeout(),
   component: TimeoutPage,
 });
 
