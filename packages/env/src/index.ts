@@ -24,10 +24,21 @@ export function getExpressUrl(): string {
   return normalizeBaseUrl(process.env.EXPRESS_BASE_URL);
 }
 
+function getViteGraphqlBaseUrl(): string | undefined {
+  try {
+    const viteGraphqlBaseUrl: unknown = import.meta.env.VITE_GRAPHQL_BASE_URL;
+
+    return typeof viteGraphqlBaseUrl === "string"
+      ? viteGraphqlBaseUrl
+      : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export function getPublicGraphqlUrl(): string {
   const base =
-    import.meta.env?.VITE_GRAPHQL_BASE_URL ??
-    process.env.NEXT_PUBLIC_GRAPHQL_BASE_URL;
+    getViteGraphqlBaseUrl() ?? process.env.NEXT_PUBLIC_GRAPHQL_BASE_URL;
 
   if (!base) {
     throw new Error(
