@@ -182,7 +182,7 @@ services:
         fromService:
           name: obs-graphql
           type: web
-          property: hostport
+          envVarKey: RENDER_EXTERNAL_URL
       - key: EXPRESS_BASE_URL
         fromService:
           name: obs-express
