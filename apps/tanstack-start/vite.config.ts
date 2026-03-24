@@ -4,8 +4,8 @@ import viteReact from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { nitro } from "nitro/vite";
 
-export default defineConfig({
-  base: "/tanstack/",
+export default defineConfig(({ command }) => ({
+  base: command === "serve" ? "/tanstack/" : "/",
   resolve: {
     tsconfigPaths: true,
   },
@@ -37,4 +37,4 @@ export default defineConfig({
       "require-in-the-middle",
     ],
   },
-});
+}));
