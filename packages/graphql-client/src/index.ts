@@ -33,16 +33,26 @@ export async function graphqlRequest<T>(
   variables?: Record<string, unknown>,
 ): Promise<T> {
   const activeSpan = trace.getActiveSpan();
+  const graphqlUrl = getGraphqlUrl();
 
   try {
-    const response = await fetch(getGraphqlUrl(), {
+    const response = await fetch(graphqlUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ query, variables }),
     });
 
     if (!response.ok) {
-      throw new Error(`GraphQL request failed: ${response.status}`);
+      const responseText = await response.text().catch(() => "");
+      const responseSnippet = responseText
+        .trim()
+        .replace(/\s+/g, " ")
+        .slice(0, 200);
+      const responseDetails = responseSnippet ? ` - ${responseSnippet}` : "";
+
+      throw new Error(
+        `GraphQL request failed: ${response.status} (${graphqlUrl})${responseDetails}`,
+      );
     }
 
     const json: unknown = await response.json();
