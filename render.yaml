@@ -20,7 +20,7 @@ services:
         fromService:
           name: obs-express
           type: web
-          envVarKey: RENDER_EXTERNAL_URL
+          property: hostport
       # OTEL Endpoints (fill in your values)
       - key: HONEYCOMB_ENDPOINT
         value: https://api.honeycomb.io
@@ -54,7 +54,7 @@ services:
         fromService:
           name: obs-graphql
           type: web
-          envVarKey: RENDER_EXTERNAL_URL
+          property: hostport
       # OTEL Endpoints
       - key: HONEYCOMB_ENDPOINT
         value: https://api.honeycomb.io
@@ -88,12 +88,12 @@ services:
         fromService:
           name: obs-graphql
           type: web
-          envVarKey: RENDER_EXTERNAL_URL
+          property: hostport
       - key: EXPRESS_BASE_URL
         fromService:
           name: obs-express
           type: web
-          envVarKey: RENDER_EXTERNAL_URL
+          property: hostport
       - key: NEXT_PUBLIC_GRAPHQL_BASE_URL
         fromService:
           name: obs-graphql
@@ -136,12 +136,12 @@ services:
         fromService:
           name: obs-graphql
           type: web
-          envVarKey: RENDER_EXTERNAL_URL
+          property: hostport
       - key: EXPRESS_BASE_URL
         fromService:
           name: obs-express
           type: web
-          envVarKey: RENDER_EXTERNAL_URL
+          property: hostport
       - key: NEXT_PUBLIC_GRAPHQL_BASE_URL
         fromService:
           name: obs-graphql
@@ -182,12 +182,12 @@ services:
         fromService:
           name: obs-graphql
           type: web
-          envVarKey: RENDER_EXTERNAL_URL
+          property: hostport
       - key: EXPRESS_BASE_URL
         fromService:
           name: obs-express
           type: web
-          envVarKey: RENDER_EXTERNAL_URL
+          property: hostport
       - key: VITE_GRAPHQL_BASE_URL
         fromService:
           name: obs-graphql

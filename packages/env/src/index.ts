@@ -1,15 +1,27 @@
+function normalizeBaseUrl(base: string): string {
+  const trimmedBase = base.trim().replace(/\/+$/, "");
+
+  if (/^https?:\/\//.test(trimmedBase)) {
+    return trimmedBase;
+  }
+
+  return `http://${trimmedBase}`;
+}
+
 export function getGraphqlUrl(): string {
   if (!process.env.GRAPHQL_BASE_URL) {
     throw new Error("GRAPHQL_BASE_URL environment variable is required");
   }
-  return `${process.env.GRAPHQL_BASE_URL}/graphql`;
+
+  return `${normalizeBaseUrl(process.env.GRAPHQL_BASE_URL)}/graphql`;
 }
 
 export function getExpressUrl(): string {
   if (!process.env.EXPRESS_BASE_URL) {
     throw new Error("EXPRESS_BASE_URL environment variable is required");
   }
-  return process.env.EXPRESS_BASE_URL;
+
+  return normalizeBaseUrl(process.env.EXPRESS_BASE_URL);
 }
 
 // Resolves a client-exposed env var across framework boundaries:
@@ -34,5 +46,6 @@ export function getPublicGraphqlUrl(): string {
       "VITE_GRAPHQL_BASE_URL or NEXT_PUBLIC_GRAPHQL_BASE_URL environment variable is required",
     );
   }
-  return `${base}/graphql`;
+
+  return `${normalizeBaseUrl(base)}/graphql`;
 }
