@@ -7,6 +7,11 @@
 set -e
 
 TRACING_BACKEND=${1:-otel}
+SHARED_PACKAGES=(
+  "@obs-playground/env"
+  "@obs-playground/otel"
+  "@obs-playground/graphql-client"
+)
 
 # Set up Datadog environment variable if using Datadog backend
 if [ "$TRACING_BACKEND" = "dd" ]; then
@@ -16,6 +21,11 @@ else
   DD_PREFIX=""
 fi
 
+# Build shared packages before starting app servers so their dist outputs exist.
+for package in "${SHARED_PACKAGES[@]}"; do
+  npm run build --workspace="$package"
+done
+
 # Run all services with both Next.js modes
 NEXTJS_NORMAL_CMD="cd apps/nextjs-app && ${DD_PREFIX}PORT=3000 npm run dev"
 NEXTJS_CUSTOM_CMD="cd apps/nextjs-app && ${DD_PREFIX}CUSTOM_SERVER=true PORT=3002 tsx --env-file=.env.local server.ts"
@@ -23,8 +33,9 @@ NEXTJS_CUSTOM_CMD="cd apps/nextjs-app && ${DD_PREFIX}CUSTOM_SERVER=true PORT=300
 TANSTACK_CMD="cd apps/tanstack-start && ${DD_PREFIX}PORT=3100 npm run dev"
 
 npx concurrently \
-  --names "OTEL,GQL-CLIENT,NEXT,CUSTOM,EXPRESS,GRAPHQL,TANSTACK,PROXY" \
-  --prefix-colors "blue,white,cyan,red,magenta,yellow,#ff6600,green" \
+  --names "ENV,OTEL,GQL-CLIENT,NEXT,CUSTOM,EXPRESS,GRAPHQL,TANSTACK,PROXY" \
+  --prefix-colors "white,blue,cyan,green,red,magenta,yellow,#ff6600,#00aa00" \
+  "cd packages/env && npm run dev" \
   "cd packages/otel && npm run dev" \
   "cd packages/graphql-client && npm run dev" \
   "$NEXTJS_NORMAL_CMD" \
