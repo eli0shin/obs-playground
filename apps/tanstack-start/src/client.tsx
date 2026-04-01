@@ -6,7 +6,7 @@ import { hydrateRoot } from "react-dom/client";
 datadogRum.init({
   applicationId: String(import.meta.env.VITE_DATADOG_APP_ID ?? ""),
   clientToken: String(import.meta.env.VITE_DATADOG_CLIENT_TOKEN ?? ""),
-  site: "us5.datadoghq.com",
+  site: "datadoghq.com",
   service: "tanstack-start-app",
   sessionSampleRate: 100,
   sessionReplaySampleRate: 100,
@@ -16,7 +16,12 @@ datadogRum.init({
   trackResources: true,
   trackLongTasks: true,
   trackUserInteractions: true,
-  allowedTracingUrls: ["https://localhost"],
+  allowedTracingUrls: [
+    {
+      match: () => true,
+      propagatorTypes: ["tracecontext", "datadog"],
+    },
+  ],
   allowedGraphQlUrls: [
     {
       match: /\/graphql$/,
