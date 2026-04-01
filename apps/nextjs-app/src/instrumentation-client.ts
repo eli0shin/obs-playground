@@ -5,18 +5,24 @@ import { captureRouterTransitionStart } from "@sentry/nextjs";
 datadogRum.init({
   applicationId: process.env.NEXT_PUBLIC_DATADOG_APP_ID ?? "",
   clientToken: process.env.NEXT_PUBLIC_DATADOG_CLIENT_TOKEN ?? "",
-  site: "us5.datadoghq.com",
+  site: "datadoghq.com",
   service: "nextjs-app",
   sessionSampleRate: 100,
   sessionReplaySampleRate: 100,
   defaultPrivacyLevel: "mask-user-input",
   plugins: [reactPlugin({ router: false })],
   traceSampleRate: 100,
+  traceContextInjection: "all",
   propagateTraceBaggage: true,
   trackResources: true,
   trackLongTasks: true,
   trackUserInteractions: true,
-  allowedTracingUrls: ["https://localhost"],
+  allowedTracingUrls: [
+    {
+      match: () => true,
+      propagatorTypes: ["tracecontext", "datadog"],
+    },
+  ],
   allowedGraphQlUrls: [
     {
       match: /\/graphql$/,

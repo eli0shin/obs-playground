@@ -7,3 +7,5 @@ certs/
 *.tsbuildinfo
 datadog.yaml
 test-results/
+.tanstack/
+.output/

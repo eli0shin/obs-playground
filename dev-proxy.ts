@@ -46,6 +46,9 @@ function setupSharedRoutes(app: Application): void {
       target: "http://localhost:3100",
       changeOrigin: true,
       ws: true,
+      pathRewrite: {
+        "^/": "/tanstack/",
+      },
     }),
   );
 }
