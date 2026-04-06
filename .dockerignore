@@ -1,0 +1,15 @@
+.git
+.github
+.opencode
+node_modules
+apps/*/node_modules
+packages/*/node_modules
+apps/*/.next
+apps/*/dist
+apps/*/.output
+packages/*/dist
+coverage
+playwright-report
+test-results
+tmp
+certs

@@ -1,0 +1,38 @@
+#cloud-config
+package_update: true
+package_upgrade: true
+packages:
+  - ca-certificates
+  - curl
+  - git
+  - gnupg
+  - lsb-release
+  - rsync
+  - unzip
+
+users:
+  - default
+  - name: ${deploy_user}
+    gecos: OpenTelemetry Preview Deploy User
+    shell: /bin/bash
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    groups: sudo
+    ssh_authorized_keys:
+      - ${deploy_authorized_key}
+
+runcmd:
+  - install -m 0755 -d /etc/apt/keyrings
+  - curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+  - chmod a+r /etc/apt/keyrings/docker.asc
+  - bash -lc 'echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo \"$VERSION_CODENAME\") stable" > /etc/apt/sources.list.d/docker.list'
+  - apt-get update
+  - apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+  - systemctl enable docker
+  - systemctl start docker
+  - usermod -aG docker ${deploy_user}
+  - install -d -m 0755 -o ${deploy_user} -g ${deploy_user} /srv/obs
+  - install -d -m 0755 -o ${deploy_user} -g ${deploy_user} /srv/obs/backups
+  - install -d -m 0755 -o ${deploy_user} -g ${deploy_user} /srv/obs/edge
+  - install -d -m 0755 -o ${deploy_user} -g ${deploy_user} /srv/obs/edge/routes
+  - install -d -m 0755 -o ${deploy_user} -g ${deploy_user} /srv/obs/repo
+  - install -d -m 0755 -o ${deploy_user} -g ${deploy_user} /srv/obs/stacks

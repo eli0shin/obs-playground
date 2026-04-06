@@ -1,0 +1,165 @@
+name: Deploy Main Stack
+
+on:
+  workflow_run:
+    workflows:
+      - CI
+    types:
+      - completed
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  TF_CLOUD_ORGANIZATION: ${{ vars.TF_CLOUD_ORGANIZATION }}
+  TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
+  TF_WORKSPACE_INFRA: ${{ vars.TF_WORKSPACE_INFRA }}
+
+jobs:
+  deploy:
+    if: |
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push application images
+        env:
+          IMAGE_TAG: ${{ github.event.workflow_run.head_sha }}
+          IMAGE_PREFIX: ghcr.io/${{ github.repository_owner }}/obs-playground
+          NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.NEXT_PUBLIC_SENTRY_DSN }}
+          NEXT_PUBLIC_STATSIG_CLIENT_KEY: ${{ secrets.NEXT_PUBLIC_STATSIG_CLIENT_KEY }}
+          NEXT_PUBLIC_DATADOG_CLIENT_TOKEN: ${{ secrets.NEXT_PUBLIC_DATADOG_CLIENT_TOKEN }}
+          NEXT_PUBLIC_DATADOG_APP_ID: ${{ secrets.NEXT_PUBLIC_DATADOG_APP_ID }}
+          VITE_DATADOG_CLIENT_TOKEN: ${{ secrets.VITE_DATADOG_CLIENT_TOKEN }}
+          VITE_DATADOG_APP_ID: ${{ secrets.VITE_DATADOG_APP_ID }}
+        run: |
+          docker build -f apps/nextjs-app/Dockerfile -t "$IMAGE_PREFIX/nextjs:$IMAGE_TAG" \
+            --build-arg NEXT_PUBLIC_SENTRY_DSN \
+            --build-arg NEXT_PUBLIC_STATSIG_CLIENT_KEY \
+            --build-arg NEXT_PUBLIC_DATADOG_CLIENT_TOKEN \
+            --build-arg NEXT_PUBLIC_DATADOG_APP_ID .
+          docker push "$IMAGE_PREFIX/nextjs:$IMAGE_TAG"
+
+          docker build -f apps/express-server/Dockerfile -t "$IMAGE_PREFIX/express:$IMAGE_TAG" .
+          docker push "$IMAGE_PREFIX/express:$IMAGE_TAG"
+
+          docker build -f apps/graphql-server/Dockerfile -t "$IMAGE_PREFIX/graphql:$IMAGE_TAG" .
+          docker push "$IMAGE_PREFIX/graphql:$IMAGE_TAG"
+
+          docker build -f apps/tanstack-start/Dockerfile -t "$IMAGE_PREFIX/tanstack:$IMAGE_TAG" \
+            --build-arg VITE_DATADOG_CLIENT_TOKEN \
+            --build-arg VITE_DATADOG_APP_ID .
+          docker push "$IMAGE_PREFIX/tanstack:$IMAGE_TAG"
+
+      - name: Read deploy host from HCP Terraform
+        uses: hashicorp/tfc-workflows-github/actions/workspace-output@v1.3.2
+        id: infra-outputs
+        with:
+          workspace: ${{ env.TF_WORKSPACE_INFRA }}
+
+      - name: Capture deploy connection settings
+        env:
+          INFRA_OUTPUTS_JSON: ${{ steps.infra-outputs.outputs.outputs }}
+        run: |
+          DEPLOY_HOST=$(jq -r '.[] | select(.attributes.name == "instance_main_ip") | .attributes.value' <<<"$INFRA_OUTPUTS_JSON")
+          DEPLOY_USER=$(jq -r '.[] | select(.attributes.name == "deploy_user") | .attributes.value' <<<"$INFRA_OUTPUTS_JSON")
+
+          if [ -z "$DEPLOY_HOST" ] || [ "$DEPLOY_HOST" = "null" ]; then
+            echo "Missing instance_main_ip output from HCP Terraform workspace $TF_WORKSPACE_INFRA" >&2
+            exit 1
+          fi
+
+          if [ -z "$DEPLOY_USER" ] || [ "$DEPLOY_USER" = "null" ]; then
+            echo "Missing deploy_user output from HCP Terraform workspace $TF_WORKSPACE_INFRA" >&2
+            exit 1
+          fi
+
+          echo "DEPLOY_HOST=$DEPLOY_HOST" >> "$GITHUB_ENV"
+          echo "DEPLOY_USER=$DEPLOY_USER" >> "$GITHUB_ENV"
+
+      - name: Configure SSH
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts
+
+      - name: Sync deployment artifacts to VM
+        run: |
+          rsync -az --delete deploy scripts "$DEPLOY_USER@$DEPLOY_HOST:/srv/obs/repo/"
+
+      - name: Deploy main stack
+        env:
+          DEPLOY_BASE_DOMAIN: ${{ secrets.DEPLOY_BASE_DOMAIN }}
+          ACME_EMAIL: ${{ secrets.ACME_EMAIL }}
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+          DD_SITE: ${{ secrets.DD_SITE }}
+          HONEYCOMB_ENDPOINT: ${{ secrets.HONEYCOMB_ENDPOINT }}
+          HONEYCOMB_API_KEY: ${{ secrets.HONEYCOMB_API_KEY }}
+          GRAFANA_OTLP_ENDPOINT: ${{ secrets.GRAFANA_OTLP_ENDPOINT }}
+          GRAFANA_OTLP_AUTH: ${{ secrets.GRAFANA_OTLP_AUTH }}
+          SENTRY_OTLP_ENDPOINT: ${{ secrets.SENTRY_OTLP_ENDPOINT }}
+          SENTRY_AUTH: ${{ secrets.SENTRY_AUTH }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.NEXT_PUBLIC_SENTRY_DSN }}
+          NEXT_PUBLIC_STATSIG_CLIENT_KEY: ${{ secrets.NEXT_PUBLIC_STATSIG_CLIENT_KEY }}
+          NEXT_PUBLIC_DATADOG_CLIENT_TOKEN: ${{ secrets.NEXT_PUBLIC_DATADOG_CLIENT_TOKEN }}
+          NEXT_PUBLIC_DATADOG_APP_ID: ${{ secrets.NEXT_PUBLIC_DATADOG_APP_ID }}
+          VITE_DATADOG_CLIENT_TOKEN: ${{ secrets.VITE_DATADOG_CLIENT_TOKEN }}
+          VITE_DATADOG_APP_ID: ${{ secrets.VITE_DATADOG_APP_ID }}
+          IMAGE_TAG: ${{ github.event.workflow_run.head_sha }}
+          GHCR_USER: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          IMAGE_PREFIX: ghcr.io/${{ github.repository_owner }}/obs-playground
+        run: |
+          ssh "$DEPLOY_USER@$DEPLOY_HOST" \
+            "echo '$GHCR_TOKEN' | docker login ghcr.io -u '$GHCR_USER' --password-stdin && \
+            cd /srv/obs/repo && chmod +x scripts/*.sh && \
+            ACME_EMAIL='$ACME_EMAIL' \
+            STACK_NAME='obs-main' \
+            STACK_ENV='production' \
+            STACK_VERSION='$IMAGE_TAG' \
+            STACK_ROUTER_PORT='20000' \
+            PREVIEW_ID='main' \
+            NEXT_HOST='app.$DEPLOY_BASE_DOMAIN' \
+            CUSTOM_HOST='custom.$DEPLOY_BASE_DOMAIN' \
+            TANSTACK_HOST='tanstack.$DEPLOY_BASE_DOMAIN' \
+            OBS_NEXTJS_IMAGE='$IMAGE_PREFIX/nextjs:$IMAGE_TAG' \
+            OBS_EXPRESS_IMAGE='$IMAGE_PREFIX/express:$IMAGE_TAG' \
+            OBS_GRAPHQL_IMAGE='$IMAGE_PREFIX/graphql:$IMAGE_TAG' \
+            OBS_TANSTACK_IMAGE='$IMAGE_PREFIX/tanstack:$IMAGE_TAG' \
+            DD_API_KEY='$DD_API_KEY' \
+            DD_SITE='$DD_SITE' \
+            HONEYCOMB_ENDPOINT='$HONEYCOMB_ENDPOINT' \
+            HONEYCOMB_API_KEY='$HONEYCOMB_API_KEY' \
+            GRAFANA_OTLP_ENDPOINT='$GRAFANA_OTLP_ENDPOINT' \
+            GRAFANA_OTLP_AUTH='$GRAFANA_OTLP_AUTH' \
+            SENTRY_OTLP_ENDPOINT='$SENTRY_OTLP_ENDPOINT' \
+            SENTRY_AUTH='$SENTRY_AUTH' \
+            SENTRY_AUTH_TOKEN='$SENTRY_AUTH_TOKEN' \
+            NEXT_PUBLIC_SENTRY_DSN='$NEXT_PUBLIC_SENTRY_DSN' \
+            NEXT_PUBLIC_STATSIG_CLIENT_KEY='$NEXT_PUBLIC_STATSIG_CLIENT_KEY' \
+            NEXT_PUBLIC_DATADOG_CLIENT_TOKEN='$NEXT_PUBLIC_DATADOG_CLIENT_TOKEN' \
+            NEXT_PUBLIC_DATADOG_APP_ID='$NEXT_PUBLIC_DATADOG_APP_ID' \
+            VITE_DATADOG_CLIENT_TOKEN='$VITE_DATADOG_CLIENT_TOKEN' \
+            VITE_DATADOG_APP_ID='$VITE_DATADOG_APP_ID' \
+            bash scripts/deploy-stack.sh"
