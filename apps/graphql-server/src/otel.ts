@@ -18,7 +18,7 @@ function getExtensions(error: GraphQLError): Record<string, unknown> {
   return error.extensions;
 }
 
-initializeOtel({
+export const { logger } = initializeOtel({
   serviceName: "graphql-server",
   instrumentations: {
     "@opentelemetry/instrumentation-graphql": {

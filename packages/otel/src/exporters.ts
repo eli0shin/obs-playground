@@ -8,7 +8,8 @@ import {
 import { ConsoleSpanExporter } from "@opentelemetry/sdk-trace-base";
 import {
   BatchLogRecordProcessor,
-  type LogRecordProcessor, ConsoleLogRecordExporter 
+  type LogRecordProcessor,
+  ConsoleLogRecordExporter,
 } from "@opentelemetry/sdk-logs";
 import {
   PeriodicExportingMetricReader,

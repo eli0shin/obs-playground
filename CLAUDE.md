@@ -144,6 +144,30 @@ Frontend makes REST calls to Express → Express orchestrates calls to GraphQL �
 - GraphQL: Apollo Server plugin captures GraphQL errors in spans
 - Next.js: Global error boundary (`global-error.tsx`)
 
+## Logging
+
+**Server-side:** All services use a pino-based logger created by `initializeOtel()` and exported from each app's `src/otel.ts`. Trace context injection is handled automatically by the instrumentation layer — either `@opentelemetry/instrumentation-pino` (OTEL mode) or dd-trace's native pino plugin (dd-trace mode).
+
+**Logging Modes (controlled by `DD_LOGS_ENABLED` env var):**
+
+| Mode        | `DD_TRACE_ENABLED` | `DD_LOGS_ENABLED` | Traces   | Log Injection        | Log Transport                  |
+| ----------- | ------------------ | ----------------- | -------- | -------------------- | ------------------------------ |
+| A (default) | unset              | unset             | OTEL     | instrumentation-pino | OTEL LogRecordProcessor → OTLP |
+| B           | unset              | `true`            | OTEL     | instrumentation-pino | pino → stdout → DD Agent       |
+| C           | `true`             | `true`            | dd-trace | dd-trace pino plugin | pino → stdout → DD Agent       |
+
+**Dev script modes:** `bash scripts/dev.sh otel` (Mode A), `bash scripts/dev.sh dd-logs` (Mode B), `bash scripts/dev.sh dd` (Mode C).
+
+**Usage in services:**
+
+```typescript
+import { logger } from "./otel";
+logger.info("Server listening", { port: 3001 });
+logger.error("Request failed", { err });
+```
+
+**Browser-side:** `@datadog/browser-logs` is initialized in the client entry points (`instrumentation-client.ts` for Next.js, `client.tsx` for TanStack Start) alongside Datadog RUM. It forwards all `console.*` calls and uncaught errors to Datadog Logs. The `datadogLogs` API is available for explicit structured logging from client code.
+
 ## Code Conventions
 
 **TypeScript:**
@@ -194,6 +218,7 @@ Frontend makes REST calls to Express → Express orchestrates calls to GraphQL �
 
 - `packages/otel/src/index.ts` - Shared OTEL initialization and configuration
 - `packages/otel/src/exporters.ts` - Multi-backend exporter configuration
+- `packages/otel/src/logger.ts` - Pino logger factory (trace context injected by instrumentation)
 - `packages/otel/src/types.ts` - TypeScript types for OTEL config
 - `apps/nextjs-app/src/otel.ts` - Next.js-specific instrumentation config
 - `apps/express-server/src/otel.ts` - Express-specific instrumentation config

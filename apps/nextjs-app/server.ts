@@ -1,4 +1,4 @@
-import "./src/otel.ts";
+import { logger } from "./src/otel";
 import express from "express";
 import next from "next";
 import { fileURLToPath } from "node:url";
@@ -21,6 +21,6 @@ app.prepare().then(() => {
   });
 
   server.listen(port, () => {
-    console.log(`> Ready on http://${hostname}:${port}`);
+    logger.info("Next.js custom server ready", { hostname, port });
   });
 });

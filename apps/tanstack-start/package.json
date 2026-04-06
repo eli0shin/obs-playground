@@ -14,7 +14,8 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@datadog/browser-rum": "^6.23.0",
+    "@datadog/browser-logs": "^6.32.0",
+    "@datadog/browser-rum": "^6.32.0",
     "@obs-playground/env": "*",
     "@obs-playground/graphql-client": "*",
     "@obs-playground/otel": "*",

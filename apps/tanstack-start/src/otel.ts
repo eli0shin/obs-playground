@@ -1,6 +1,6 @@
 import { initializeOtel } from "@obs-playground/otel";
 
-initializeOtel({
+export const { logger } = initializeOtel({
   serviceName: "tanstack-start-app",
   instrumentations: {
     "@opentelemetry/instrumentation-http": {

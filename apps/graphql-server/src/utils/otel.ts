@@ -13,13 +13,13 @@ import { context, createContextKey, type Span } from "@opentelemetry/api";
  */
 const OPERATION_SPAN_KEY = createContextKey("graphql.operation.span");
 
-function hasSpanMethods(
-  value: object,
-): value is { setAttribute: unknown; setAttributes: unknown; setStatus: unknown } {
+function hasSpanMethods(value: object): value is {
+  setAttribute: unknown;
+  setAttributes: unknown;
+  setStatus: unknown;
+} {
   return (
-    "setAttribute" in value &&
-    "setAttributes" in value &&
-    "setStatus" in value
+    "setAttribute" in value && "setAttributes" in value && "setStatus" in value
   );
 }
 

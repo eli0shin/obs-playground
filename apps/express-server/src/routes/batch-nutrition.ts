@@ -4,6 +4,7 @@ import { graphqlRequest } from "@obs-playground/graphql-client";
 import { ingredientNutrition } from "../data";
 import type { RecipeNutrition, GraphQLRecipe } from "../types";
 import { batchNutritionSchema } from "../schemas";
+import { logger } from "../otel";
 
 const router = Router();
 
@@ -12,6 +13,7 @@ router.post("/batch/nutrition", async (req: Request, res: Response) => {
   const parsed = batchNutritionSchema.safeParse(req.body);
 
   if (!parsed.success) {
+    logger.warn("Batch nutrition validation failed", { err: parsed.error });
     activeSpan?.recordException(parsed.error);
     return res.status(400).json({ error: parsed.error.issues });
   }
@@ -42,6 +44,10 @@ router.post("/batch/nutrition", async (req: Request, res: Response) => {
     }
   `);
   const selectedRecipes = allRecipes.filter((r) => recipeIds.includes(r.id));
+  logger.info("Batch nutrition recipes fetched from GraphQL", {
+    requested: recipeIds.length,
+    found: selectedRecipes.length,
+  });
 
   // Calculate nutrition for each recipe
   const recipeNutritionData: RecipeNutrition[] = selectedRecipes.map(
