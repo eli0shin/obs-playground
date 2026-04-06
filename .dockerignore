@@ -1,0 +1,14 @@
+.git
+.github
+.opencode
+.turbo
+node_modules
+apps/*/node_modules
+packages/*/node_modules
+apps/nextjs-app/.next
+apps/nextjs-app/.next-custom
+apps/nextjs-app/out
+apps/*/dist
+packages/*/dist
+certs
+npm-debug.log*

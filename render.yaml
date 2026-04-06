@@ -1,27 +1,30 @@
 services:
-  # GraphQL Server
   - type: web
     name: obs-graphql
-    runtime: node
+    runtime: docker
     plan: free
-    # No rootDir - build from repo root for workspace dependencies
-    buildCommand: npm ci --include=dev && npm run build && npm prune --omit=dev
-    startCommand: node apps/graphql-server/dist/index.js
+    dockerfilePath: ./deploy/render/app-with-datadog/Dockerfile
+    dockerContext: .
     previews:
       generation: automatic
     envVars:
-      - key: NODE_VERSION
-        value: "24"
       - key: NODE_ENV
         value: production
       - key: PORT
         value: 10000
+      - key: APP_START_COMMAND
+        value: node apps/graphql-server/dist/index.js
+      - key: DD_API_KEY
+        sync: false
+      - key: DD_SITE
+        value: datadoghq.com
+      - key: DD_HOSTNAME
+        value: obs-graphql
       - key: EXPRESS_BASE_URL
         fromService:
           name: obs-express
           type: web
           envVarKey: RENDER_EXTERNAL_URL
-      # OTEL Endpoints (fill in your values)
       - key: HONEYCOMB_ENDPOINT
         value: https://api.honeycomb.io
       - key: GRAFANA_OTLP_ENDPOINT
@@ -31,31 +34,41 @@ services:
       - fromGroup: obs-playground
     buildFilter:
       paths:
+        - package.json
+        - package-lock.json
+        - turbo.json
+        - patches/**
+        - .dockerignore
+        - deploy/render/app-with-datadog/**
         - apps/graphql-server/**
         - packages/**
 
-  # Express Server
   - type: web
     name: obs-express
-    runtime: node
+    runtime: docker
     plan: free
-    buildCommand: npm ci --include=dev && npm run build && npm prune --omit=dev
-    startCommand: node apps/express-server/dist/index.js
+    dockerfilePath: ./deploy/render/app-with-datadog/Dockerfile
+    dockerContext: .
     previews:
       generation: automatic
     envVars:
-      - key: NODE_VERSION
-        value: "24"
       - key: NODE_ENV
         value: production
       - key: PORT
         value: 10000
+      - key: APP_START_COMMAND
+        value: node apps/express-server/dist/index.js
+      - key: DD_API_KEY
+        sync: false
+      - key: DD_SITE
+        value: datadoghq.com
+      - key: DD_HOSTNAME
+        value: obs-express
       - key: GRAPHQL_BASE_URL
         fromService:
           name: obs-graphql
           type: web
           envVarKey: RENDER_EXTERNAL_URL
-      # OTEL Endpoints
       - key: HONEYCOMB_ENDPOINT
         value: https://api.honeycomb.io
       - key: GRAFANA_OTLP_ENDPOINT
@@ -65,25 +78,36 @@ services:
       - fromGroup: obs-playground
     buildFilter:
       paths:
+        - package.json
+        - package-lock.json
+        - turbo.json
+        - patches/**
+        - .dockerignore
+        - deploy/render/app-with-datadog/**
         - apps/express-server/**
         - packages/**
 
-  # Next.js App
   - type: web
     name: obs-nextjs
-    runtime: node
+    runtime: docker
     plan: free
-    buildCommand: npm ci --include=dev && npm run build && npm prune --omit=dev
-    startCommand: npm run start --workspace=apps/nextjs-app
+    dockerfilePath: ./deploy/render/app-with-datadog/Dockerfile
+    dockerContext: .
     previews:
       generation: automatic
     envVars:
-      - key: NODE_VERSION
-        value: "24"
       - key: NODE_ENV
         value: production
       - key: PORT
         value: 10000
+      - key: APP_START_COMMAND
+        value: next start --hostname 0.0.0.0 --port $PORT
+      - key: DD_API_KEY
+        sync: false
+      - key: DD_SITE
+        value: datadoghq.com
+      - key: DD_HOSTNAME
+        value: obs-nextjs
       - key: GRAPHQL_BASE_URL
         fromService:
           name: obs-graphql
@@ -99,7 +123,6 @@ services:
           name: obs-graphql
           type: web
           envVarKey: RENDER_EXTERNAL_URL
-      # OTEL Endpoints
       - key: HONEYCOMB_ENDPOINT
         value: https://api.honeycomb.io
       - key: GRAFANA_OTLP_ENDPOINT
@@ -111,27 +134,38 @@ services:
       - fromGroup: obs-playground
     buildFilter:
       paths:
+        - package.json
+        - package-lock.json
+        - turbo.json
+        - patches/**
+        - .dockerignore
+        - deploy/render/app-with-datadog/**
         - apps/nextjs-app/**
         - packages/**
 
-  # Next.js App (Custom Server)
   - type: web
     name: obs-nextjs-custom
-    runtime: node
+    runtime: docker
     plan: free
-    buildCommand: npm ci --include=dev && npm run build && npm prune --omit=dev
-    startCommand: node apps/nextjs-app/server.ts
+    dockerfilePath: ./deploy/render/app-with-datadog/Dockerfile
+    dockerContext: .
     previews:
       generation: automatic
     envVars:
-      - key: NODE_VERSION
-        value: "24"
       - key: NODE_ENV
         value: production
       - key: PORT
         value: 10000
       - key: CUSTOM_SERVER
         value: "true"
+      - key: APP_START_COMMAND
+        value: node apps/nextjs-app/server.ts
+      - key: DD_API_KEY
+        sync: false
+      - key: DD_SITE
+        value: datadoghq.com
+      - key: DD_HOSTNAME
+        value: obs-nextjs-custom
       - key: GRAPHQL_BASE_URL
         fromService:
           name: obs-graphql
@@ -147,7 +181,6 @@ services:
           name: obs-graphql
           type: web
           envVarKey: RENDER_EXTERNAL_URL
-      # OTEL Endpoints
       - key: HONEYCOMB_ENDPOINT
         value: https://api.honeycomb.io
       - key: GRAFANA_OTLP_ENDPOINT
@@ -159,25 +192,36 @@ services:
       - fromGroup: obs-playground
     buildFilter:
       paths:
+        - package.json
+        - package-lock.json
+        - turbo.json
+        - patches/**
+        - .dockerignore
+        - deploy/render/app-with-datadog/**
         - apps/nextjs-app/**
         - packages/**
 
-  # TanStack Start App
   - type: web
     name: obs-tanstack
-    runtime: node
+    runtime: docker
     plan: free
-    buildCommand: npm ci --include=dev && npm run build && npm prune --omit=dev
-    startCommand: node apps/tanstack-start/.output/server/index.mjs
+    dockerfilePath: ./deploy/render/app-with-datadog/Dockerfile
+    dockerContext: .
     previews:
       generation: automatic
     envVars:
-      - key: NODE_VERSION
-        value: "24"
       - key: NODE_ENV
         value: production
       - key: PORT
         value: 10000
+      - key: APP_START_COMMAND
+        value: node apps/tanstack-start/.output/server/index.mjs
+      - key: DD_API_KEY
+        sync: false
+      - key: DD_SITE
+        value: datadoghq.com
+      - key: DD_HOSTNAME
+        value: obs-tanstack
       - key: GRAPHQL_BASE_URL
         fromService:
           name: obs-graphql
@@ -193,7 +237,6 @@ services:
           name: obs-graphql
           type: web
           envVarKey: RENDER_EXTERNAL_URL
-      # OTEL Endpoints
       - key: HONEYCOMB_ENDPOINT
         value: https://api.honeycomb.io
       - key: GRAFANA_OTLP_ENDPOINT
@@ -203,5 +246,11 @@ services:
       - fromGroup: obs-playground
     buildFilter:
       paths:
+        - package.json
+        - package-lock.json
+        - turbo.json
+        - patches/**
+        - .dockerignore
+        - deploy/render/app-with-datadog/**
         - apps/tanstack-start/**
         - packages/**
