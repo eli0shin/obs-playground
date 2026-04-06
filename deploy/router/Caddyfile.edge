@@ -1,0 +1,9 @@
+{
+  email {$ACME_EMAIL}
+}
+
+:80, :443 {
+  respond "No edge route configured" 404
+}
+
+import /etc/caddy/routes/*.caddy

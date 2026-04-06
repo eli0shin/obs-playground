@@ -8,6 +8,17 @@ function normalizeBaseUrl(base: string): string {
   return `http://${trimmedBase}`;
 }
 
+function getBrowserOrigin(): string | undefined {
+  const browserGlobal = globalThis as typeof globalThis & {
+    location?: {
+      origin?: string;
+    };
+  };
+  const browserOrigin = browserGlobal.location?.origin;
+
+  return typeof browserOrigin === "string" ? browserOrigin : undefined;
+}
+
 export function getGraphqlUrl(): string {
   if (!process.env.GRAPHQL_BASE_URL) {
     throw new Error("GRAPHQL_BASE_URL environment variable is required");
@@ -38,11 +49,13 @@ function getViteGraphqlBaseUrl(): string | undefined {
 
 export function getPublicGraphqlUrl(): string {
   const base =
-    getViteGraphqlBaseUrl() ?? process.env.NEXT_PUBLIC_GRAPHQL_BASE_URL;
+    getViteGraphqlBaseUrl() ??
+    process.env.NEXT_PUBLIC_GRAPHQL_BASE_URL ??
+    getBrowserOrigin();
 
   if (!base) {
     throw new Error(
-      "VITE_GRAPHQL_BASE_URL or NEXT_PUBLIC_GRAPHQL_BASE_URL environment variable is required",
+      "VITE_GRAPHQL_BASE_URL, NEXT_PUBLIC_GRAPHQL_BASE_URL, or a browser origin is required",
     );
   }
 

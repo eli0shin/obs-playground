@@ -1,0 +1,54 @@
+{
+  auto_https off
+  http_port 8080
+}
+
+{$NEXT_HOST} {
+  handle /graphql* {
+    reverse_proxy graphql:4000
+  }
+
+  handle_path /api/* {
+    reverse_proxy express:3001
+  }
+
+  handle /tanstack* {
+    reverse_proxy tanstack:3100
+  }
+
+  handle {
+    reverse_proxy nextjs:3000
+  }
+}
+
+{$CUSTOM_HOST} {
+  handle /graphql* {
+    reverse_proxy graphql:4000
+  }
+
+  handle_path /api/* {
+    reverse_proxy express:3001
+  }
+
+  handle /tanstack* {
+    reverse_proxy tanstack:3100
+  }
+
+  handle {
+    reverse_proxy nextjs-custom:3002
+  }
+}
+
+{$TANSTACK_HOST} {
+  handle /graphql* {
+    reverse_proxy graphql:4000
+  }
+
+  handle_path /api/* {
+    reverse_proxy express:3001
+  }
+
+  handle {
+    reverse_proxy tanstack:3100
+  }
+}

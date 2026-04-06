@@ -2,6 +2,8 @@
 
 A multi-service reference implementation demonstrating distributed tracing with OpenTelemetry across Next.js, Express, and GraphQL.
 
+The repo now includes a single-VM deployment model for main and preview environments using Docker Compose, Caddy, Terraform, and cloud-init.
+
 ## Architecture
 
 - **Next.js** (port 3000) - Frontend UI
@@ -10,6 +12,36 @@ A multi-service reference implementation demonstrating distributed tracing with 
 - **HTTPS Proxy** (port 443) - Unified development server
 
 Services export traces to Honeycomb, Grafana Cloud, Sentry, and Datadog.
+
+## Deployment
+
+Production and preview deployments are designed around one always-on VM:
+
+- One global Caddy edge proxy on `80/443`
+- One isolated Docker Compose project for the main stack
+- One isolated Docker Compose project per pull request preview
+- One stack-local Datadog Agent per deployment stack
+
+Hostnames are expected to follow this pattern:
+
+- Main app: `app.<your-domain>`
+- Main custom server: `custom.<your-domain>`
+- Main TanStack app: `tanstack.<your-domain>`
+- Preview app: `pr-<number>.preview.<your-domain>`
+- Preview custom server: `custom-pr-<number>.preview.<your-domain>`
+- Preview TanStack app: `tanstack-pr-<number>.preview.<your-domain>`
+
+The deployment assets live in:
+
+- `deploy/compose/stack.yaml`
+- `deploy/compose/edge.yaml`
+- `deploy/router/Caddyfile.edge`
+- `deploy/router/Caddyfile.stack`
+- `infra/terraform/`
+- `infra/cloud-init/user-data.yaml`
+- `scripts/deploy-stack.sh`
+- `scripts/deploy-preview.sh`
+- `scripts/destroy-preview.sh`
 
 ## Prerequisites
 
@@ -43,10 +75,8 @@ mkdir certs
 Start all services:
 
 ```bash
-npm run dev:all        # With built-in Next.js server
-npm run dev:all:custom # With custom Next.js server
-npm run dev:dd:all     # With built-in Next.js server and Datadog native tracing
-npm run dev:dd:custom  # With custom Next.js server and Datadog native tracing
+npm run dev:all     # Built-in Next.js, custom Next.js, Express, GraphQL, TanStack, proxy
+npm run dev:dd:all  # Same stack with Datadog native tracing enabled
 ```
 
 Access the app:
@@ -57,6 +87,17 @@ Access the app:
 - GraphQL Playground: http://localhost:4000/graphql
 
 Using native Datadog tracing requires that you have the datadog agent setup locally with opentelemetry ingest/egress enabled.
+
+## SQLite
+
+If one or two services need lightweight relational storage, keep SQLite files on stack-local persistent volumes. That fits this single-VM deployment model well, but only while the database file remains local to the VM and write concurrency stays modest.
+
+The deployment tooling reserves these service-local data paths:
+
+- Express: `/var/lib/obs/express`
+- GraphQL: `/var/lib/obs/graphql`
+
+Use `scripts/backup-sqlite.sh` on the host to snapshot the current service volumes for a stack.
 
 ## Development
 

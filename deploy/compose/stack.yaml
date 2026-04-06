@@ -1,0 +1,160 @@
+services:
+  router:
+    image: caddy:2.10-alpine
+    restart: unless-stopped
+    depends_on:
+      - nextjs
+      - nextjs-custom
+      - express
+      - graphql
+      - tanstack
+    environment:
+      NEXT_HOST: ${NEXT_HOST}
+      CUSTOM_HOST: ${CUSTOM_HOST}
+      TANSTACK_HOST: ${TANSTACK_HOST}
+    ports:
+      - "127.0.0.1:${STACK_ROUTER_PORT}:8080"
+    volumes:
+      - ../router/Caddyfile.stack:/etc/caddy/Caddyfile:ro
+    networks:
+      - backplane
+
+  nextjs:
+    image: ${OBS_NEXTJS_IMAGE}
+    restart: unless-stopped
+    env_file:
+      - ${STACK_ENV_FILE:-./stack.env}
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      GRAPHQL_BASE_URL: http://graphql:4000
+      EXPRESS_BASE_URL: http://express:3001
+      DD_AGENT_HOST: datadog-agent
+      DD_TRACE_AGENT_PORT: 8126
+      DATADOG_OTLP_ENDPOINT: http://datadog-agent:4318
+      DD_SERVICE: obs-nextjs
+      DD_ENV: ${STACK_ENV}
+      DD_VERSION: ${STACK_VERSION}
+      DD_TAGS: stack:${STACK_NAME},preview_id:${PREVIEW_ID}
+    networks:
+      - backplane
+
+  nextjs-custom:
+    image: ${OBS_NEXTJS_IMAGE}
+    restart: unless-stopped
+    command: ["node", "apps/nextjs-app/server.ts"]
+    env_file:
+      - ${STACK_ENV_FILE:-./stack.env}
+    environment:
+      NODE_ENV: production
+      CUSTOM_SERVER: "true"
+      PORT: 3002
+      GRAPHQL_BASE_URL: http://graphql:4000
+      EXPRESS_BASE_URL: http://express:3001
+      DD_AGENT_HOST: datadog-agent
+      DD_TRACE_AGENT_PORT: 8126
+      DATADOG_OTLP_ENDPOINT: http://datadog-agent:4318
+      DD_SERVICE: obs-nextjs-custom
+      DD_ENV: ${STACK_ENV}
+      DD_VERSION: ${STACK_VERSION}
+      DD_TAGS: stack:${STACK_NAME},preview_id:${PREVIEW_ID}
+    networks:
+      - backplane
+
+  express:
+    image: ${OBS_EXPRESS_IMAGE}
+    restart: unless-stopped
+    env_file:
+      - ${STACK_ENV_FILE:-./stack.env}
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      GRAPHQL_BASE_URL: http://graphql:4000
+      DD_AGENT_HOST: datadog-agent
+      DD_TRACE_AGENT_PORT: 8126
+      DATADOG_OTLP_ENDPOINT: http://datadog-agent:4318
+      DD_SERVICE: obs-express
+      DD_ENV: ${STACK_ENV}
+      DD_VERSION: ${STACK_VERSION}
+      DD_TAGS: stack:${STACK_NAME},preview_id:${PREVIEW_ID}
+      SQLITE_DATA_DIR: /var/lib/obs/express
+    volumes:
+      - express-data:/var/lib/obs/express
+    networks:
+      - backplane
+
+  graphql:
+    image: ${OBS_GRAPHQL_IMAGE}
+    restart: unless-stopped
+    env_file:
+      - ${STACK_ENV_FILE:-./stack.env}
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      EXPRESS_BASE_URL: http://express:3001
+      DD_AGENT_HOST: datadog-agent
+      DD_TRACE_AGENT_PORT: 8126
+      DATADOG_OTLP_ENDPOINT: http://datadog-agent:4318
+      DD_SERVICE: obs-graphql
+      DD_ENV: ${STACK_ENV}
+      DD_VERSION: ${STACK_VERSION}
+      DD_TAGS: stack:${STACK_NAME},preview_id:${PREVIEW_ID}
+      SQLITE_DATA_DIR: /var/lib/obs/graphql
+    volumes:
+      - graphql-data:/var/lib/obs/graphql
+    networks:
+      - backplane
+
+  tanstack:
+    image: ${OBS_TANSTACK_IMAGE}
+    restart: unless-stopped
+    env_file:
+      - ${STACK_ENV_FILE:-./stack.env}
+    environment:
+      NODE_ENV: production
+      PORT: 3100
+      GRAPHQL_BASE_URL: http://graphql:4000
+      EXPRESS_BASE_URL: http://express:3001
+      DD_AGENT_HOST: datadog-agent
+      DD_TRACE_AGENT_PORT: 8126
+      DATADOG_OTLP_ENDPOINT: http://datadog-agent:4318
+      DD_SERVICE: obs-tanstack
+      DD_ENV: ${STACK_ENV}
+      DD_VERSION: ${STACK_VERSION}
+      DD_TAGS: stack:${STACK_NAME},preview_id:${PREVIEW_ID}
+    networks:
+      - backplane
+
+  datadog-agent:
+    image: registry.datadoghq.com/agent:latest
+    restart: unless-stopped
+    pid: host
+    env_file:
+      - ${STACK_ENV_FILE:-./stack.env}
+    environment:
+      DD_APM_ENABLED: "true"
+      DD_APM_NON_LOCAL_TRAFFIC: "true"
+      DD_DOGSTATSD_NON_LOCAL_TRAFFIC: "true"
+      DD_OTLP_CONFIG_RECEIVER_PROTOCOLS_HTTP_ENDPOINT: 0.0.0.0:4318
+      DD_LOGS_ENABLED: ${DD_LOGS_ENABLED:-false}
+      DD_OTLP_CONFIG_LOGS_ENABLED: ${DD_OTLP_CONFIG_LOGS_ENABLED:-false}
+      DD_ENV: ${STACK_ENV}
+      DD_VERSION: ${STACK_VERSION}
+      DD_TAGS: stack:${STACK_NAME},preview_id:${PREVIEW_ID}
+      HOST_PROC: /proc
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /proc:/host/proc:ro
+      - /sys/fs/cgroup:/host/sys/fs/cgroup:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /opt/datadog-agent/run:/opt/datadog-agent/run:rw
+    networks:
+      - backplane
+
+networks:
+  backplane:
+    internal: true
+
+volumes:
+  express-data:
+  graphql-data:
