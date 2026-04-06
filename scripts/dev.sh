@@ -1,8 +1,10 @@
 #!/bin/bash
 
 # Development script for running all services
-# Usage: bash scripts/dev.sh [tracing_backend]
-#   tracing_backend: "otel" (OpenTelemetry, default) or "dd" (Datadog)
+# Usage: bash scripts/dev.sh [backend]
+#   backend: "otel" (default) - OTEL traces + OTEL logs
+#            "dd" - dd-trace traces + dd-trace logs
+#            "dd-logs" - OTEL traces + dd-trace log injection (pino → stdout)
 
 set -e
 
@@ -13,10 +15,14 @@ SHARED_PACKAGES=(
   "@obs-playground/graphql-client"
 )
 
-# Set up Datadog environment variable if using Datadog backend
+# Set up environment variables based on backend choice
 if [ "$TRACING_BACKEND" = "dd" ]; then
   export DD_TRACE_ENABLED=true
-  DD_PREFIX="DD_TRACE_ENABLED=true "
+  export DD_LOGS_ENABLED=true
+  DD_PREFIX="DD_TRACE_ENABLED=true DD_LOGS_ENABLED=true "
+elif [ "$TRACING_BACKEND" = "dd-logs" ]; then
+  export DD_LOGS_ENABLED=true
+  DD_PREFIX="DD_LOGS_ENABLED=true "
 else
   DD_PREFIX=""
 fi

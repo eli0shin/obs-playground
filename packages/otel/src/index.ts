@@ -13,6 +13,7 @@ import {
   createLogProcessors,
   createMetricReaders,
 } from "./exporters.js";
+import { createLogger } from "./logger.js";
 import type { OtelConfig, OtelResult } from "./types.js";
 
 export function initializeOtel(config: OtelConfig): OtelResult {
@@ -41,12 +42,13 @@ export function initializeOtel(config: OtelConfig): OtelResult {
       blocklist: [/^\/_/],
     });
 
-    // eslint-disable-next-line no-console
-    console.log(
+    // Create logger after dd-trace init so dd-trace patches pino
+    const logger = createLogger(ddServiceName);
+    logger.info(
       `Datadog native tracer (dd-trace) initialized for service: ${ddServiceName}`,
     );
 
-    return { sdk: ddTracer };
+    return { sdk: ddTracer, logger };
   }
 
   // Standard OpenTelemetry initialization
@@ -88,10 +90,13 @@ export function initializeOtel(config: OtelConfig): OtelResult {
 
   sdk.start();
 
-  // eslint-disable-next-line no-console
-  console.log(`OpenTelemetry initialized for service: ${serviceName}`);
+  // Create logger after sdk.start() so instrumentation-pino patches pino
+  const logger = createLogger(serviceName);
+  logger.info(`OpenTelemetry initialized for service: ${serviceName}`);
 
-  return { sdk };
+  return { sdk, logger };
 }
 
+export { createLogger } from "./logger.js";
+export type { Logger } from "./logger.js";
 export type { OtelConfig, OtelResult } from "./types.js";

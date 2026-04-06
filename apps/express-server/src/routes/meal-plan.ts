@@ -3,6 +3,7 @@ import { trace } from "@opentelemetry/api";
 import { graphqlRequest } from "@obs-playground/graphql-client";
 import { ingredientPrices } from "../data";
 import type { GraphQLRecipe } from "../types";
+import { logger } from "../otel";
 
 const router = Router();
 
@@ -42,6 +43,10 @@ router.get("/meal-plan/estimate", async (req: Request, res: Response) => {
     }
   `);
   const selectedRecipes = allRecipes.filter((r) => idsArray.includes(r.id));
+  logger.info("Meal plan recipes fetched from GraphQL", {
+    requested: idsArray.length,
+    found: selectedRecipes.length,
+  });
 
   // Calculate cost for each recipe
   const recipeCosts = selectedRecipes.map((recipe) => {

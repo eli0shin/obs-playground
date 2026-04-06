@@ -1,6 +1,16 @@
+import { datadogLogs } from "@datadog/browser-logs";
 import { datadogRum } from "@datadog/browser-rum";
 import { reactPlugin } from "@datadog/browser-rum-react";
 import { captureRouterTransitionStart } from "@sentry/nextjs";
+
+datadogLogs.init({
+  clientToken: process.env.NEXT_PUBLIC_DATADOG_CLIENT_TOKEN ?? "",
+  site: "datadoghq.com",
+  service: "nextjs-app",
+  forwardConsoleLogs: "all",
+  forwardErrorsToLogs: true,
+  sessionSampleRate: 100,
+});
 
 datadogRum.init({
   applicationId: process.env.NEXT_PUBLIC_DATADOG_APP_ID ?? "",

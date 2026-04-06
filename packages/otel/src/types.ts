@@ -1,6 +1,7 @@
 import type { NodeSDK } from "@opentelemetry/sdk-node";
 import type { InstrumentationConfigMap } from "@opentelemetry/auto-instrumentations-node";
 import type { Tracer } from "dd-trace";
+import type { Logger } from "./logger.js";
 
 export type OtelConfig = {
   serviceName: string;
@@ -9,4 +10,5 @@ export type OtelConfig = {
 
 export type OtelResult = {
   sdk: NodeSDK | Tracer;
+  logger: Logger;
 };

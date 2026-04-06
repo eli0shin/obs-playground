@@ -4,6 +4,7 @@ import { graphqlRequest } from "@obs-playground/graphql-client";
 import { ingredientPrices, ingredientInventory } from "../data";
 import type { ShoppingListItem, GraphQLRecipe } from "../types";
 import { shoppingListSchema } from "../schemas";
+import { logger } from "../otel";
 
 const router = Router();
 
@@ -12,6 +13,7 @@ router.post("/shopping-list/generate", async (req: Request, res: Response) => {
   const parsed = shoppingListSchema.safeParse(req.body);
 
   if (!parsed.success) {
+    logger.warn("Shopping list validation failed", { err: parsed.error });
     activeSpan?.recordException(parsed.error);
     return res.status(400).json({ error: parsed.error.issues });
   }
@@ -44,6 +46,10 @@ router.post("/shopping-list/generate", async (req: Request, res: Response) => {
     }
   `);
   const selectedRecipes = allRecipes.filter((r) => recipeIds.includes(r.id));
+  logger.info("Shopping list recipes fetched from GraphQL", {
+    requested: recipeIds.length,
+    found: selectedRecipes.length,
+  });
 
   activeSpan?.setAttributes({
     "shopping_list.recipes_found": selectedRecipes.length,

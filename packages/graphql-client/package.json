@@ -22,7 +22,7 @@
     "lint": "eslint src"
   },
   "dependencies": {
-    "@datadog/browser-rum": "^6.23.0",
+    "@datadog/browser-rum": "^6.32.0",
     "@obs-playground/env": "*",
     "@opentelemetry/api": "^1.9.0",
     "zod": "^4.2.1"

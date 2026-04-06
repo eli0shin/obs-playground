@@ -99,7 +99,9 @@ async function getIngredientNutrition(
     : { calories: 0, protein: 0, fat: 0, carbs: 0 };
 }
 
-async function getIngredientStock(ingredientId: string): Promise<InventoryData> {
+async function getIngredientStock(
+  ingredientId: string,
+): Promise<InventoryData> {
   const response = await fetch(
     `${getExpressUrl()}/inventory/stock/${ingredientId}`,
     {

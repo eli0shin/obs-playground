@@ -8,10 +8,7 @@ import {
   ingredients,
 } from "../data/index.js";
 import { getOperationSpan } from "../utils/otel.js";
-import {
-  pricesResponseSchema,
-  nutritionResponseSchema,
-} from "../schemas.js";
+import { pricesResponseSchema, nutritionResponseSchema } from "../schemas.js";
 
 export const Query = {
   recipe: (_: unknown, { id }: { id: string }) => {

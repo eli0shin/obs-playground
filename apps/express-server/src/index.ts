@@ -1,6 +1,7 @@
-import "./otel";
+import { logger } from "./otel";
 import express from "express";
 import { errorHandler } from "./error-middleware";
+import { requestLogger } from "./request-logger";
 import { responseInstrumentation } from "./response-instrumentation";
 import healthRoutes from "./routes/health";
 import pricingRoutes from "./routes/pricing";
@@ -16,6 +17,7 @@ const app = express();
 const PORT = process.env.PORT ?? 3001;
 
 app.use(express.json());
+app.use(requestLogger);
 app.use(responseInstrumentation);
 
 // Register routes
@@ -32,4 +34,6 @@ app.use(slowRoutes);
 // Error handling middleware - must be last
 app.use(errorHandler);
 
-app.listen(PORT);
+app.listen(PORT, () => {
+  logger.info("Express server listening", { port: PORT });
+});

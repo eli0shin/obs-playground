@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
 import { trace, SpanStatusCode } from "@opentelemetry/api";
+import { logger } from "./otel";
 
 export function errorHandler(
   err: Error,
@@ -8,6 +9,12 @@ export function errorHandler(
   _next: NextFunction,
 ): void {
   const activeSpan = trace.getActiveSpan();
+
+  logger.error("Unhandled error", {
+    err,
+    method: _req.method,
+    path: _req.path,
+  });
 
   activeSpan?.recordException(err);
   activeSpan?.setStatus({

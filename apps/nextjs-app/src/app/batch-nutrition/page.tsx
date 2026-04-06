@@ -22,7 +22,9 @@ const errorResponseSchema = z.object({
 
 type BatchNutritionResponse = z.infer<typeof batchNutritionResponseSchema>;
 
-async function getBatchNutrition(recipeIds: string[]): Promise<BatchNutritionResponse> {
+async function getBatchNutrition(
+  recipeIds: string[],
+): Promise<BatchNutritionResponse> {
   const response = await fetch(`${getExpressUrl()}/batch/nutrition`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
