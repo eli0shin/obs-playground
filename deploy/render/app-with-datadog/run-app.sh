@@ -7,4 +7,4 @@ if [[ -z "${APP_START_COMMAND:-}" ]]; then
 fi
 
 cd /app
-exec /bin/bash -lc "$APP_START_COMMAND"
+exec /bin/bash -c "$APP_START_COMMAND"

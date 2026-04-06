@@ -4,6 +4,10 @@ set -euo pipefail
 agent_pid=""
 app_pid=""
 
+otlp_ready() {
+  node -e 'const net = require("node:net"); const socket = net.connect({ host: "127.0.0.1", port: 4318 }); socket.on("connect", () => { socket.end(); process.exit(0); }); socket.on("error", () => process.exit(1)); setTimeout(() => process.exit(1), 1000);'
+}
+
 cleanup() {
   local exit_code=${1:-0}
 
@@ -23,11 +27,13 @@ cleanup() {
 
 trap 'cleanup 0' INT TERM
 
+: "${DD_HOSTNAME:?DD_HOSTNAME must be set}"
+
 /bin/entrypoint.sh &
 agent_pid=$!
 
 for _ in {1..60}; do
-  if node -e 'const net = require("node:net"); const socket = net.connect({ host: "127.0.0.1", port: 4318 }); socket.on("connect", () => { socket.end(); process.exit(0); }); socket.on("error", () => process.exit(1)); setTimeout(() => process.exit(1), 1000);'; then
+  if otlp_ready; then
     break
   fi
 
@@ -39,7 +45,7 @@ for _ in {1..60}; do
   sleep 1
 done
 
-if ! node -e 'const net = require("node:net"); const socket = net.connect({ host: "127.0.0.1", port: 4318 }); socket.on("connect", () => { socket.end(); process.exit(0); }); socket.on("error", () => process.exit(1)); setTimeout(() => process.exit(1), 1000);'; then
+if ! otlp_ready; then
   echo "Timed out waiting for Datadog OTLP HTTP endpoint on 127.0.0.1:4318"
   cleanup 1
 fi
