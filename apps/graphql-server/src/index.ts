@@ -47,6 +47,7 @@ await server.start();
 
 const app = express();
 const PORT = +(process.env.PORT || "4000");
+const HOST = "0.0.0.0";
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -74,6 +75,6 @@ app.use((req, res, next) => {
 
 app.post("/graphql", cors(), express.json(), expressMiddleware(server));
 
-app.listen(PORT, () => {
+app.listen(PORT, HOST, () => {
   logger.info("GraphQL server listening", { port: PORT });
 });

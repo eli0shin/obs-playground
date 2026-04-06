@@ -14,7 +14,8 @@ import errorRoutes from "./routes/error";
 import slowRoutes from "./routes/slow";
 
 const app = express();
-const PORT = process.env.PORT ?? 3001;
+const PORT = +(process.env.PORT ?? 3001);
+const HOST = "0.0.0.0";
 
 app.use(express.json());
 app.use(requestLogger);
@@ -34,6 +35,6 @@ app.use(slowRoutes);
 // Error handling middleware - must be last
 app.use(errorHandler);
 
-app.listen(PORT, () => {
+app.listen(PORT, HOST, () => {
   logger.info("Express server listening", { port: PORT });
 });
