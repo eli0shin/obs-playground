@@ -1,10 +1,13 @@
 .turbo
+.terraform/
 node_modules
 dist
 certs/
 .env
 .env.local
 *.tsbuildinfo
+*.tfstate
+*.tfstate.*
 datadog.yaml
 test-results/
 .tanstack/

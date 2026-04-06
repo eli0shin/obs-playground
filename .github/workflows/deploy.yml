@@ -11,6 +11,11 @@ permissions:
   contents: read
   packages: write
 
+env:
+  TF_CLOUD_ORGANIZATION: ${{ vars.TF_CLOUD_ORGANIZATION }}
+  TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
+  TF_WORKSPACE_INFRA: ${{ vars.TF_WORKSPACE_INFRA }}
+
 jobs:
   deploy:
     if: |
@@ -63,9 +68,34 @@ jobs:
             --build-arg VITE_DATADOG_APP_ID .
           docker push "$IMAGE_PREFIX/tanstack:$IMAGE_TAG"
 
+      - name: Read deploy host from HCP Terraform
+        uses: hashicorp/tfc-workflows-github/actions/workspace-output@v1.3.2
+        id: infra-outputs
+        with:
+          workspace: ${{ env.TF_WORKSPACE_INFRA }}
+
+      - name: Capture deploy connection settings
+        env:
+          INFRA_OUTPUTS_JSON: ${{ steps.infra-outputs.outputs.outputs }}
+        run: |
+          DEPLOY_HOST=$(jq -r '.[] | select(.attributes.name == "instance_main_ip") | .attributes.value' <<<"$INFRA_OUTPUTS_JSON")
+          DEPLOY_USER=$(jq -r '.[] | select(.attributes.name == "deploy_user") | .attributes.value' <<<"$INFRA_OUTPUTS_JSON")
+
+          if [ -z "$DEPLOY_HOST" ] || [ "$DEPLOY_HOST" = "null" ]; then
+            echo "Missing instance_main_ip output from HCP Terraform workspace $TF_WORKSPACE_INFRA" >&2
+            exit 1
+          fi
+
+          if [ -z "$DEPLOY_USER" ] || [ "$DEPLOY_USER" = "null" ]; then
+            echo "Missing deploy_user output from HCP Terraform workspace $TF_WORKSPACE_INFRA" >&2
+            exit 1
+          fi
+
+          echo "DEPLOY_HOST=$DEPLOY_HOST" >> "$GITHUB_ENV"
+          echo "DEPLOY_USER=$DEPLOY_USER" >> "$GITHUB_ENV"
+
       - name: Configure SSH
         env:
-          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
           DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
         run: |
           install -m 700 -d ~/.ssh
@@ -74,16 +104,11 @@ jobs:
           ssh-keyscan -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts
 
       - name: Sync deployment artifacts to VM
-        env:
-          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
         run: |
           rsync -az --delete deploy scripts "$DEPLOY_USER@$DEPLOY_HOST:/srv/obs/repo/"
 
       - name: Deploy main stack
         env:
-          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
           DEPLOY_BASE_DOMAIN: ${{ secrets.DEPLOY_BASE_DOMAIN }}
           ACME_EMAIL: ${{ secrets.ACME_EMAIL }}
           DD_API_KEY: ${{ secrets.DD_API_KEY }}

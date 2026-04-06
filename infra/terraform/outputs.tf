@@ -8,6 +8,11 @@ output "instance_id" {
   value       = vultr_instance.preview_host.id
 }
 
+output "deploy_user" {
+  description = "Linux deployment user created by cloud-init."
+  value       = var.deploy_user
+}
+
 output "managed_domain" {
   description = "Managed DNS domain, if DNS resources are enabled."
   value       = local.dns_enabled ? vultr_dns_domain.preview_host[0].domain : null

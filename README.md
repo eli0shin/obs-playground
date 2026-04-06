@@ -38,10 +38,69 @@ The deployment assets live in:
 - `deploy/router/Caddyfile.edge`
 - `deploy/router/Caddyfile.stack`
 - `infra/terraform/`
+- `infra/terraform/README.md`
 - `infra/cloud-init/user-data.yaml`
 - `scripts/deploy-stack.sh`
 - `scripts/deploy-preview.sh`
 - `scripts/destroy-preview.sh`
+
+## HCP Terraform
+
+Infrastructure is now integrated with HCP Terraform through GitHub Actions.
+
+- `terraform-plan.yml` creates speculative HCP Terraform runs for PRs that change `infra/**`
+- `terraform-apply.yml` applies infrastructure changes on `main` when `infra/**` changes
+- `deploy.yml` and `preview.yml` read `instance_main_ip` and `deploy_user` from the HCP Terraform workspace outputs before SSH deployment
+
+Set up the HCP Terraform workspace like this:
+
+1. Create an `API-driven` workspace.
+2. Set the working directory to `terraform`.
+3. Use the repository's `infra` directory as the uploaded configuration root.
+4. Keep execution mode as remote unless you have a private-runner requirement.
+
+Required GitHub repository configuration:
+
+- Repository variable: `TF_CLOUD_ORGANIZATION`
+- Repository variable: `TF_WORKSPACE_INFRA`
+- Repository secret: `TF_API_TOKEN`
+
+Required HCP Terraform workspace variables:
+
+- Environment variable: `VULTR_API_KEY`
+- Terraform variable: `instance_region`
+- Terraform variable: `deploy_authorized_key`
+
+For the exact HCP Terraform and Vultr bootstrap checklist, see `infra/terraform/README.md`.
+
+Common optional HCP Terraform workspace variables:
+
+- Terraform variable: `domain_name`
+- Terraform variable: `instance_plan`
+- Terraform variable: `enable_dnssec`
+- Terraform variable: `enable_instance_backups`
+- Terraform variable: `deploy_user`
+
+App deployment workflows still require GitHub secrets for runtime and deploy configuration:
+
+- `DEPLOY_SSH_KEY`
+- `DEPLOY_BASE_DOMAIN`
+- `ACME_EMAIL`
+- `DD_API_KEY`
+- `DD_SITE`
+- `HONEYCOMB_ENDPOINT`
+- `HONEYCOMB_API_KEY`
+- `GRAFANA_OTLP_ENDPOINT`
+- `GRAFANA_OTLP_AUTH`
+- `SENTRY_OTLP_ENDPOINT`
+- `SENTRY_AUTH`
+- `SENTRY_AUTH_TOKEN`
+- `NEXT_PUBLIC_SENTRY_DSN`
+- `NEXT_PUBLIC_STATSIG_CLIENT_KEY`
+- `NEXT_PUBLIC_DATADOG_CLIENT_TOKEN`
+- `NEXT_PUBLIC_DATADOG_APP_ID`
+- `VITE_DATADOG_CLIENT_TOKEN`
+- `VITE_DATADOG_APP_ID`
 
 ## Prerequisites
 

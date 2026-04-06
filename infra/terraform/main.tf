@@ -1,5 +1,5 @@
 locals {
-  dns_enabled = trim(var.domain_name) != ""
+  dns_enabled = trimspace(var.domain_name) != ""
 }
 
 resource "vultr_firewall_group" "preview_host" {
