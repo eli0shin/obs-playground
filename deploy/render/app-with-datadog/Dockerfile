@@ -24,19 +24,19 @@ FROM datadog/agent:7
 
 WORKDIR /app
 
+RUN mkdir -p /opt/node/bin
+
 ENV DD_AUTOCONFIG_FROM_ENVIRONMENT=false
 ENV DD_APM_ENABLED=true
-ENV DD_APM_NON_LOCAL_TRAFFIC=true
-ENV DD_DOGSTATSD_NON_LOCAL_TRAFFIC=true
 ENV DD_PROCESS_AGENT_ENABLED=true
-ENV DD_OTLP_CONFIG_RECEIVER_PROTOCOLS_HTTP_ENDPOINT=0.0.0.0:4318
+ENV DD_OTLP_CONFIG_RECEIVER_PROTOCOLS_HTTP_ENDPOINT=127.0.0.1:4318
 ENV DD_LOGS_ENABLED=true
 ENV DD_OTLP_CONFIG_LOGS_ENABLED=true
 ENV DATADOG_OTLP_ENDPOINT=http://127.0.0.1:4318
 ENV HOST_PROC=/proc
-ENV PATH=/app/node_modules/.bin:/opt/datadog-agent/bin/agent/:/opt/datadog-agent/embedded/bin/:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+ENV PATH=/app/node_modules/.bin:/opt/node/bin:/opt/datadog-agent/bin/agent/:/opt/datadog-agent/embedded/bin/:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
-COPY --from=builder /usr/local/ /usr/local/
+COPY --from=builder /usr/local/bin/node /opt/node/bin/node
 COPY --from=builder /app /app
 
 RUN chmod +x \

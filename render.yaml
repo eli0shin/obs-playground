@@ -159,7 +159,7 @@ services:
       - key: CUSTOM_SERVER
         value: "true"
       - key: APP_START_COMMAND
-        value: node apps/nextjs-app/server.ts
+        value: tsx apps/nextjs-app/server.ts
       - key: DD_API_KEY
         sync: false
       - key: DD_SITE

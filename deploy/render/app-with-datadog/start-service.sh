@@ -10,14 +10,26 @@ otlp_ready() {
 
 cleanup() {
   local exit_code=${1:-0}
+  local deadline=$(( $(date +%s) + 10 ))
 
-  if [[ -n "$app_pid" ]] && kill -0 "$app_pid" 2>/dev/null; then
-    kill "$app_pid" 2>/dev/null || true
-  fi
+  for pid in "$app_pid" "$agent_pid"; do
+    if [[ -n "$pid" ]] && kill -0 "$pid" 2>/dev/null; then
+      kill "$pid" 2>/dev/null || true
+    fi
+  done
 
-  if [[ -n "$agent_pid" ]] && kill -0 "$agent_pid" 2>/dev/null; then
-    kill "$agent_pid" 2>/dev/null || true
-  fi
+  for pid in "$app_pid" "$agent_pid"; do
+    [[ -z "$pid" ]] && continue
+
+    while kill -0 "$pid" 2>/dev/null; do
+      if (( $(date +%s) >= deadline )); then
+        kill -9 "$pid" 2>/dev/null || true
+        break
+      fi
+
+      sleep 0.2
+    done
+  done
 
   wait "$app_pid" 2>/dev/null || true
   wait "$agent_pid" 2>/dev/null || true
