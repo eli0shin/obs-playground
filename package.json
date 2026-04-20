@@ -31,11 +31,12 @@
   "author": "elimelech.oshinsky@gmail.com",
   "license": "ISC",
   "packageManager": "npm@11.5.1",
+  "engines": {
+    "node": ">=24.0.0"
+  },
   "devDependencies": {
     "@types/express": "^5.0.4",
     "concurrently": "^9.2.1",
-    "drizzle-kit": "^1.0.0-beta.22",
-    "drizzle-orm": "^1.0.0-beta.22",
     "eslint-for-ai": "^1.0.12",
     "express": "^5.1.0",
     "http-proxy-middleware": "^3.0.5",

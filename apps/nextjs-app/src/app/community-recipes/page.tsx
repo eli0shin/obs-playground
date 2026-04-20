@@ -1,31 +1,11 @@
 import Link from "next/link";
 import { z } from "zod";
 import { getExpressUrl } from "@obs-playground/env";
-
-const communityRecipeSchema = z.object({
-  id: z.string(),
-  title: z.string(),
-  description: z.string(),
-  prepTime: z.number(),
-  cookTime: z.number(),
-  difficulty: z.string(),
-  servings: z.number(),
-  categoryId: z.string(),
-  createdAt: z.string(),
-  updatedAt: z.string(),
-  ingredients: z.array(
-    z.object({
-      ingredientId: z.string(),
-      quantity: z.number(),
-    }),
-  ),
-});
+import { communityRecipeSchema, type CommunityRecipe } from "./schema";
 
 const listResponseSchema = z.object({
   recipes: z.array(communityRecipeSchema),
 });
-
-type CommunityRecipe = z.infer<typeof communityRecipeSchema>;
 
 async function getCommunityRecipes(): Promise<CommunityRecipe[]> {
   const response = await fetch(`${getExpressUrl()}/community-recipes`, {

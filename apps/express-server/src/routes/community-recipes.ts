@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { Router, type Request, type Response } from "express";
+import { trace } from "@opentelemetry/api";
 import { eq, inArray } from "drizzle-orm";
 import { db } from "../db/client";
 import {
@@ -32,6 +33,8 @@ function toResponse(
 }
 
 router.get("/community-recipes", (_req: Request, res: Response) => {
+  const activeSpan = trace.getActiveSpan();
+
   const recipes = db
     .select()
     .from(communityRecipes)
@@ -48,13 +51,24 @@ router.get("/community-recipes", (_req: Request, res: Response) => {
           .where(inArray(communityRecipeIngredients.recipeId, recipeIds))
           .all();
 
+  activeSpan?.setAttributes({
+    "community_recipe.count": recipes.length,
+    "community_recipe.ingredient_count": ingredients.length,
+  });
+
   res.json({
     recipes: recipes.map((r) => toResponse(r, ingredients)),
   });
 });
 
 router.get("/community-recipes/:id", (req: Request, res: Response) => {
+  const activeSpan = trace.getActiveSpan();
   const id = String(req.params.id);
+
+  activeSpan?.setAttributes({
+    "community_recipe.id": id,
+    "community_recipe.action": "get",
+  });
 
   const recipe = db
     .select()
@@ -63,6 +77,7 @@ router.get("/community-recipes/:id", (req: Request, res: Response) => {
     .get();
 
   if (!recipe) {
+    activeSpan?.setAttributes({ "community_recipe.found": false });
     return res.status(404).json({ error: "Recipe not found" });
   }
 
@@ -72,12 +87,20 @@ router.get("/community-recipes/:id", (req: Request, res: Response) => {
     .where(eq(communityRecipeIngredients.recipeId, id))
     .all();
 
+  activeSpan?.setAttributes({
+    "community_recipe.title": recipe.title,
+    "community_recipe.category_id": recipe.categoryId,
+    "community_recipe.ingredient_count": ingredients.length,
+  });
+
   res.json(toResponse(recipe, ingredients));
 });
 
 router.post("/community-recipes", (req: Request, res: Response) => {
+  const activeSpan = trace.getActiveSpan();
   const parsed = communityRecipeCreateSchema.safeParse(req.body);
   if (!parsed.success) {
+    activeSpan?.recordException(parsed.error);
     return res.status(400).json({ error: parsed.error.issues });
   }
 
@@ -110,25 +133,37 @@ router.post("/community-recipes", (req: Request, res: Response) => {
     }
   });
 
-  res.status(201).json(
-    toResponse(
-      recipeRow,
-      input.ingredients.map((ing, idx) => ({
-        id: idx,
-        recipeId: id,
-        ingredientId: ing.ingredientId,
-        quantity: ing.quantity,
-      })),
-    ),
-  );
+  const createdIngredients = db
+    .select()
+    .from(communityRecipeIngredients)
+    .where(eq(communityRecipeIngredients.recipeId, id))
+    .all();
+
+  activeSpan?.setAttributes({
+    "community_recipe.id": id,
+    "community_recipe.title": recipeRow.title,
+    "community_recipe.category_id": recipeRow.categoryId,
+    "community_recipe.difficulty": recipeRow.difficulty,
+    "community_recipe.servings": recipeRow.servings,
+    "community_recipe.ingredient_count": createdIngredients.length,
+  });
+
+  res.status(201).json(toResponse(recipeRow, createdIngredients));
 });
 
 router.put("/community-recipes/:id", (req: Request, res: Response) => {
+  const activeSpan = trace.getActiveSpan();
   const id = String(req.params.id);
   const parsed = communityRecipeUpdateSchema.safeParse(req.body);
   if (!parsed.success) {
+    activeSpan?.recordException(parsed.error);
     return res.status(400).json({ error: parsed.error.issues });
   }
+
+  activeSpan?.setAttributes({
+    "community_recipe.id": id,
+    "community_recipe.updated_fields": Object.keys(parsed.data),
+  });
 
   const existing = db
     .select()
@@ -137,6 +172,7 @@ router.put("/community-recipes/:id", (req: Request, res: Response) => {
     .get();
 
   if (!existing) {
+    activeSpan?.setAttributes({ "community_recipe.found": false });
     return res.status(404).json({ error: "Recipe not found" });
   }
 
@@ -177,18 +213,31 @@ router.put("/community-recipes/:id", (req: Request, res: Response) => {
     .where(eq(communityRecipeIngredients.recipeId, id))
     .all();
 
+  activeSpan?.setAttributes({
+    "community_recipe.ingredients_replaced": ingredients !== undefined,
+    "community_recipe.ingredient_count": refreshedIngredients.length,
+  });
+
   res.json(toResponse(updatedRecipe, refreshedIngredients));
 });
 
 router.delete("/community-recipes/:id", (req: Request, res: Response) => {
+  const activeSpan = trace.getActiveSpan();
   const id = String(req.params.id);
+
+  activeSpan?.setAttributes({
+    "community_recipe.id": id,
+    "community_recipe.action": "delete",
+  });
 
   const result = db
     .delete(communityRecipes)
     .where(eq(communityRecipes.id, id))
     .run();
 
-  if (Number(result.changes) === 0) {
+  const deleted = Number(result.changes) > 0;
+
+  if (!deleted) {
     return res.status(404).json({ error: "Recipe not found" });
   }
 

@@ -21,8 +21,7 @@ const createdRecipeSchema = z.object({
 });
 
 function parseIngredients(raw: string) {
-  const parsed = ingredientSchema.safeParse(JSON.parse(raw || "[]"));
-  return parsed.success ? parsed.data : [];
+  return ingredientSchema.parse(JSON.parse(raw || "[]"));
 }
 
 function buildRecipePayload(formData: FormData) {

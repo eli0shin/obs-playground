@@ -18,7 +18,9 @@ test.describe("Community Recipes", () => {
 
     await page.goto("/community-recipes/new");
     await page.getByLabel(/Recipe Title/i).fill(title);
-    await page.getByLabel(/Description/i).fill("Automated community-recipe test");
+    await page
+      .getByLabel(/Description/i)
+      .fill("Automated community-recipe test");
     await page.getByLabel(/Prep Time/i).fill("7");
     await page.getByLabel(/Cook Time/i).fill("14");
     await page.getByLabel(/Difficulty/i).selectOption({ label: "Medium" });

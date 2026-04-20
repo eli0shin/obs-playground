@@ -1,33 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { graphqlRequest } from "@obs-playground/graphql-client";
-import { z } from "zod";
 import { getExpressUrl } from "@obs-playground/env";
 import { updateCommunityRecipeAction } from "../../actions";
+import { communityRecipeSchema, type CommunityRecipe } from "../../schema";
 
 type Category = { id: string; name: string; slug: string };
 type Ingredient = { id: string; name: string; unit: string };
-
-const communityRecipeSchema = z.object({
-  id: z.string(),
-  title: z.string(),
-  description: z.string(),
-  prepTime: z.number(),
-  cookTime: z.number(),
-  difficulty: z.string(),
-  servings: z.number(),
-  categoryId: z.string(),
-  createdAt: z.string(),
-  updatedAt: z.string(),
-  ingredients: z.array(
-    z.object({
-      ingredientId: z.string(),
-      quantity: z.number(),
-    }),
-  ),
-});
-
-type CommunityRecipe = z.infer<typeof communityRecipeSchema>;
 
 async function getCommunityRecipe(id: string): Promise<CommunityRecipe | null> {
   const response = await fetch(`${getExpressUrl()}/community-recipes/${id}`, {

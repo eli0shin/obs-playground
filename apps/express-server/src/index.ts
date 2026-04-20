@@ -15,7 +15,12 @@ import communityRecipesRoutes from "./routes/community-recipes";
 import errorRoutes from "./routes/error";
 import slowRoutes from "./routes/slow";
 
-runMigrations();
+try {
+  runMigrations();
+} catch (err) {
+  logger.error("Migration failed", { err });
+  process.exit(1);
+}
 
 const app = express();
 const PORT = +(process.env.PORT ?? 3001);
