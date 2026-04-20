@@ -12,8 +12,10 @@ services:
         value: production
       - key: PORT
         value: 10000
+      - key: APP_WORKDIR
+        value: apps/graphql-server
       - key: APP_START_COMMAND
-        value: node apps/graphql-server/dist/index.js
+        value: npm run start
       - key: DD_API_KEY
         sync: false
       - key: DD_SITE
@@ -56,8 +58,10 @@ services:
         value: production
       - key: PORT
         value: 10000
+      - key: APP_WORKDIR
+        value: apps/express-server
       - key: APP_START_COMMAND
-        value: node apps/express-server/dist/index.js
+        value: npm run start
       - key: DD_API_KEY
         sync: false
       - key: DD_SITE
@@ -100,8 +104,10 @@ services:
         value: production
       - key: PORT
         value: 10000
+      - key: APP_WORKDIR
+        value: apps/nextjs-app
       - key: APP_START_COMMAND
-        value: next start --hostname 0.0.0.0 --port $PORT
+        value: npm run start
       - key: DD_API_KEY
         sync: false
       - key: DD_SITE
@@ -158,8 +164,10 @@ services:
         value: 10000
       - key: CUSTOM_SERVER
         value: "true"
+      - key: APP_WORKDIR
+        value: apps/nextjs-app
       - key: APP_START_COMMAND
-        value: tsx apps/nextjs-app/server.ts
+        value: npm run start:custom
       - key: DD_API_KEY
         sync: false
       - key: DD_SITE
@@ -214,8 +222,10 @@ services:
         value: production
       - key: PORT
         value: 10000
+      - key: APP_WORKDIR
+        value: apps/tanstack-start
       - key: APP_START_COMMAND
-        value: node apps/tanstack-start/.output/server/index.mjs
+        value: npm run start
       - key: DD_API_KEY
         sync: false
       - key: DD_SITE

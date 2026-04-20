@@ -37,6 +37,8 @@ ENV HOST_PROC=/proc
 ENV PATH=/app/node_modules/.bin:/opt/node/bin:/opt/datadog-agent/bin/agent/:/opt/datadog-agent/embedded/bin/:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
 COPY --from=builder /usr/local/bin/node /opt/node/bin/node
+COPY --from=builder /usr/local/lib/node_modules/npm /opt/node/lib/node_modules/npm
+RUN ln -s /opt/node/lib/node_modules/npm/bin/npm-cli.js /opt/node/bin/npm
 COPY --from=builder /app /app
 
 RUN chmod +x \
