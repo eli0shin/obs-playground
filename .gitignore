@@ -9,3 +9,6 @@ datadog.yaml
 test-results/
 .tanstack/
 .output/
+
+# Local SQLite database files (dev)
+apps/express-server/data/

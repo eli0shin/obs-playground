@@ -112,7 +112,7 @@ export default async function Home() {
           <h2 className="mb-6 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
             Plan Your Meals
           </h2>
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <Link
               href="/shopping-list"
               className="rounded-lg border border-zinc-200 bg-white p-6 transition-colors hover:border-zinc-300 dark:border-zinc-700 dark:bg-zinc-800 dark:hover:border-zinc-600"
@@ -133,6 +133,17 @@ export default async function Home() {
               </h3>
               <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
                 Plan your weekly meals and estimate costs
+              </p>
+            </Link>
+            <Link
+              href="/community-recipes"
+              className="rounded-lg border border-emerald-200 bg-emerald-50 p-6 transition-colors hover:border-emerald-300 dark:border-emerald-800 dark:bg-emerald-950 dark:hover:border-emerald-700"
+            >
+              <h3 className="text-lg font-medium text-emerald-900 dark:text-emerald-100">
+                Community Recipes
+              </h3>
+              <p className="mt-2 text-sm text-emerald-800 dark:text-emerald-200">
+                Create, edit, and delete recipes (SQLite via Express)
               </p>
             </Link>
           </div>

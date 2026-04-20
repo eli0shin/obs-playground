@@ -1,12 +1,14 @@
-import { test } from "@playwright/test";
+import { test, expect } from "@playwright/test";
 
 test.describe("Form Pages", () => {
   test("new recipe form - fill and submit", async ({ page }) => {
+    const title = "Test Recipe from Playwright";
+
     await page.goto("/recipes/new");
     await page.waitForLoadState("networkidle");
 
     // Fill form fields
-    await page.fill('input[name="title"]', "Test Recipe from Playwright");
+    await page.fill('input[name="title"]', title);
     await page.fill(
       'textarea[name="description"]',
       "Automated test recipe description",
@@ -20,8 +22,11 @@ test.describe("Form Pages", () => {
     // Submit the form
     await page.getByRole("button", { name: /Create Recipe/i }).click();
 
-    // Wait for navigation or response
-    await page.waitForTimeout(1000);
+    // Server Action creates the recipe, then redirects to /recipes/:id.
+    // Detail page renders the recipe title as its <h1>.
+    await expect(
+      page.getByRole("heading", { level: 1, name: title }),
+    ).toBeVisible();
   });
 
   test("broken create form - submit", async ({ page }) => {
