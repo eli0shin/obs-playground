@@ -2,7 +2,7 @@ services:
   - type: web
     name: obs-graphql
     runtime: docker
-    plan: free
+    plan: starter
     dockerfilePath: ./deploy/render/app-with-datadog/Dockerfile
     dockerContext: .
     previews:
@@ -48,7 +48,7 @@ services:
   - type: web
     name: obs-express
     runtime: docker
-    plan: free
+    plan: starter
     dockerfilePath: ./deploy/render/app-with-datadog/Dockerfile
     dockerContext: .
     previews:
