@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { z } from "zod";
+import { datadogLogs } from "@datadog/browser-logs";
 
 const apiResponseSchema = z.record(z.string(), z.unknown());
 
@@ -18,10 +19,18 @@ export default function BrokenAPIPage() {
     setError(null);
     setResponse(null);
 
+    const fetchStart = Date.now();
+    const url = "/api/error/test";
     try {
-      const res = await fetch("/api/error/test");
+      const res = await fetch(url);
 
       if (!res.ok) {
+        datadogLogs.logger.warn("Client API fetch returned error status", {
+          "http.url": url,
+          "http.status_code": res.status,
+          "http.status_text": res.statusText,
+          "http.duration_ms": Date.now() - fetchStart,
+        });
         throw new Error(`HTTP ${res.status}: ${res.statusText}`);
       }
 
@@ -31,6 +40,11 @@ export default function BrokenAPIPage() {
         setResponse(result.data);
       }
     } catch (err) {
+      datadogLogs.logger.error("Client API fetch failed", {
+        "http.url": url,
+        err,
+        "http.duration_ms": Date.now() - fetchStart,
+      });
       setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
       setLoading(false);
@@ -42,8 +56,10 @@ export default function BrokenAPIPage() {
     setError(null);
     setResponse(null);
 
+    const fetchStart = Date.now();
+    const url = "/api/error/not-found";
     try {
-      const res = await fetch("/api/error/not-found");
+      const res = await fetch(url);
       const json: unknown = await res.json();
       const result = apiResponseSchema.safeParse(json);
       const data = result.success ? result.data : {};
@@ -53,11 +69,22 @@ export default function BrokenAPIPage() {
           : res.statusText;
 
       if (!res.ok) {
+        datadogLogs.logger.warn("Client API fetch returned error status", {
+          "http.url": url,
+          "http.status_code": res.status,
+          "http.status_text": res.statusText,
+          "http.duration_ms": Date.now() - fetchStart,
+        });
         setError(`HTTP ${res.status}: ${message}`);
       } else {
         setResponse(data);
       }
     } catch (err) {
+      datadogLogs.logger.error("Client API fetch failed", {
+        "http.url": url,
+        err,
+        "http.duration_ms": Date.now() - fetchStart,
+      });
       setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
       setLoading(false);
@@ -69,8 +96,10 @@ export default function BrokenAPIPage() {
     setError(null);
     setResponse(null);
 
+    const fetchStart = Date.now();
+    const url = "/api/error/validation";
     try {
-      const res = await fetch("/api/error/validation");
+      const res = await fetch(url);
       const json: unknown = await res.json();
       const result = apiResponseSchema.safeParse(json);
       const data = result.success ? result.data : {};
@@ -80,12 +109,23 @@ export default function BrokenAPIPage() {
           : res.statusText;
 
       if (!res.ok) {
+        datadogLogs.logger.warn("Client API fetch returned error status", {
+          "http.url": url,
+          "http.status_code": res.status,
+          "http.status_text": res.statusText,
+          "http.duration_ms": Date.now() - fetchStart,
+        });
         setError(`HTTP ${res.status}: ${message}`);
         setResponse(data);
       } else {
         setResponse(data);
       }
     } catch (err) {
+      datadogLogs.logger.error("Client API fetch failed", {
+        "http.url": url,
+        err,
+        "http.duration_ms": Date.now() - fetchStart,
+      });
       setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
       setLoading(false);

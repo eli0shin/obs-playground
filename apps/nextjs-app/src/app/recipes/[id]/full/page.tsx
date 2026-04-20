@@ -2,6 +2,7 @@ import Link from "next/link";
 import { graphqlRequest } from "@obs-playground/graphql-client";
 import { getExpressUrl } from "@obs-playground/env";
 import { z } from "zod";
+import { logger } from "@/otel";
 
 type Ingredient = {
   id: string;
@@ -119,6 +120,7 @@ export default async function FullRecipePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const pageStart = Date.now();
 
   // Fetch recipe first, then prices for its ingredients
   const recipe = await getRecipe(id);
@@ -127,6 +129,10 @@ export default async function FullRecipePage({
     : {};
 
   if (!recipe) {
+    logger.warn("Full recipe page recipe not found", {
+      "recipe.id": id,
+      "http.duration_ms": Date.now() - pageStart,
+    });
     return (
       <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">
         <div className="mx-auto max-w-4xl px-4 py-12">
@@ -178,6 +184,19 @@ export default async function FullRecipePage({
   );
 
   const outOfStockItems = ingredientData.filter((item) => !item.stock.inStock);
+
+  logger.info("Full recipe page fetched", {
+    "recipe.id": id,
+    "recipe.title": recipe.title,
+    "recipe.difficulty": recipe.difficulty,
+    "recipe.servings": recipe.servings,
+    "recipe.ingredient_count": recipe.ingredients.length,
+    "recipe.total_cost": totalCost,
+    "recipe.cost_per_serving": totalCost / recipe.servings,
+    "recipe.total_calories": totalNutrition.calories,
+    "recipe.out_of_stock_count": outOfStockItems.length,
+    "http.duration_ms": Date.now() - pageStart,
+  });
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">

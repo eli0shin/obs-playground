@@ -4,6 +4,41 @@ import { redirect } from "next/navigation";
 import { trace } from "@opentelemetry/api";
 import { graphqlRequest } from "@obs-playground/graphql-client";
 import { z } from "zod";
+import { logger } from "@/otel";
+
+type ServerAction<TArgs extends unknown[], TReturn> = (
+  ...args: TArgs
+) => Promise<TReturn>;
+
+function isRedirectError(err: unknown): boolean {
+  if (!err || typeof err !== "object" || !("digest" in err)) {
+    return false;
+  }
+  const digest = err.digest;
+  return typeof digest === "string" && digest.startsWith("NEXT_REDIRECT");
+}
+
+function withActionLogging<TArgs extends unknown[], TReturn>(
+  action: ServerAction<TArgs, TReturn>,
+): ServerAction<TArgs, TReturn> {
+  return async (...args) => {
+    logger.info("Server action started", {
+      "action.function_name": action.name,
+    });
+    try {
+      return await action(...args);
+    } catch (err) {
+      if (isRedirectError(err)) {
+        throw err;
+      }
+      logger.error("Server action failed", {
+        "action.function_name": action.name,
+        err,
+      });
+      throw err;
+    }
+  };
+}
 
 function getFormString(formData: FormData, key: string): string {
   const value = formData.get(key);
@@ -17,7 +52,7 @@ const ingredientSchema = z.array(
   }),
 );
 
-export async function createRecipeAction(formData: FormData) {
+async function createRecipe(formData: FormData) {
   const activeSpan = trace.getActiveSpan();
 
   const title = getFormString(formData, "title");
@@ -75,10 +110,19 @@ export async function createRecipeAction(formData: FormData) {
     "recipe.id": createdRecipe.id,
   });
 
+  logger.info("Recipe creation submitted via server action", {
+    "recipe.id": createdRecipe.id,
+    "recipe.title": createdRecipe.title,
+    "recipe.difficulty": difficulty,
+    "recipe.servings": servings,
+    "recipe.ingredient_count": ingredients.length,
+    "recipe.ingredients_parse_success": ingredientsResult.success,
+  });
+
   redirect(`/recipes/${createdRecipe.id}`);
 }
 
-export async function updateRecipeAction(id: string, formData: FormData) {
+async function updateRecipe(id: string, formData: FormData) {
   const activeSpan = trace.getActiveSpan();
 
   activeSpan?.setAttributes({
@@ -126,10 +170,17 @@ export async function updateRecipeAction(id: string, formData: FormData) {
     },
   );
 
+  logger.info("Recipe update submitted via server action", {
+    "recipe.id": id,
+    "recipe.title": title,
+    "recipe.difficulty": difficulty,
+    "recipe.servings": servings,
+  });
+
   redirect(`/recipes/${id}`);
 }
 
-export async function deleteRecipeAction(id: string) {
+async function deleteRecipe(id: string) {
   const activeSpan = trace.getActiveSpan();
 
   activeSpan?.setAttributes({
@@ -153,6 +204,11 @@ export async function deleteRecipeAction(id: string) {
     "recipe.deletion_success": success,
   });
 
+  logger.info("Recipe deletion submitted via server action", {
+    "recipe.id": id,
+    "recipe.deletion_success": success,
+  });
+
   if (!success) {
     throw new Error("Failed to delete recipe");
   }
@@ -160,7 +216,7 @@ export async function deleteRecipeAction(id: string) {
   redirect("/");
 }
 
-export async function brokenCreateRecipeAction(_formData: FormData) {
+async function brokenCreateRecipe(_formData: FormData) {
   await graphqlRequest<{ errorMutation: string }>(
     `
       mutation ErrorMutation {
@@ -169,3 +225,8 @@ export async function brokenCreateRecipeAction(_formData: FormData) {
     `,
   );
 }
+
+export const createRecipeAction = withActionLogging(createRecipe);
+export const updateRecipeAction = withActionLogging(updateRecipe);
+export const deleteRecipeAction = withActionLogging(deleteRecipe);
+export const brokenCreateRecipeAction = withActionLogging(brokenCreateRecipe);

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getExpressUrl } from "@obs-playground/env";
 import { z } from "zod";
+import { logger } from "@/otel";
 
 const recipeCostSchema = z.object({
   recipeId: z.string(),
@@ -23,7 +24,9 @@ type MealPlanEstimate = z.infer<typeof mealPlanEstimateSchema>;
 
 async function getMealPlanEstimate(
   recipeIds: string[],
+  isDefault: boolean,
 ): Promise<MealPlanEstimate> {
+  const fetchStart = Date.now();
   const response = await fetch(
     `${getExpressUrl()}/meal-plan/estimate?recipeIds=${recipeIds.join(",")}`,
     {
@@ -47,6 +50,17 @@ async function getMealPlanEstimate(
     throw new Error("Invalid response format");
   }
 
+  logger.info("Meal planner page fetched", {
+    "meal_plan.recipe_ids": recipeIds,
+    "meal_plan.recipe_count": recipeIds.length,
+    "meal_plan.using_default_ids": isDefault,
+    "meal_plan.meal_count": result.data.mealCount,
+    "meal_plan.total_weekly_cost": result.data.totalWeeklyCost,
+    "meal_plan.average_meal_cost": result.data.averageMealCost,
+    "http.status_code": response.status,
+    "http.duration_ms": Date.now() - fetchStart,
+  });
+
   return result.data;
 }
 
@@ -66,10 +80,11 @@ export default async function MealPlannerPage({
   searchParams: Promise<{ ids?: string }>;
 }) {
   const params = await searchParams;
+  const hasCustomIds = Boolean(params.ids);
   const ids = params.ids
     ? params.ids.split(",")
     : ["1", "2", "3", "1", "2", "3", "1"];
-  const mealPlan = await getMealPlanEstimate(ids);
+  const mealPlan = await getMealPlanEstimate(ids, !hasCustomIds);
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">

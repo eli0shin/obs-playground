@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { graphqlRequest } from "@obs-playground/graphql-client";
 import { createRecipeAction } from "../actions";
+import { LoggedForm } from "@/components/logged-form";
 
 type Category = {
   id: string;
@@ -56,7 +57,15 @@ export default async function NewRecipePage() {
             </p>
           </header>
 
-          <form action={createRecipeAction} className="space-y-6">
+          <LoggedForm
+            action={createRecipeAction}
+            logMessage="Create recipe form submitted"
+            logAttributes={{
+              "form.category_count": categories.length,
+              "form.ingredient_count": ingredients.length,
+            }}
+            className="space-y-6"
+          >
             <div>
               <label
                 htmlFor="title"
@@ -240,7 +249,7 @@ export default async function NewRecipePage() {
                 Cancel
               </Link>
             </div>
-          </form>
+          </LoggedForm>
 
           <div className="mt-8 rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950">
             <h3 className="text-sm font-medium text-blue-900 dark:text-blue-100">

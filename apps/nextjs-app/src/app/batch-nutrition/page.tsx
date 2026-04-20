@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getExpressUrl } from "@obs-playground/env";
 import { z } from "zod";
+import { logger } from "@/otel";
 
 const recipeNutritionSchema = z.object({
   recipeId: z.string(),
@@ -24,7 +25,9 @@ type BatchNutritionResponse = z.infer<typeof batchNutritionResponseSchema>;
 
 async function getBatchNutrition(
   recipeIds: string[],
+  isDefault: boolean,
 ): Promise<BatchNutritionResponse> {
+  const fetchStart = Date.now();
   const response = await fetch(`${getExpressUrl()}/batch/nutrition`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -48,6 +51,15 @@ async function getBatchNutrition(
     throw new Error("Invalid response format");
   }
 
+  logger.info("Batch nutrition page fetched", {
+    "batch_nutrition.recipe_ids": recipeIds,
+    "batch_nutrition.recipe_count": recipeIds.length,
+    "batch_nutrition.using_default_ids": isDefault,
+    "batch_nutrition.recipes_analyzed": result.data.count,
+    "http.status_code": response.status,
+    "http.duration_ms": Date.now() - fetchStart,
+  });
+
   return result.data;
 }
 
@@ -57,8 +69,9 @@ export default async function BatchNutritionPage({
   searchParams: Promise<{ ids?: string }>;
 }) {
   const params = await searchParams;
+  const hasCustomIds = Boolean(params.ids);
   const ids = params.ids ? params.ids.split(",") : ["1", "2", "3"];
-  const nutritionData = await getBatchNutrition(ids);
+  const nutritionData = await getBatchNutrition(ids, !hasCustomIds);
 
   const totals = nutritionData.recipes.reduce(
     (acc, recipe) => ({

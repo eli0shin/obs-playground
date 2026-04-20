@@ -2,6 +2,7 @@ import Link from "next/link";
 import { trace } from "@opentelemetry/api";
 import { getExpressUrl } from "@obs-playground/env";
 import { z } from "zod";
+import { logger } from "@/otel";
 
 const shoppingListItemSchema = z.object({
   ingredientId: z.string(),
@@ -31,6 +32,7 @@ async function generateShoppingList(
   isDefault: boolean,
 ): Promise<ShoppingListResponse> {
   const activeSpan = trace.getActiveSpan();
+  const fetchStart = Date.now();
 
   activeSpan?.setAttributes({
     "shopping_list.recipe_ids": recipeIds.join(","),
@@ -67,6 +69,17 @@ async function generateShoppingList(
     "shopping_list.out_of_stock_count": result.data.outOfStock.length,
     "shopping_list.out_of_stock_names": result.data.outOfStock,
     "shopping_list.has_out_of_stock": result.data.outOfStock.length > 0,
+  });
+
+  logger.info("Shopping list page fetched", {
+    "shopping_list.recipe_ids": recipeIds,
+    "shopping_list.recipe_count": recipeIds.length,
+    "shopping_list.using_default_ids": isDefault,
+    "shopping_list.total_items": result.data.items.length,
+    "shopping_list.total_cost": result.data.totalCost,
+    "shopping_list.out_of_stock_count": result.data.outOfStock.length,
+    "http.status_code": response.status,
+    "http.duration_ms": Date.now() - fetchStart,
   });
 
   return result.data;

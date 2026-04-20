@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { brokenCreateRecipeAction } from "@/app/recipes/actions";
+import { LoggedForm } from "@/components/logged-form";
 
 export default function BrokenCreatePage() {
   return (
@@ -29,7 +30,14 @@ export default function BrokenCreatePage() {
             </p>
           </header>
 
-          <form action={brokenCreateRecipeAction} className="space-y-6">
+          <LoggedForm
+            action={brokenCreateRecipeAction}
+            logMessage="Broken-create form submitted"
+            logAttributes={{
+              "form.intentional_failure": true,
+            }}
+            className="space-y-6"
+          >
             <div>
               <label
                 htmlFor="title"
@@ -78,7 +86,7 @@ export default function BrokenCreatePage() {
                 Cancel
               </Link>
             </div>
-          </form>
+          </LoggedForm>
 
           <div className="mt-8 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-950">
             <h3 className="text-sm font-medium text-red-900 dark:text-red-100">
