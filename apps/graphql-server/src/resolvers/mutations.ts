@@ -1,5 +1,6 @@
 import { trace } from "@opentelemetry/api";
-import type { Recipe, RecipeIngredient } from "../types/index.js";
+import type { Recipe } from "../types/index.js";
+import type { MutationResolvers as MutationResolverMap } from "../generated/resolvers-types.js";
 import {
   recipes,
   recipeIngredients,
@@ -9,14 +10,7 @@ import {
 } from "../data/index.js";
 
 export const Mutation = {
-  createRecipe: (
-    _: unknown,
-    {
-      input,
-    }: {
-      input: { recipe: Omit<Recipe, "id">; ingredients: RecipeIngredient[] };
-    },
-  ) => {
+  createRecipe: (_parent, { input }) => {
     const activeSpan = trace.getActiveSpan();
     const newRecipe = {
       id: String(incrementRecipeIdCounter()),
@@ -62,10 +56,7 @@ export const Mutation = {
     return newRecipe;
   },
 
-  updateRecipe: (
-    _: unknown,
-    { id, recipe }: { id: string; recipe: Omit<Recipe, "id"> },
-  ) => {
+  updateRecipe: (_parent, { id, recipe }) => {
     const activeSpan = trace.getActiveSpan();
     const index = recipes.findIndex((r) => r.id === id);
     activeSpan?.setAttributes({
@@ -89,7 +80,7 @@ export const Mutation = {
     return recipes[index];
   },
 
-  deleteRecipe: (_: unknown, { id }: { id: string }) => {
+  deleteRecipe: (_parent, { id }) => {
     const activeSpan = trace.getActiveSpan();
     const index = recipes.findIndex((r) => r.id === id);
     activeSpan?.setAttributes({
@@ -117,4 +108,4 @@ export const Mutation = {
 
     return true;
   },
-};
+} satisfies MutationResolverMap;

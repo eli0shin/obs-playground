@@ -3,6 +3,13 @@
 import { useState } from "react";
 import Link from "next/link";
 import { graphqlRequest } from "@obs-playground/graphql-client/browser";
+import {
+  ErrorMutationDocument,
+  ErrorQueryDocument,
+  MultipleErrorsQueryDocument,
+  RecipeQueryWithUnusedVariableDocument,
+  ValidationErrorMutationDocument,
+} from "@obs-playground/graphql-client/documents";
 
 export default function BrokenMutationPage() {
   const [loading, setLoading] = useState(false);
@@ -17,13 +24,7 @@ export default function BrokenMutationPage() {
     setResponse(null);
 
     try {
-      const result = await graphqlRequest<{ errorMutation: string }>(
-        `
-          mutation ErrorMutation {
-            errorMutation(input: "test")
-          }
-        `,
-      );
+      const result = await graphqlRequest(ErrorMutationDocument);
       if (result.errors && result.errors.length > 0) {
         setError(JSON.stringify(result.errors));
       }
@@ -43,29 +44,7 @@ export default function BrokenMutationPage() {
     setResponse(null);
 
     try {
-      const result = await graphqlRequest<{
-        validationErrorMutation: { id: string; title: string };
-      }>(
-        `
-          mutation ValidationError {
-            validationErrorMutation(input: {
-              recipe: {
-                title: "Short"
-                description: "Test"
-                prepTime: -5
-                cookTime: 10
-                difficulty: "Easy"
-                servings: 4
-                categoryId: "1"
-              }
-              ingredients: []
-            }) {
-              id
-              title
-            }
-          }
-        `,
-      );
+      const result = await graphqlRequest(ValidationErrorMutationDocument);
       if (result.errors && result.errors.length > 0) {
         setError(JSON.stringify(result.errors));
       }
@@ -85,13 +64,7 @@ export default function BrokenMutationPage() {
     setResponse(null);
 
     try {
-      const result = await graphqlRequest<{ errorQuery: string }>(
-        `
-          query ErrorQuery {
-            errorQuery
-          }
-        `,
-      );
+      const result = await graphqlRequest(ErrorQueryDocument);
       if (result.errors && result.errors.length > 0) {
         setError(JSON.stringify(result.errors));
       }
@@ -111,17 +84,8 @@ export default function BrokenMutationPage() {
     setResponse(null);
 
     try {
-      const result = await graphqlRequest<{
-        recipes: { id: string; title: string }[];
-      }>(
-        `
-          query RecipeQuery($unusedVariable: ID!) {
-            recipes {
-              id
-              title
-            }
-          }
-        `,
+      const result = await graphqlRequest(
+        RecipeQueryWithUnusedVariableDocument,
         {
           unusedVariable: "recipe-1",
         },
@@ -145,22 +109,7 @@ export default function BrokenMutationPage() {
     setResponse(null);
 
     try {
-      const result = await graphqlRequest<{
-        recipes: { id: string; title: string }[];
-        errorQuery: string;
-        secondErrorQuery: string;
-      }>(
-        `
-          query MultipleErrorsQuery {
-            recipes {
-              id
-              title
-            }
-            errorQuery
-            secondErrorQuery
-          }
-        `,
-      );
+      const result = await graphqlRequest(MultipleErrorsQueryDocument);
       if (result.errors && result.errors.length > 0) {
         setError(JSON.stringify(result.errors));
       }
@@ -204,7 +153,7 @@ export default function BrokenMutationPage() {
               type="button"
               onClick={handleErrorMutation}
               disabled={loading}
-              className="w-full rounded-md bg-red-600 px-4 py-3 text-left font-medium text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-red-700 dark:hover:bg-red-800"
+              className="w-full rounded-md bg-red-600 px-4 py-3 text-left font-medium text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-red-700 dark:hover:bg-red-800"
             >
               <span className="block text-sm">Error Mutation</span>
               <span className="block text-xs opacity-75">
@@ -216,7 +165,7 @@ export default function BrokenMutationPage() {
               type="button"
               onClick={handleValidationMutation}
               disabled={loading}
-              className="w-full rounded-md bg-orange-600 px-4 py-3 text-left font-medium text-white hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-orange-700 dark:hover:bg-orange-800"
+              className="w-full rounded-md bg-orange-600 px-4 py-3 text-left font-medium text-white hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-orange-700 dark:hover:bg-orange-800"
             >
               <span className="block text-sm">Validation Error Mutation</span>
               <span className="block text-xs opacity-75">
@@ -228,7 +177,7 @@ export default function BrokenMutationPage() {
               type="button"
               onClick={handleErrorQuery}
               disabled={loading}
-              className="w-full rounded-md bg-purple-600 px-4 py-3 text-left font-medium text-white hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-purple-700 dark:hover:bg-purple-800"
+              className="w-full rounded-md bg-purple-600 px-4 py-3 text-left font-medium text-white hover:bg-purple-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-purple-700 dark:hover:bg-purple-800"
             >
               <span className="block text-sm">Error Query</span>
               <span className="block text-xs opacity-75">
@@ -240,7 +189,7 @@ export default function BrokenMutationPage() {
               type="button"
               onClick={handleSchemaValidationError}
               disabled={loading}
-              className="w-full rounded-md bg-yellow-600 px-4 py-3 text-left font-medium text-white hover:bg-yellow-700 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-yellow-700 dark:hover:bg-yellow-800"
+              className="w-full rounded-md bg-yellow-600 px-4 py-3 text-left font-medium text-white hover:bg-yellow-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-yellow-700 dark:hover:bg-yellow-800"
             >
               <span className="block text-sm">Schema Validation Error</span>
               <span className="block text-xs opacity-75">
@@ -252,7 +201,7 @@ export default function BrokenMutationPage() {
               type="button"
               onClick={handleMultipleErrorsQuery}
               disabled={loading}
-              className="w-full rounded-md bg-teal-600 px-4 py-3 text-left font-medium text-white hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-teal-700 dark:hover:bg-teal-800"
+              className="w-full rounded-md bg-teal-600 px-4 py-3 text-left font-medium text-white hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-teal-700 dark:hover:bg-teal-800"
             >
               <span className="block text-sm">Multiple Errors Query</span>
               <span className="block text-xs opacity-75">

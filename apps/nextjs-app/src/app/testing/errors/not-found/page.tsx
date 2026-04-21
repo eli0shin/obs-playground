@@ -1,20 +1,11 @@
 import Link from "next/link";
 import { graphqlRequest } from "@obs-playground/graphql-client";
+import { NotFoundRecipeDocument } from "@obs-playground/graphql-client/documents";
 
 export const dynamic = "force-dynamic";
 
 async function fetchNonExistentRecipe() {
-  const data = await graphqlRequest<{
-    notFoundRecipe: { id: string; title: string; description: string } | null;
-  }>(`
-    query NotFoundRecipe {
-      notFoundRecipe {
-        id
-        title
-        description
-      }
-    }
-  `);
+  const data = await graphqlRequest(NotFoundRecipeDocument);
 
   if (!data.notFoundRecipe) {
     throw new Error("Recipe not found - GraphQL returned null");

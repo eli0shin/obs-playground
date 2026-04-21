@@ -1,55 +1,14 @@
 import Link from "next/link";
 import { graphqlRequest } from "@obs-playground/graphql-client";
-
-type IngredientCost = {
-  ingredientId: string;
-  name: string;
-  quantity: number;
-  unit: string;
-  pricePerUnit: number;
-  totalCost: number;
-};
-
-type RecipeWithCost = {
-  id: string;
-  title: string;
-  description: string;
-  difficulty: string;
-  servings: number;
-  ingredientCosts: IngredientCost[];
-  totalCost: number;
-};
+import { RecipeWithCostDetailDocument } from "@obs-playground/graphql-client/documents";
 
 async function getRecipesWithCost(ids: string[]) {
-  const promises = ids.map(async (id) => {
-    const data = await graphqlRequest<{ recipeWithCost: RecipeWithCost }>(
-      `
-        query GetRecipeWithCost($id: ID!) {
-          recipeWithCost(id: $id) {
-            id
-            title
-            description
-            difficulty
-            servings
-            ingredientCosts {
-              ingredientId
-              name
-              quantity
-              unit
-              pricePerUnit
-              totalCost
-            }
-            totalCost
-          }
-        }
-      `,
-      { id },
-    );
-
-    return data.recipeWithCost;
-  });
-
-  return Promise.all(promises);
+  return Promise.all(
+    ids.map(async (id) => {
+      const data = await graphqlRequest(RecipeWithCostDetailDocument, { id });
+      return data.recipeWithCost;
+    }),
+  );
 }
 
 export default async function CompareRecipesPage({
@@ -60,6 +19,10 @@ export default async function CompareRecipesPage({
   const params = await searchParams;
   const ids = params.ids ? params.ids.split(",") : ["1", "2"];
   const recipes = await getRecipesWithCost(ids);
+  const availableRecipes = recipes.filter(
+    (recipe): recipe is NonNullable<(typeof recipes)[number]> =>
+      recipe !== null,
+  );
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">
@@ -91,7 +54,7 @@ export default async function CompareRecipesPage({
         </header>
 
         <div className="grid gap-6 lg:grid-cols-2">
-          {recipes.filter(Boolean).map((recipe) => (
+          {availableRecipes.map((recipe) => (
             <article
               key={recipe.id}
               className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-800"

@@ -1,3 +1,4 @@
+import type { Resolvers } from "../generated/resolvers-types.js";
 import { Query } from "./queries.js";
 import { Mutation } from "./mutations.js";
 import { Recipe } from "./fields.js";
@@ -13,4 +14,4 @@ export const resolvers = {
     ...ErrorMutation,
   },
   Recipe,
-};
+} satisfies Resolvers;

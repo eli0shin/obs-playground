@@ -1,6 +1,14 @@
 import { trace, SpanStatusCode } from "@opentelemetry/api";
+import type {
+  ResultOf,
+  TypedDocumentNode,
+  VariablesOf,
+} from "@graphql-typed-document-node/core";
 import { getGraphqlUrl } from "@obs-playground/env";
+import { print } from "graphql";
 import { z } from "zod";
+
+export type * from "./generated/graphql.js";
 
 export type GraphQLResponse<T> = {
   data?: T;
@@ -18,22 +26,34 @@ const graphqlResponseSchema = z.object({
     .optional(),
 });
 
-/**
- * Minimal GraphQL client that handles errors and OTEL instrumentation.
- *
- * @param query - GraphQL query or mutation string
- * @param variables - Optional variables object
- * @returns Promise resolving to typed data
- * @throws Error on HTTP failure, GraphQL errors, or missing data
- *
- * Automatically records errors in the active OpenTelemetry span.
- */
-export async function graphqlRequest<T>(
+function getQueryText(document: TypedDocumentNode<unknown, unknown> | string) {
+  return typeof document === "string" ? document : print(document);
+}
+
+export function graphqlRequest<
+  TDocument extends TypedDocumentNode<unknown, unknown>,
+>(
+  document: TDocument,
+  variables?: VariablesOf<TDocument>,
+): Promise<ResultOf<TDocument>>;
+export function graphqlRequest<T>(
   query: string,
   variables?: Record<string, unknown>,
+): Promise<T>;
+
+/**
+ * GraphQL client that handles errors and OTEL instrumentation.
+ *
+ * Prefer passing generated typed documents from
+ * @obs-playground/graphql-client/documents.
+ */
+export async function graphqlRequest<T>(
+  document: TypedDocumentNode<unknown, unknown> | string,
+  variables?: unknown,
 ): Promise<T> {
   const activeSpan = trace.getActiveSpan();
   const graphqlUrl = getGraphqlUrl();
+  const query = getQueryText(document);
 
   try {
     const response = await fetch(graphqlUrl, {

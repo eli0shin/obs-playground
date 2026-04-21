@@ -1,53 +1,9 @@
 import Link from "next/link";
 import { graphqlRequest } from "@obs-playground/graphql-client";
+import { RecipeWithCostDetailDocument } from "@obs-playground/graphql-client/documents";
 
-type IngredientCost = {
-  ingredientId: string;
-  name: string;
-  quantity: number;
-  unit: string;
-  pricePerUnit: number;
-  totalCost: number;
-};
-
-type RecipeWithCost = {
-  id: string;
-  title: string;
-  description: string;
-  prepTime: number;
-  cookTime: number;
-  difficulty: string;
-  servings: number;
-  ingredientCosts: IngredientCost[];
-  totalCost: number;
-};
-
-async function getRecipeWithCost(id: string): Promise<RecipeWithCost | null> {
-  const data = await graphqlRequest<{ recipeWithCost: RecipeWithCost | null }>(
-    `
-      query GetRecipeWithCost($id: ID!) {
-        recipeWithCost(id: $id) {
-          id
-          title
-          description
-          prepTime
-          cookTime
-          difficulty
-          servings
-          ingredientCosts {
-            ingredientId
-            name
-            quantity
-            unit
-            pricePerUnit
-            totalCost
-          }
-          totalCost
-        }
-      }
-    `,
-    { id },
-  );
+async function getRecipeWithCost(id: string) {
+  const data = await graphqlRequest(RecipeWithCostDetailDocument, { id });
 
   return data.recipeWithCost;
 }

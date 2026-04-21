@@ -1,50 +1,13 @@
 import Link from "next/link";
 import { graphqlRequest } from "@obs-playground/graphql-client";
-
-type Category = {
-  id: string;
-  name: string;
-  slug: string;
-};
-
-type Recipe = {
-  id: string;
-  title: string;
-  description: string;
-  prepTime: number;
-  cookTime: number;
-  difficulty: string;
-  servings: number;
-  categoryId: string;
-};
+import { CategoryRecipesListingDocument } from "@obs-playground/graphql-client/documents";
 
 async function getCategoryAndRecipes(slug: string) {
-  const data = await graphqlRequest<{
-    categories: Category[];
-    recipes: Recipe[];
-  }>(`
-    query GetCategoryRecipes {
-      categories {
-        id
-        name
-        slug
-      }
-      recipes {
-        id
-        title
-        description
-        prepTime
-        cookTime
-        difficulty
-        servings
-        categoryId
-      }
-    }
-  `);
+  const data = await graphqlRequest(CategoryRecipesListingDocument);
 
-  const category = data.categories.find((c: Category) => c.slug === slug);
+  const category = data.categories.find((c) => c.slug === slug);
   const recipes = category
-    ? data.recipes.filter((r: Recipe) => r.categoryId === category.id)
+    ? data.recipes.filter((recipe) => recipe.categoryId === category.id)
     : [];
 
   return { category, recipes };
@@ -101,7 +64,7 @@ export default async function CategoryPage({
           </p>
         ) : (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {recipes.map((recipe: Recipe) => (
+            {recipes.map((recipe) => (
               <Link
                 key={recipe.id}
                 href={`/recipes/${recipe.id}`}

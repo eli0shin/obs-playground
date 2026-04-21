@@ -2,7 +2,17 @@
 
 import { redirect } from "next/navigation";
 import { trace } from "@opentelemetry/api";
-import { graphqlRequest } from "@obs-playground/graphql-client";
+import {
+  graphqlRequest,
+  type CreateRecipeInput,
+  type RecipeInput,
+} from "@obs-playground/graphql-client";
+import {
+  CreateRecipeDocument,
+  DeleteRecipeDocument,
+  ErrorMutationDocument,
+  UpdateRecipeDocument,
+} from "@obs-playground/graphql-client/documents";
 import { z } from "zod";
 
 function getFormString(formData: FormData, key: string): string {
@@ -43,32 +53,22 @@ export async function createRecipeAction(formData: FormData) {
     "recipe.ingredient_count": ingredients.length,
   });
 
-  const { createRecipe: createdRecipe } = await graphqlRequest<{
-    createRecipe: { id: string; title: string; description: string };
-  }>(
-    `
-      mutation CreateRecipe($input: CreateRecipeInput!) {
-        createRecipe(input: $input) {
-          id
-          title
-          description
-        }
-      }
-    `,
-    {
-      input: {
-        recipe: {
-          title,
-          description,
-          prepTime,
-          cookTime,
-          difficulty,
-          servings,
-          categoryId,
-        },
-        ingredients,
-      },
-    },
+  const input = {
+    recipe: {
+      title,
+      description,
+      prepTime,
+      cookTime,
+      difficulty,
+      servings,
+      categoryId,
+    } satisfies RecipeInput,
+    ingredients,
+  } satisfies CreateRecipeInput;
+
+  const { createRecipe: createdRecipe } = await graphqlRequest(
+    CreateRecipeDocument,
+    { input },
   );
 
   activeSpan?.setAttributes({
@@ -100,31 +100,20 @@ export async function updateRecipeAction(id: string, formData: FormData) {
     "recipe.cook_time": cookTime,
   });
 
-  await graphqlRequest<{
-    updateRecipe: { id: string; title: string; description: string };
-  }>(
-    `
-      mutation UpdateRecipe($id: ID!, $recipe: RecipeInput!) {
-        updateRecipe(id: $id, recipe: $recipe) {
-          id
-          title
-          description
-        }
-      }
-    `,
-    {
-      id,
-      recipe: {
-        title,
-        description,
-        prepTime,
-        cookTime,
-        difficulty,
-        servings,
-        categoryId,
-      },
-    },
-  );
+  const recipe = {
+    title,
+    description,
+    prepTime,
+    cookTime,
+    difficulty,
+    servings,
+    categoryId,
+  } satisfies RecipeInput;
+
+  await graphqlRequest(UpdateRecipeDocument, {
+    id,
+    recipe,
+  });
 
   redirect(`/recipes/${id}`);
 }
@@ -138,16 +127,9 @@ export async function deleteRecipeAction(id: string) {
     "recipe.id": id,
   });
 
-  const { deleteRecipe: success } = await graphqlRequest<{
-    deleteRecipe: boolean;
-  }>(
-    `
-      mutation DeleteRecipe($id: ID!) {
-        deleteRecipe(id: $id)
-      }
-    `,
-    { id },
-  );
+  const { deleteRecipe: success } = await graphqlRequest(DeleteRecipeDocument, {
+    id,
+  });
 
   activeSpan?.setAttributes({
     "recipe.deletion_success": success,
@@ -161,11 +143,5 @@ export async function deleteRecipeAction(id: string) {
 }
 
 export async function brokenCreateRecipeAction(_formData: FormData) {
-  await graphqlRequest<{ errorMutation: string }>(
-    `
-      mutation ErrorMutation {
-        errorMutation(input: "test")
-      }
-    `,
-  );
+  await graphqlRequest(ErrorMutationDocument);
 }

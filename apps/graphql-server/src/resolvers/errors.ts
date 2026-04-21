@@ -32,18 +32,12 @@ export const ErrorQuery = {
     });
   },
 
-  slowQuery: async (_: unknown, { delayMs = 10000 }: { delayMs?: number }) => {
-    const operationSpan = getOperationSpan();
+  slowQuery: async (_: unknown, { delayMs }: { delayMs?: number | null }) => {
+    const effectiveDelay = delayMs ?? 10000;
 
-    operationSpan?.setAttributes({
-      "resolver.slow_query.delay_ms": delayMs,
-      "resolver.slow_query.delay_category":
-        delayMs < 1000 ? "fast" : delayMs < 5000 ? "medium" : "slow",
-    });
+    await new Promise((resolve) => setTimeout(resolve, effectiveDelay));
 
-    await new Promise((resolve) => setTimeout(resolve, delayMs));
-
-    return `Query completed after ${delayMs}ms delay`;
+    return `Query completed`;
   },
 
   notFoundRecipe: () => {
@@ -87,13 +81,6 @@ export const ErrorMutation = {
         message: "At least 2 ingredients required",
       },
     ];
-
-    operationSpan?.setAttributes({
-      "resolver.validation_error_mutation.executed": true,
-      "resolver.validation_error_mutation.error_type": "validation_error",
-      "resolver.validation_error_mutation.error_code": "BAD_USER_INPUT",
-      "resolver.validation_error_mutation.error_count": validationErrors.length,
-    });
 
     throw new GraphQLError("Validation failed", {
       extensions: {

@@ -1,15 +1,14 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { graphqlRequest } from "@obs-playground/graphql-client";
+import { RecipeSummaryByIdDocument } from "@obs-playground/graphql-client/documents";
 
 export const dynamic = "force-dynamic";
 
 async function SuccessComponent() {
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
-  const data = await graphqlRequest<{
-    recipe: { id: string; title: string };
-  }>(`query { recipe(id: "1") { id title } }`);
+  const data = await graphqlRequest(RecipeSummaryByIdDocument, { id: "1" });
 
   return (
     <div className="rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-950">
@@ -17,7 +16,7 @@ async function SuccessComponent() {
         Success Component (Loaded)
       </h3>
       <p className="mt-1 text-sm text-green-700 dark:text-green-300">
-        Recipe: {data.recipe.title}
+        Recipe: {data.recipe?.title}
       </p>
     </div>
   );

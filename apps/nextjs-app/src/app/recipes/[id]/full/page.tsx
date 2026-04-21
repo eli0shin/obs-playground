@@ -1,29 +1,8 @@
 import Link from "next/link";
 import { graphqlRequest } from "@obs-playground/graphql-client";
+import { RecipeDetailDocument } from "@obs-playground/graphql-client/documents";
 import { getExpressUrl } from "@obs-playground/env";
 import { z } from "zod";
-
-type Ingredient = {
-  id: string;
-  name: string;
-  unit: string;
-};
-
-type RecipeIngredient = {
-  ingredient: Ingredient;
-  quantity: number;
-};
-
-type Recipe = {
-  id: string;
-  title: string;
-  description: string;
-  prepTime: number;
-  cookTime: number;
-  difficulty: string;
-  servings: number;
-  ingredients: RecipeIngredient[];
-};
 
 const pricesSchema = z.record(z.string(), z.number());
 
@@ -42,31 +21,8 @@ const inventorySchema = z.object({
 type NutritionData = z.infer<typeof nutritionSchema>;
 type InventoryData = z.infer<typeof inventorySchema>;
 
-async function getRecipe(id: string): Promise<Recipe | null> {
-  const data = await graphqlRequest<{ recipe: Recipe | null }>(
-    `
-      query GetRecipe($id: ID!) {
-        recipe(id: $id) {
-          id
-          title
-          description
-          prepTime
-          cookTime
-          difficulty
-          servings
-          ingredients {
-            ingredient {
-              id
-              name
-              unit
-            }
-            quantity
-          }
-        }
-      }
-    `,
-    { id },
-  );
+async function getRecipe(id: string) {
+  const data = await graphqlRequest(RecipeDetailDocument, { id });
 
   return data.recipe;
 }
@@ -120,10 +76,11 @@ export default async function FullRecipePage({
 }) {
   const { id } = await params;
 
-  // Fetch recipe first, then prices for its ingredients
   const recipe = await getRecipe(id);
   const prices = recipe
-    ? await getIngredientPrices(recipe.ingredients.map((i) => i.ingredient.id))
+    ? await getIngredientPrices(
+        recipe.ingredients.map((item) => item.ingredient.id),
+      )
     : {};
 
   if (!recipe) {
@@ -144,7 +101,6 @@ export default async function FullRecipePage({
     );
   }
 
-  // Fetch nutrition and stock data for all ingredients in parallel
   const ingredientData = await Promise.all(
     recipe.ingredients.map(async ({ ingredient, quantity }) => {
       const [nutrition, stock] = await Promise.all([
@@ -234,7 +190,6 @@ export default async function FullRecipePage({
           </header>
 
           <div className="mb-8 grid gap-6 md:grid-cols-2">
-            {/* Cost Summary */}
             <div className="rounded-lg border border-green-200 bg-green-50 p-6 dark:border-green-800 dark:bg-green-950">
               <h3 className="mb-4 text-lg font-semibold text-green-900 dark:text-green-100">
                 Cost Summary
@@ -259,7 +214,6 @@ export default async function FullRecipePage({
               </div>
             </div>
 
-            {/* Nutrition Summary */}
             <div className="rounded-lg border border-blue-200 bg-blue-50 p-6 dark:border-blue-800 dark:bg-blue-950">
               <h3 className="mb-4 text-lg font-semibold text-blue-900 dark:text-blue-100">
                 Nutrition Summary

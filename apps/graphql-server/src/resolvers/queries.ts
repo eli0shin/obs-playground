@@ -1,6 +1,7 @@
 import { trace } from "@opentelemetry/api";
 import { getExpressUrl } from "@obs-playground/env";
 import type { IngredientCost } from "../types/index.js";
+import type { QueryResolvers as QueryResolverMap } from "../generated/resolvers-types.js";
 import {
   recipes,
   recipeIngredients,
@@ -11,15 +12,15 @@ import { getOperationSpan } from "../utils/otel.js";
 import { pricesResponseSchema, nutritionResponseSchema } from "../schemas.js";
 
 export const Query = {
-  recipe: (_: unknown, { id }: { id: string }) => {
+  recipe: (_parent, { id }) => {
     const operationSpan = getOperationSpan();
 
     operationSpan?.setAttribute("resolver.recipe.id", id);
 
-    return recipes.find((r) => r.id === id);
+    return recipes.find((r) => r.id === id) ?? null;
   },
 
-  recipeWithCost: async (_: unknown, { id }: { id: string }) => {
+  recipeWithCost: async (_parent, { id }) => {
     const activeSpan = trace.getActiveSpan();
     const operationSpan = getOperationSpan();
 
@@ -108,7 +109,7 @@ export const Query = {
     };
   },
 
-  recipeWithNutrition: async (_: unknown, { id }: { id: string }) => {
+  recipeWithNutrition: async (_parent, { id }) => {
     const activeSpan = trace.getActiveSpan();
 
     activeSpan?.setAttributes({
@@ -191,10 +192,7 @@ export const Query = {
     };
   },
 
-  recipes: (
-    _: unknown,
-    { categoryId, difficulty }: { categoryId?: string; difficulty?: string },
-  ) => {
+  recipes: (_parent, { categoryId, difficulty }) => {
     const activeSpan = trace.getActiveSpan();
     const filtersApplied = [];
 
@@ -214,9 +212,9 @@ export const Query = {
     activeSpan?.setAttributes({
       "filter.applied_count": filtersApplied.length,
       "filter.applied": filtersApplied,
-      "filter.category_id": categoryId,
+      "filter.category_id": categoryId ?? undefined,
       "filter.category_name": category?.name,
-      "filter.difficulty": difficulty,
+      "filter.difficulty": difficulty ?? undefined,
       "recipes.total_count": recipes.length,
       "recipes.result_count": filtered.length,
       "recipes.filter_match_rate": filtered.length / recipes.length,
@@ -225,7 +223,7 @@ export const Query = {
     return filtered;
   },
 
-  searchRecipes: (_: unknown, { query }: { query: string }) => {
+  searchRecipes: (_parent, { query }) => {
     const activeSpan = trace.getActiveSpan();
     const lowerQuery = query.toLowerCase();
 
@@ -257,4 +255,4 @@ export const Query = {
   categories: () => categories,
 
   ingredients: () => ingredients,
-};
+} satisfies QueryResolverMap;

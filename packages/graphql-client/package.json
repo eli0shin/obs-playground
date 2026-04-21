@@ -13,6 +13,10 @@
     "./browser": {
       "types": "./dist/browser.d.ts",
       "default": "./dist/browser.js"
+    },
+    "./documents": {
+      "types": "./dist/documents/index.d.ts",
+      "default": "./dist/documents/index.js"
     }
   },
   "scripts": {
@@ -23,8 +27,10 @@
   },
   "dependencies": {
     "@datadog/browser-rum": "^6.32.0",
+    "@graphql-typed-document-node/core": "^3.2.0",
     "@obs-playground/env": "*",
     "@opentelemetry/api": "^1.9.0",
+    "graphql": "^16.13.2",
     "zod": "^4.2.1"
   },
   "devDependencies": {
