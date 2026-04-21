@@ -1,12 +1,22 @@
 import { z } from "zod";
 
+export const communityRecipeDifficulties = [
+  "Easy",
+  "Medium",
+  "Hard",
+] as const;
+
+export const communityRecipeDifficultySchema = z.enum(
+  communityRecipeDifficulties,
+);
+
 export const communityRecipeSchema = z.object({
   id: z.string(),
   title: z.string(),
   description: z.string(),
   prepTime: z.number(),
   cookTime: z.number(),
-  difficulty: z.string(),
+  difficulty: communityRecipeDifficultySchema,
   servings: z.number(),
   categoryId: z.string(),
   createdAt: z.string(),

@@ -1,37 +1,7 @@
 import Link from "next/link";
-import { graphqlRequest } from "@obs-playground/graphql-client";
+import { getCategoriesAndIngredients } from "../api";
 import { createCommunityRecipeAction } from "../actions";
-
-type Category = {
-  id: string;
-  name: string;
-  slug: string;
-};
-
-type Ingredient = {
-  id: string;
-  name: string;
-  unit: string;
-};
-
-async function getCategoriesAndIngredients() {
-  return graphqlRequest<{ categories: Category[]; ingredients: Ingredient[] }>(
-    `
-      query GetCategoriesAndIngredients {
-        categories {
-          id
-          name
-          slug
-        }
-        ingredients {
-          id
-          name
-          unit
-        }
-      }
-    `,
-  );
-}
+import { communityRecipeDifficulties } from "../schema";
 
 export default async function NewCommunityRecipePage() {
   const { categories, ingredients } = await getCategoriesAndIngredients();
@@ -143,9 +113,11 @@ export default async function NewCommunityRecipePage() {
                   defaultValue="Easy"
                   className="mt-1 block w-full rounded-md border border-zinc-300 px-3 py-2 text-zinc-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-zinc-600 dark:bg-zinc-700 dark:text-zinc-50"
                 >
-                  <option value="Easy">Easy</option>
-                  <option value="Medium">Medium</option>
-                  <option value="Hard">Hard</option>
+                  {communityRecipeDifficulties.map((difficulty) => (
+                    <option key={difficulty} value={difficulty}>
+                      {difficulty}
+                    </option>
+                  ))}
                 </select>
               </div>
 

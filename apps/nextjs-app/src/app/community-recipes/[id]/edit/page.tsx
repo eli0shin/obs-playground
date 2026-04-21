@@ -1,44 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { graphqlRequest } from "@obs-playground/graphql-client";
-import { getExpressUrl } from "@obs-playground/env";
+import {
+  getCategoriesAndIngredients,
+  getCommunityRecipe,
+} from "../../api";
 import { updateCommunityRecipeAction } from "../../actions";
-import { communityRecipeSchema, type CommunityRecipe } from "../../schema";
-
-type Category = { id: string; name: string; slug: string };
-type Ingredient = { id: string; name: string; unit: string };
-
-async function getCommunityRecipe(id: string): Promise<CommunityRecipe | null> {
-  const response = await fetch(`${getExpressUrl()}/community-recipes/${id}`, {
-    cache: "no-store",
-  });
-  if (response.status === 404) {
-    return null;
-  }
-  if (!response.ok) {
-    throw new Error(`Failed to load recipe: ${response.status}`);
-  }
-  return communityRecipeSchema.parse(await response.json());
-}
-
-async function getCategoriesAndIngredients() {
-  return graphqlRequest<{ categories: Category[]; ingredients: Ingredient[] }>(
-    `
-      query GetCategoriesAndIngredients {
-        categories {
-          id
-          name
-          slug
-        }
-        ingredients {
-          id
-          name
-          unit
-        }
-      }
-    `,
-  );
-}
+import { communityRecipeDifficulties } from "../../schema";
 
 export default async function EditCommunityRecipePage({
   params,
@@ -165,9 +132,11 @@ export default async function EditCommunityRecipePage({
                   defaultValue={recipe.difficulty}
                   className="mt-1 block w-full rounded-md border border-zinc-300 px-3 py-2 text-zinc-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-zinc-600 dark:bg-zinc-700 dark:text-zinc-50"
                 >
-                  <option value="Easy">Easy</option>
-                  <option value="Medium">Medium</option>
-                  <option value="Hard">Hard</option>
+                  {communityRecipeDifficulties.map((difficulty) => (
+                    <option key={difficulty} value={difficulty}>
+                      {difficulty}
+                    </option>
+                  ))}
                 </select>
               </div>
 

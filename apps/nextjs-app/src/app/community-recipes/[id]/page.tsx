@@ -1,27 +1,11 @@
 import Link from "next/link";
 import { graphqlRequest } from "@obs-playground/graphql-client";
-import { getExpressUrl } from "@obs-playground/env";
+import { getCommunityRecipe, type Ingredient } from "../api";
 import { deleteCommunityRecipeAction } from "../actions";
-import { communityRecipeSchema, type CommunityRecipe } from "../schema";
 
-type IngredientInfo = { id: string; name: string; unit: string };
-
-async function getCommunityRecipe(id: string): Promise<CommunityRecipe | null> {
-  const response = await fetch(`${getExpressUrl()}/community-recipes/${id}`, {
-    cache: "no-store",
-  });
-  if (response.status === 404) {
-    return null;
-  }
-  if (!response.ok) {
-    throw new Error(`Failed to load recipe: ${response.status}`);
-  }
-  return communityRecipeSchema.parse(await response.json());
-}
-
-async function getIngredientIndex(): Promise<Map<string, IngredientInfo>> {
+async function getIngredientIndex(): Promise<Map<string, Ingredient>> {
   const { ingredients } = await graphqlRequest<{
-    ingredients: IngredientInfo[];
+    ingredients: Ingredient[];
   }>(
     `
       query GetIngredients {
