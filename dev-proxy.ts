@@ -21,6 +21,7 @@ function setupSharedRoutes(app: Application): void {
     createProxyMiddleware({
       target: "http://localhost:4000",
       changeOrigin: true,
+      xfwd: true,
       pathRewrite: {
         "^/": "/graphql",
       },
@@ -33,6 +34,7 @@ function setupSharedRoutes(app: Application): void {
     createProxyMiddleware({
       target: "http://localhost:3001",
       changeOrigin: true,
+      xfwd: true,
       pathRewrite: {
         "^/": "/api/",
       },
@@ -45,6 +47,7 @@ function setupSharedRoutes(app: Application): void {
     createProxyMiddleware({
       target: "http://localhost:3100",
       changeOrigin: true,
+      xfwd: true,
       ws: true,
       pathRewrite: {
         "^/": "/tanstack/",
@@ -61,6 +64,7 @@ normalApp.use(
   createProxyMiddleware({
     target: "http://localhost:3000",
     changeOrigin: true,
+    xfwd: true,
     ws: true,
   }),
 );
@@ -73,6 +77,7 @@ customApp.use(
   createProxyMiddleware({
     target: "http://localhost:3002",
     changeOrigin: true,
+    xfwd: true,
     ws: true,
   }),
 );
