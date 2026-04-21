@@ -1,4 +1,4 @@
-import type { Category, Ingredient } from "../types/index.js";
+import type { Category, Ingredient } from "../generated/resolvers-types.js";
 
 export const categories: Category[] = [
   { id: "1", name: "Breakfast", slug: "breakfast" },

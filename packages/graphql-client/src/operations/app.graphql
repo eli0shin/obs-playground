@@ -1,0 +1,131 @@
+query HomeRecipesAndCategories {
+  recipes {
+    id
+    title
+    description
+    prepTime
+    cookTime
+    difficulty
+    servings
+  }
+  categories {
+    id
+    name
+    slug
+  }
+}
+
+query CategoryRecipesListing {
+  categories {
+    id
+    name
+    slug
+  }
+  recipes {
+    id
+    title
+    description
+    prepTime
+    cookTime
+    difficulty
+    servings
+    categoryId
+  }
+}
+
+query RecipeDetail($id: ID!) {
+  recipe(id: $id) {
+    id
+    title
+    description
+    prepTime
+    cookTime
+    difficulty
+    servings
+    ingredients {
+      ingredient {
+        id
+        name
+        unit
+      }
+      quantity
+    }
+  }
+}
+
+query RecipeSummaryById($id: ID!) {
+  recipe(id: $id) {
+    id
+    title
+  }
+}
+
+query RecipeWithCostDetail($id: ID!) {
+  recipeWithCost(id: $id) {
+    id
+    title
+    description
+    prepTime
+    cookTime
+    difficulty
+    servings
+    ingredientCosts {
+      ingredientId
+      name
+      quantity
+      unit
+      pricePerUnit
+      totalCost
+    }
+    totalCost
+  }
+}
+
+query RecipeWithNutritionDetail($id: ID!) {
+  recipeWithNutrition(id: $id) {
+    id
+    title
+    description
+    prepTime
+    cookTime
+    difficulty
+    servings
+    calories
+    protein
+    fat
+    carbs
+  }
+}
+
+query CategoriesAndIngredients {
+  categories {
+    id
+    name
+    slug
+  }
+  ingredients {
+    id
+    name
+    unit
+  }
+}
+
+mutation CreateRecipe($input: CreateRecipeInput!) {
+  createRecipe(input: $input) {
+    id
+    title
+    description
+  }
+}
+
+mutation UpdateRecipe($id: ID!, $recipe: RecipeInput!) {
+  updateRecipe(id: $id, recipe: $recipe) {
+    id
+    title
+    description
+  }
+}
+
+mutation DeleteRecipe($id: ID!) {
+  deleteRecipe(id: $id)
+}

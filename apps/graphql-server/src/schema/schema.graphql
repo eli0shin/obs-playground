@@ -7,6 +7,8 @@ type Recipe {
   difficulty: String!
   servings: Int!
   categoryId: String!
+  createdAt: String!
+  updatedAt: String!
   category: Category
   ingredients: [RecipeIngredientDetail!]!
 }

@@ -1,7 +1,12 @@
 import { trace } from "@opentelemetry/api";
 import { getExpressUrl } from "@obs-playground/env";
-import type { Recipe, RecipeIngredient } from "../types/index.js";
+import type {
+  CreateRecipeInput,
+  MutationResolvers as MutationResolverMap,
+  RecipeInput,
+} from "../generated/resolvers-types.js";
 import { categories, ingredients } from "../data/index.js";
+import { toGraphqlRecipe } from "./fields.js";
 import { expressRecipeSingleSchema } from "../schemas.js";
 import { logger } from "../otel.js";
 
@@ -11,7 +16,7 @@ export const Mutation = {
     {
       input,
     }: {
-      input: { recipe: Omit<Recipe, "id">; ingredients: RecipeIngredient[] };
+      input: CreateRecipeInput;
     },
   ) => {
     const activeSpan = trace.getActiveSpan();
@@ -73,12 +78,12 @@ export const Mutation = {
       "recipe.ingredient_categories": ingredientCategories,
     });
 
-    return created;
+    return toGraphqlRecipe(created);
   },
 
   updateRecipe: async (
     _: unknown,
-    { id, recipe }: { id: string; recipe: Omit<Recipe, "id"> },
+    { id, recipe }: { id: string; recipe: RecipeInput },
   ) => {
     const activeSpan = trace.getActiveSpan();
     activeSpan?.setAttributes({
@@ -118,7 +123,7 @@ export const Mutation = {
       "recipe.title": updated.title,
     });
 
-    return updated;
+    return toGraphqlRecipe(updated);
   },
 
   deleteRecipe: async (_: unknown, { id }: { id: string }) => {
@@ -148,4 +153,4 @@ export const Mutation = {
 
     return true;
   },
-};
+} satisfies MutationResolverMap;

@@ -1,0 +1,44 @@
+mutation ErrorMutation {
+  errorMutation(input: "test")
+}
+
+mutation ValidationErrorMutation {
+  validationErrorMutation(
+    input: {
+      recipe: {
+        title: "Short"
+        description: "Test"
+        prepTime: -5
+        cookTime: 10
+        difficulty: "Easy"
+        servings: 4
+        categoryId: "1"
+      }
+      ingredients: []
+    }
+  ) {
+    id
+    title
+  }
+}
+
+query ErrorQuery {
+  errorQuery
+}
+
+query MultipleErrorsQuery {
+  recipes {
+    id
+    title
+  }
+  errorQuery
+  secondErrorQuery
+}
+
+query NotFoundRecipe {
+  notFoundRecipe {
+    id
+    title
+    description
+  }
+}
