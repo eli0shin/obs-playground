@@ -7,6 +7,29 @@ import {
   ingredients,
   incrementRecipeIdCounter,
 } from "../data/index.js";
+import { logger } from "../otel.js";
+
+function diffRecipeFields(
+  previous: Recipe,
+  next: Omit<Recipe, "id">,
+): string[] {
+  const changed: string[] = [];
+  const keys: (keyof Omit<Recipe, "id">)[] = [
+    "title",
+    "description",
+    "prepTime",
+    "cookTime",
+    "difficulty",
+    "servings",
+    "categoryId",
+  ];
+  for (const key of keys) {
+    if (previous[key] !== next[key]) {
+      changed.push(key);
+    }
+  }
+  return changed;
+}
 
 export const Mutation = {
   createRecipe: (
@@ -59,6 +82,16 @@ export const Mutation = {
       "recipe.ingredient_categories": ingredientCategories,
     });
 
+    logger.info("Recipe created", {
+      "recipe.id": newRecipe.id,
+      "recipe.title": newRecipe.title,
+      "recipe.category": category?.name,
+      "recipe.difficulty": newRecipe.difficulty,
+      "recipe.servings": newRecipe.servings,
+      "recipe.ingredient_count": input.ingredients.length,
+      "recipe.ingredient_categories": ingredientCategories,
+    });
+
     return newRecipe;
   },
 
@@ -73,8 +106,14 @@ export const Mutation = {
     });
 
     if (index === -1) {
+      logger.warn("Recipe update target not found", {
+        "recipe.id": id,
+      });
       return null;
     }
+
+    const previous = recipes[index];
+    const changedFields = diffRecipeFields(previous, recipe);
 
     const updatedRecipe = { id, ...recipe };
     recipes[index] = updatedRecipe;
@@ -84,6 +123,12 @@ export const Mutation = {
     activeSpan?.setAttributes({
       "recipe.title": updatedRecipe.title,
       "recipe.category": category?.name,
+    });
+
+    logger.info("Recipe updated", {
+      "recipe.id": id,
+      "recipe.changed_fields": changedFields,
+      "recipe.changed_field_count": changedFields.length,
     });
 
     return recipes[index];
@@ -97,6 +142,9 @@ export const Mutation = {
     });
 
     if (index === -1) {
+      logger.warn("Recipe deletion target not found", {
+        "recipe.id": id,
+      });
       return false;
     }
 
@@ -113,6 +161,13 @@ export const Mutation = {
     activeSpan?.setAttributes({
       "recipe.title": recipe.title,
       "recipe.category": category?.name,
+    });
+
+    logger.info("Recipe deleted", {
+      "recipe.id": id,
+      "recipe.title": recipe.title,
+      "recipe.category": category?.name,
+      "recipe.ingredient_links_removed": ingIndexes.length,
     });
 
     return true;

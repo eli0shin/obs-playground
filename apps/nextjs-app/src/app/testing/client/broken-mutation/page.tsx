@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { graphqlRequest } from "@obs-playground/graphql-client/browser";
+import { datadogLogs } from "@datadog/browser-logs";
 
 export default function BrokenMutationPage() {
   const [loading, setLoading] = useState(false);
@@ -16,6 +17,7 @@ export default function BrokenMutationPage() {
     setError(null);
     setResponse(null);
 
+    const fetchStart = Date.now();
     try {
       const result = await graphqlRequest<{ errorMutation: string }>(
         `
@@ -25,12 +27,25 @@ export default function BrokenMutationPage() {
         `,
       );
       if (result.errors && result.errors.length > 0) {
+        datadogLogs.logger.warn("Client GraphQL returned errors", {
+          "graphql.operation_name": "ErrorMutation",
+          "graphql.operation_type": "mutation",
+          "graphql.error_count": result.errors.length,
+          "graphql.errors": result.errors,
+          "http.duration_ms": Date.now() - fetchStart,
+        });
         setError(JSON.stringify(result.errors));
       }
       if (result.data) {
         setResponse(result.data);
       }
     } catch (err) {
+      datadogLogs.logger.error("Client GraphQL request failed", {
+        "graphql.operation_name": "ErrorMutation",
+        "graphql.operation_type": "mutation",
+        err,
+        "http.duration_ms": Date.now() - fetchStart,
+      });
       setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
       setLoading(false);
@@ -42,6 +57,7 @@ export default function BrokenMutationPage() {
     setError(null);
     setResponse(null);
 
+    const fetchStart = Date.now();
     try {
       const result = await graphqlRequest<{
         validationErrorMutation: { id: string; title: string };
@@ -67,12 +83,25 @@ export default function BrokenMutationPage() {
         `,
       );
       if (result.errors && result.errors.length > 0) {
+        datadogLogs.logger.warn("Client GraphQL returned errors", {
+          "graphql.operation_name": "ValidationError",
+          "graphql.operation_type": "mutation",
+          "graphql.error_count": result.errors.length,
+          "graphql.errors": result.errors,
+          "http.duration_ms": Date.now() - fetchStart,
+        });
         setError(JSON.stringify(result.errors));
       }
       if (result.data) {
         setResponse(result.data);
       }
     } catch (err) {
+      datadogLogs.logger.error("Client GraphQL request failed", {
+        "graphql.operation_name": "ValidationError",
+        "graphql.operation_type": "mutation",
+        err,
+        "http.duration_ms": Date.now() - fetchStart,
+      });
       setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
       setLoading(false);
@@ -84,6 +113,7 @@ export default function BrokenMutationPage() {
     setError(null);
     setResponse(null);
 
+    const fetchStart = Date.now();
     try {
       const result = await graphqlRequest<{ errorQuery: string }>(
         `
@@ -93,12 +123,25 @@ export default function BrokenMutationPage() {
         `,
       );
       if (result.errors && result.errors.length > 0) {
+        datadogLogs.logger.warn("Client GraphQL returned errors", {
+          "graphql.operation_name": "ErrorQuery",
+          "graphql.operation_type": "query",
+          "graphql.error_count": result.errors.length,
+          "graphql.errors": result.errors,
+          "http.duration_ms": Date.now() - fetchStart,
+        });
         setError(JSON.stringify(result.errors));
       }
       if (result.data) {
         setResponse(result.data);
       }
     } catch (err) {
+      datadogLogs.logger.error("Client GraphQL request failed", {
+        "graphql.operation_name": "ErrorQuery",
+        "graphql.operation_type": "query",
+        err,
+        "http.duration_ms": Date.now() - fetchStart,
+      });
       setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
       setLoading(false);
@@ -110,6 +153,7 @@ export default function BrokenMutationPage() {
     setError(null);
     setResponse(null);
 
+    const fetchStart = Date.now();
     try {
       const result = await graphqlRequest<{
         recipes: { id: string; title: string }[];
@@ -127,12 +171,25 @@ export default function BrokenMutationPage() {
         },
       );
       if (result.errors && result.errors.length > 0) {
+        datadogLogs.logger.warn("Client GraphQL returned errors", {
+          "graphql.operation_name": "RecipeQuery",
+          "graphql.operation_type": "query",
+          "graphql.error_count": result.errors.length,
+          "graphql.errors": result.errors,
+          "http.duration_ms": Date.now() - fetchStart,
+        });
         setError(JSON.stringify(result.errors));
       }
       if (result.data) {
         setResponse(result.data);
       }
     } catch (err) {
+      datadogLogs.logger.error("Client GraphQL request failed", {
+        "graphql.operation_name": "RecipeQuery",
+        "graphql.operation_type": "query",
+        err,
+        "http.duration_ms": Date.now() - fetchStart,
+      });
       setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
       setLoading(false);
@@ -144,6 +201,7 @@ export default function BrokenMutationPage() {
     setError(null);
     setResponse(null);
 
+    const fetchStart = Date.now();
     try {
       const result = await graphqlRequest<{
         recipes: { id: string; title: string }[];
@@ -162,12 +220,25 @@ export default function BrokenMutationPage() {
         `,
       );
       if (result.errors && result.errors.length > 0) {
+        datadogLogs.logger.warn("Client GraphQL returned errors", {
+          "graphql.operation_name": "MultipleErrorsQuery",
+          "graphql.operation_type": "query",
+          "graphql.error_count": result.errors.length,
+          "graphql.errors": result.errors,
+          "http.duration_ms": Date.now() - fetchStart,
+        });
         setError(JSON.stringify(result.errors));
       }
       if (result.data) {
         setResponse(result.data);
       }
     } catch (err) {
+      datadogLogs.logger.error("Client GraphQL request failed", {
+        "graphql.operation_name": "MultipleErrorsQuery",
+        "graphql.operation_type": "query",
+        err,
+        "http.duration_ms": Date.now() - fetchStart,
+      });
       setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
       setLoading(false);

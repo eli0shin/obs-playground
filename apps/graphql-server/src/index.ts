@@ -10,16 +10,28 @@ import { resolvers } from "./resolvers/index.js";
 const loggingPlugin = {
   async requestDidStart({ request }) {
     const operationName = request.operationName ?? "anonymous";
-    logger.info("GraphQL operation started", { operationName });
+    const variableCount = request.variables
+      ? Object.keys(request.variables).length
+      : 0;
+    logger.info("GraphQL operation started", {
+      "graphql.operation_name": operationName,
+      "graphql.variable_count": variableCount,
+    });
+
+    let operationType: string | undefined;
 
     return {
+      async didResolveOperation({ operation }) {
+        operationType = operation?.operation;
+      },
       async didEncounterErrors({ errors }) {
         for (const err of errors) {
           logger.error("GraphQL error", {
-            operationName,
+            "graphql.operation_name": operationName,
+            "graphql.operation_type": operationType,
             err,
-            path: err.path,
-            code: err.extensions.code,
+            "graphql.error.path": err.path,
+            "graphql.error.code": err.extensions.code,
           });
         }
       },
@@ -29,8 +41,9 @@ const loggingPlugin = {
             ? (response.body.singleResult.errors?.length ?? 0)
             : 0;
         logger.info("GraphQL operation completed", {
-          operationName,
-          errorCount,
+          "graphql.operation_name": operationName,
+          "graphql.operation_type": operationType,
+          "graphql.error_count": errorCount,
         });
       },
     };
@@ -54,11 +67,17 @@ app.use((req, res, next) => {
 
   res.on("finish", () => {
     const durationMs = Date.now() - start;
+    const contentLength = res.getHeader("content-length");
     const log = {
-      method: req.method,
-      path: req.path,
-      statusCode: res.statusCode,
-      durationMs,
+      "http.method": req.method,
+      "http.path": req.path,
+      "http.status_code": res.statusCode,
+      "http.duration_ms": durationMs,
+      "http.user_agent": req.get("user-agent"),
+      "http.response_content_length":
+        typeof contentLength === "string"
+          ? parseInt(contentLength, 10)
+          : undefined,
     };
 
     if (res.statusCode >= 500) {

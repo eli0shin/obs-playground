@@ -9,9 +9,14 @@ const router = Router();
 
 router.get("/meal-plan/estimate", async (req: Request, res: Response) => {
   const activeSpan = trace.getActiveSpan();
+  const requestStart = Date.now();
   const { recipeIds } = req.query;
 
   if (!recipeIds || typeof recipeIds !== "string") {
+    logger.warn("Meal plan missing recipeIds query parameter", {
+      "meal_plan.query_param_present": Boolean(recipeIds),
+      "meal_plan.query_param_type": typeof recipeIds,
+    });
     return res
       .status(400)
       .json({ error: "recipeIds query parameter is required" });
@@ -24,6 +29,12 @@ router.get("/meal-plan/estimate", async (req: Request, res: Response) => {
     "meal_plan.recipe_count": idsArray.length,
   });
 
+  logger.info("Meal plan request received", {
+    "meal_plan.recipe_ids": idsArray,
+    "meal_plan.recipe_count": idsArray.length,
+  });
+
+  const graphqlStart = Date.now();
   const { recipes: allRecipes } = await graphqlRequest<{
     recipes: GraphQLRecipe[];
   }>(`
@@ -43,10 +54,23 @@ router.get("/meal-plan/estimate", async (req: Request, res: Response) => {
     }
   `);
   const selectedRecipes = allRecipes.filter((r) => idsArray.includes(r.id));
+  const foundIds = selectedRecipes.map((r) => r.id);
+  const missingIds = idsArray.filter((id) => !foundIds.includes(id));
+
   logger.info("Meal plan recipes fetched from GraphQL", {
-    requested: idsArray.length,
-    found: selectedRecipes.length,
+    "meal_plan.requested_count": idsArray.length,
+    "meal_plan.found_count": selectedRecipes.length,
+    "meal_plan.missing_count": missingIds.length,
+    "graphql.duration_ms": Date.now() - graphqlStart,
   });
+
+  if (missingIds.length > 0) {
+    logger.warn("Meal plan has missing recipes", {
+      "meal_plan.requested_ids": idsArray,
+      "meal_plan.missing_ids": missingIds,
+      "meal_plan.found_ids": foundIds,
+    });
+  }
 
   // Calculate cost for each recipe
   const recipeCosts = selectedRecipes.map((recipe) => {
@@ -72,6 +96,14 @@ router.get("/meal-plan/estimate", async (req: Request, res: Response) => {
   const maxCost = Math.max(...costs);
   const costPerDay = totalWeeklyCost / 7;
 
+  logger.info("Meal plan costs calculated", {
+    "meal_plan.meal_count": recipeCosts.length,
+    "meal_plan.total_weekly_cost": totalWeeklyCost,
+    "meal_plan.average_meal_cost": averageMealCost,
+    "meal_plan.cost_range_min": minCost,
+    "meal_plan.cost_range_max": maxCost,
+  });
+
   activeSpan?.setAttributes({
     "meal_plan.recipe_titles": recipeTitles,
     "meal_plan.total_weekly_cost": totalWeeklyCost,
@@ -80,6 +112,14 @@ router.get("/meal-plan/estimate", async (req: Request, res: Response) => {
     "meal_plan.cost_range_min": minCost,
     "meal_plan.cost_range_max": maxCost,
     "meal_plan.meal_count": recipeCosts.length,
+  });
+
+  logger.info("Meal plan estimate generated", {
+    "meal_plan.total_weekly_cost": totalWeeklyCost,
+    "meal_plan.cost_per_day": costPerDay,
+    "meal_plan.average_meal_cost": averageMealCost,
+    "meal_plan.meal_count": recipeCosts.length,
+    "meal_plan.duration_ms": Date.now() - requestStart,
   });
 
   res.json({

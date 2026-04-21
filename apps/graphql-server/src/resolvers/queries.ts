@@ -9,6 +9,7 @@ import {
 } from "../data/index.js";
 import { getOperationSpan } from "../utils/otel.js";
 import { pricesResponseSchema, nutritionResponseSchema } from "../schemas.js";
+import { logger } from "../otel.js";
 
 export const Query = {
   recipe: (_: unknown, { id }: { id: string }) => {
@@ -22,6 +23,7 @@ export const Query = {
   recipeWithCost: async (_: unknown, { id }: { id: string }) => {
     const activeSpan = trace.getActiveSpan();
     const operationSpan = getOperationSpan();
+    const resolverStart = Date.now();
 
     activeSpan?.setAttributes({
       "recipe.id": id,
@@ -32,10 +34,17 @@ export const Query = {
       "resolver.recipe_with_cost.includes_pricing": true,
     });
 
+    logger.info("Resolving recipeWithCost", {
+      "recipe.id": id,
+    });
+
     const recipe = recipes.find((r) => r.id === id);
     if (!recipe) {
       activeSpan?.setAttribute("recipe.found", false);
       operationSpan?.setAttribute("resolver.recipe_with_cost.found", false);
+      logger.warn("Recipe not found in recipeWithCost", {
+        "recipe.id": id,
+      });
       return null;
     }
 
@@ -59,11 +68,26 @@ export const Query = {
       "recipe.ingredient_ids": ingredientIds.join(","),
     });
 
+    logger.info("Fetching ingredient prices from Express", {
+      "recipe.id": id,
+      "recipe.title": recipe.title,
+      "recipe.ingredient_count": recipeIngs.length,
+      "recipe.ingredient_ids": ingredientIds,
+    });
+
+    const expressStart = Date.now();
     const response = await fetch(
       `${getExpressUrl()}/ingredients/prices?ids=${ingredientIds.join(",")}`,
     );
     const pricesResult = pricesResponseSchema.safeParse(await response.json());
     const prices = pricesResult.success ? pricesResult.data : {};
+
+    logger.info("Fetched ingredient prices from Express", {
+      "recipe.id": id,
+      "pricing.ingredient_count": Object.keys(prices).length,
+      "pricing.parse_success": pricesResult.success,
+      "express.duration_ms": Date.now() - expressStart,
+    });
 
     const ingredientCosts: IngredientCost[] = recipeIngs.flatMap((ri) => {
       const ingredient = ingredients.find((i) => i.id === ri.ingredientId);
@@ -101,6 +125,15 @@ export const Query = {
       "resolver.recipe_with_cost.ingredient_count": ingredientCosts.length,
     });
 
+    logger.info("Resolved recipeWithCost", {
+      "recipe.id": id,
+      "recipe.title": recipe.title,
+      "recipe.total_cost": totalCost,
+      "recipe.cost_per_serving": costPerServing,
+      "recipe.ingredient_count": ingredientCosts.length,
+      "resolver.duration_ms": Date.now() - resolverStart,
+    });
+
     return {
       ...recipe,
       ingredientCosts,
@@ -110,14 +143,22 @@ export const Query = {
 
   recipeWithNutrition: async (_: unknown, { id }: { id: string }) => {
     const activeSpan = trace.getActiveSpan();
+    const resolverStart = Date.now();
 
     activeSpan?.setAttributes({
+      "recipe.id": id,
+    });
+
+    logger.info("Resolving recipeWithNutrition", {
       "recipe.id": id,
     });
 
     const recipe = recipes.find((r) => r.id === id);
     if (!recipe) {
       activeSpan?.setAttribute("recipe.found", false);
+      logger.warn("Recipe not found in recipeWithNutrition", {
+        "recipe.id": id,
+      });
       return null;
     }
 
@@ -140,6 +181,13 @@ export const Query = {
       "nutrition.parallel_requests": recipeIngs.length,
     });
 
+    logger.info("Fetching nutrition data from Express in parallel", {
+      "recipe.id": id,
+      "recipe.title": recipe.title,
+      "nutrition.parallel_requests": recipeIngs.length,
+    });
+
+    const expressStart = Date.now();
     const nutritionPromises = recipeIngs.map(async (ri) => {
       const response = await fetch(
         `${getExpressUrl()}/nutrition/ingredient/${ri.ingredientId}`,
@@ -158,6 +206,13 @@ export const Query = {
     });
 
     const nutritionData = await Promise.all(nutritionPromises);
+
+    logger.info("Fetched nutrition data from Express", {
+      "recipe.id": id,
+      "nutrition.parallel_requests": recipeIngs.length,
+      "nutrition.responses_received": nutritionData.length,
+      "express.duration_ms": Date.now() - expressStart,
+    });
 
     const totalNutrition = nutritionData.reduce(
       (sum, n) => ({
@@ -183,6 +238,15 @@ export const Query = {
       "nutrition.protein_per_serving": proteinPerServing,
       "nutrition.fat_per_serving": fatPerServing,
       "nutrition.carbs_per_serving": carbsPerServing,
+    });
+
+    logger.info("Resolved recipeWithNutrition", {
+      "recipe.id": id,
+      "recipe.title": recipe.title,
+      "nutrition.total_calories": totalNutrition.calories,
+      "nutrition.calories_per_serving": caloriesPerServing,
+      "nutrition.protein_per_serving": proteinPerServing,
+      "resolver.duration_ms": Date.now() - resolverStart,
     });
 
     return {
