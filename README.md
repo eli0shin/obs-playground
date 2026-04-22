@@ -43,10 +43,8 @@ mkdir certs
 Start all services:
 
 ```bash
-npm run dev:all        # With built-in Next.js server
-npm run dev:all:custom # With custom Next.js server
-npm run dev:dd:all     # With built-in Next.js server and Datadog native tracing
-npm run dev:dd:custom  # With custom Next.js server and Datadog native tracing
+npm run dev
+npm run dev:dd     # With built-in Next.js server and Datadog native tracing
 ```
 
 Access the app:

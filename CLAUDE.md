@@ -18,11 +18,8 @@ This is an OpenTelemetry instrumentation playground demonstrating distributed tr
 ### Running the Application
 
 ```bash
-# Run all services with HTTPS proxy and built-in nextjs server
-npm run dev:all
-
-# Run all services with custom Next.js server
-npm run dev:all:custom
+# Run all services with HTTPS proxy
+npm run dev
 ```
 
 - HTTPS Proxy: https://localhost (requires certs/key.pem and certs/cert.pem)
