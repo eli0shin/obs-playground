@@ -42,7 +42,7 @@ async function getMealPlanEstimate(
 
   const errorResult = errorResponseSchema.safeParse(json);
   if (errorResult.success) {
-    throw new Error(String(errorResult.data.error));
+    throw new Error(String(errorResult.data));
   }
 
   const result = mealPlanEstimateSchema.safeParse(json);
