@@ -8,11 +8,22 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: 0,
   workers: process.env.CI ? 4 : undefined,
-  reporter: "list",
+  outputDir: process.env.PLAYWRIGHT_OUTPUT_DIR || "test-results",
+  reporter: [
+    ["list"],
+    [
+      "html",
+      {
+        open: "never",
+        outputFolder:
+          process.env.PLAYWRIGHT_HTML_REPORT || "playwright-report",
+      },
+    ],
+  ],
   use: {
     baseURL: process.env.BASE_URL || "https://localhost",
-    trace: "off",
-    screenshot: "off",
+    trace: "on",
+    screenshot: "only-on-failure",
     ignoreHTTPSErrors: true,
   },
   projects: [

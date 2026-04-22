@@ -7,6 +7,9 @@ certs/
 *.tsbuildinfo
 datadog.yaml
 test-results/
+test-results-*/
+playwright-report/
+playwright-report-*/
 .tanstack/
 .output/
 

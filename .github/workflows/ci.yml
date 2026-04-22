@@ -131,8 +131,34 @@ jobs:
         run: npm run playwright:normal
         env:
           NORMAL_URL: https://localhost:3443
+          PLAYWRIGHT_OUTPUT_DIR: test-results-normal
+          PLAYWRIGHT_HTML_REPORT: playwright-report-normal
+
+      - name: Upload Playwright artifacts (normal mode)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-normal
+          path: |
+            packages/playwright-tests/test-results-normal
+            packages/playwright-tests/playwright-report-normal
+          retention-days: 7
+          if-no-files-found: ignore
 
       - name: Run Playwright tests (custom mode)
         run: npm run playwright:custom
         env:
           CUSTOM_URL: https://localhost:8443
+          PLAYWRIGHT_OUTPUT_DIR: test-results-custom
+          PLAYWRIGHT_HTML_REPORT: playwright-report-custom
+
+      - name: Upload Playwright artifacts (custom mode)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-custom
+          path: |
+            packages/playwright-tests/test-results-custom
+            packages/playwright-tests/playwright-report-custom
+          retention-days: 7
+          if-no-files-found: ignore
