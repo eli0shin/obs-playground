@@ -27,13 +27,6 @@ export default [
     },
   },
   {
-    // Sentry requires dynamic import for client-side initialization
-    files: ["**/sentry-init.tsx"],
-    rules: {
-      "no-restricted-syntax": "off",
-    },
-  },
-  {
     // Next.js instrumentation hook requires dynamic imports
     files: ["**/instrumentation.ts"],
     rules: {

@@ -92,7 +92,7 @@ export function initializeOtel(config: OtelConfig): OtelResult {
 
   // Create logger after sdk.start() so instrumentation-pino patches pino
   const logger = createLogger(serviceName);
-  logger.info(`OpenTelemetry initialized for service: ${serviceName}`);
+  logger.info(`OpenTelemetry initialized`, { "service.name": serviceName });
 
   return { sdk, logger };
 }

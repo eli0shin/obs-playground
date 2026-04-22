@@ -1,5 +1,4 @@
 import type { NextConfig } from "next";
-import { withSentryConfig } from "@sentry/nextjs";
 
 const nextConfig = {
   distDir: process.env.CUSTOM_SERVER === "true" ? ".next-custom" : ".next",
@@ -14,11 +13,4 @@ const nextConfig = {
   /* config options here */
 } satisfies NextConfig;
 
-export default withSentryConfig(nextConfig, {
-  // Suppresses source map uploading logs during build
-  silent: !process.env.CI,
-  org: process.env.SENTRY_ORG,
-  project: process.env.SENTRY_PROJECT,
-  // For all available options, see:
-  // https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
-});
+export default nextConfig;

@@ -1,7 +1,6 @@
 import { datadogLogs } from "@datadog/browser-logs";
 import { datadogRum } from "@datadog/browser-rum";
 import { reactPlugin } from "@datadog/browser-rum-react";
-import { captureRouterTransitionStart } from "@sentry/nextjs";
 
 datadogLogs.init({
   clientToken: process.env.NEXT_PUBLIC_DATADOG_CLIENT_TOKEN ?? "",
@@ -29,7 +28,16 @@ datadogRum.init({
   trackUserInteractions: true,
   allowedTracingUrls: [
     {
-      match: () => true,
+      match: (url: string) => {
+        const parsedUrl = new URL(url);
+        if (parsedUrl.pathname.startsWith("/_")) {
+          return false;
+        }
+        if (parsedUrl.hostname !== window.location.hostname) {
+          return false;
+        }
+        return true;
+      },
       propagatorTypes: ["tracecontext", "datadog"],
     },
   ],
@@ -41,5 +49,3 @@ datadogRum.init({
     },
   ],
 });
-
-export const onRouterTransitionStart = captureRouterTransitionStart;
