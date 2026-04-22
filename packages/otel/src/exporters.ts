@@ -56,21 +56,6 @@ export function createSpanProcessors(): SpanProcessor[] {
         ]
       : []),
 
-    // Sentry exporter
-    ...(process.env.SENTRY_OTLP_ENDPOINT && process.env.SENTRY_AUTH
-      ? [
-          new BatchSpanProcessor(
-            new OTLPTraceExporter({
-              url: `${process.env.SENTRY_OTLP_ENDPOINT}/v1/traces`,
-              headers: {
-                "x-sentry-auth": process.env.SENTRY_AUTH,
-              },
-            }),
-            batchConfig,
-          ),
-        ]
-      : []),
-
     // Datadog exporter
     ...(process.env.DATADOG_OTLP_ENDPOINT
       ? [
@@ -132,20 +117,6 @@ export function createLogProcessors(): LogRecordProcessor[] {
               url: `${process.env.GRAFANA_OTLP_ENDPOINT}/v1/logs`,
               headers: {
                 Authorization: process.env.GRAFANA_OTLP_AUTH,
-              },
-            }),
-          ),
-        ]
-      : []),
-
-    // Sentry exporter
-    ...(process.env.SENTRY_OTLP_ENDPOINT && process.env.SENTRY_AUTH
-      ? [
-          new BatchLogRecordProcessor(
-            new OTLPLogExporter({
-              url: `${process.env.SENTRY_OTLP_ENDPOINT}/v1/logs`,
-              headers: {
-                "x-sentry-auth": process.env.SENTRY_AUTH,
               },
             }),
           ),

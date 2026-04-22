@@ -20,7 +20,13 @@ app.prepare().then(() => {
     return handle(req, res);
   });
 
-  server.listen(port, () => {
-    logger.info("Next.js custom server ready", { hostname, port });
+  server.listen(port, (error) => {
+    if (!error) {
+      logger.info("Next.js custom server ready", { hostname, port });
+      console.log(`Next.js custom server ready at ${hostname}:${port}`);
+    } else {
+      logger.error("next custom server failed to start", { error });
+      console.error(error);
+    }
   });
 });

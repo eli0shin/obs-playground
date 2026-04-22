@@ -8,6 +8,8 @@
 
 set -e
 
+export NODE_ENV=development
+
 TRACING_BACKEND=${1:-otel}
 SHARED_PACKAGES=(
   "@obs-playground/env"
@@ -15,16 +17,13 @@ SHARED_PACKAGES=(
   "@obs-playground/graphql-client"
 )
 
+export DD_LOGS_ENABLED=true
+DD_PREFIX="DD_LOGS_ENABLED=true "
+
 # Set up environment variables based on backend choice
 if [ "$TRACING_BACKEND" = "dd" ]; then
   export DD_TRACE_ENABLED=true
-  export DD_LOGS_ENABLED=true
   DD_PREFIX="DD_TRACE_ENABLED=true DD_LOGS_ENABLED=true "
-elif [ "$TRACING_BACKEND" = "dd-logs" ]; then
-  export DD_LOGS_ENABLED=true
-  DD_PREFIX="DD_LOGS_ENABLED=true "
-else
-  DD_PREFIX=""
 fi
 
 # Build shared packages before starting app servers so their dist outputs exist.
@@ -50,3 +49,4 @@ npx concurrently \
   "cd apps/graphql-server && ${DD_PREFIX}PORT=4000 npm run dev" \
   "$TANSTACK_CMD" \
   "tsx dev-proxy.ts"
+
