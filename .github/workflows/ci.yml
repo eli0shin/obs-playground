@@ -132,12 +132,35 @@ jobs:
         run: |
           echo "Waiting for services to start..."
 
+          # Wait for Express server
+          for i in {1..60}; do
+            if curl -s http://localhost:3001/health > /dev/null 2>&1; then
+              echo "Express server is ready"
+              break
+            fi
+            if [ "$i" -eq 60 ]; then echo "Express server failed to start" && exit 1; fi
+            echo "Waiting for Express server... ($i/60)"
+            sleep 1
+          done
+
+          # Wait for GraphQL server
+          for i in {1..60}; do
+            if curl -s -X POST http://localhost:4000/graphql -H 'Content-Type: application/json' -d '{"query":"{__typename}"}' > /dev/null 2>&1; then
+              echo "GraphQL server is ready"
+              break
+            fi
+            if [ "$i" -eq 60 ]; then echo "GraphQL server failed to start" && exit 1; fi
+            echo "Waiting for GraphQL server... ($i/60)"
+            sleep 1
+          done
+
           # Wait for normal mode proxy
           for i in {1..60}; do
             if curl -ks https://localhost:3443 > /dev/null 2>&1; then
               echo "Normal mode proxy is ready"
               break
             fi
+            if [ "$i" -eq 60 ]; then echo "Normal mode proxy failed to start" && exit 1; fi
             echo "Waiting for normal mode proxy... ($i/60)"
             sleep 1
           done
@@ -148,13 +171,11 @@ jobs:
               echo "Custom mode proxy is ready"
               break
             fi
+            if [ "$i" -eq 60 ]; then echo "Custom mode proxy failed to start" && exit 1; fi
             echo "Waiting for custom mode proxy... ($i/60)"
             sleep 1
           done
 
-          # Verify all services are responding
-          curl -ks https://localhost:3443 || (echo "Normal mode proxy failed" && exit 1)
-          curl -ks https://localhost:8443 || (echo "Custom mode proxy failed" && exit 1)
           echo "All services are ready!"
 
       - name: Run Playwright tests (normal mode)

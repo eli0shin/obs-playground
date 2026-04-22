@@ -165,10 +165,5 @@ This architecture demonstrates:
 
 ```bash
 # Start all services
-npm run dev:all
-
-# Start individual services
-npm run dev:next    # Port 3000
-npm run dev:express # Port 3001
-npm run dev:graphql # Port 4000
+npm run dev
 ```

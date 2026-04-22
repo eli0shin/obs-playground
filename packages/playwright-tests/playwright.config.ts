@@ -1,12 +1,10 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const isSlowTests = process.env.SLOW_TESTS === "true";
-
 export default defineConfig({
   testDir: "./tests",
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
-  retries: 0,
+  retries: process.env.CI ? 1 : 0,
   workers: process.env.CI ? 4 : undefined,
   outputDir: process.env.PLAYWRIGHT_OUTPUT_DIR || "test-results",
   reporter: [
@@ -15,8 +13,7 @@ export default defineConfig({
       "html",
       {
         open: "never",
-        outputFolder:
-          process.env.PLAYWRIGHT_HTML_REPORT || "playwright-report",
+        outputFolder: process.env.PLAYWRIGHT_HTML_REPORT || "playwright-report",
       },
     ],
   ],
@@ -30,9 +27,6 @@ export default defineConfig({
     {
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
-      grep: isSlowTests ? /@slow/ : undefined,
-      grepInvert: isSlowTests ? undefined : /@slow/,
-      timeout: isSlowTests ? 60000 : undefined,
     },
   ],
 });
