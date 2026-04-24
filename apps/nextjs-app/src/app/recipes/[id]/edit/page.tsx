@@ -1,32 +1,95 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import {
-  getCategoriesAndIngredients,
-  getCommunityRecipe,
-} from "../../api";
-import { updateCommunityRecipeAction } from "../../actions";
-import { communityRecipeDifficulties } from "../../schema";
+import { graphqlRequest } from "@obs-playground/graphql-client";
+import { updateRecipeAction } from "../../actions";
 
-export default async function EditCommunityRecipePage({
+type Category = {
+  id: string;
+  name: string;
+  slug: string;
+};
+
+type RecipeIngredient = {
+  ingredient: {
+    id: string;
+    name: string;
+    unit: string;
+  };
+  quantity: number;
+};
+
+type Recipe = {
+  id: string;
+  title: string;
+  description: string;
+  prepTime: number;
+  cookTime: number;
+  difficulty: string;
+  servings: number;
+  categoryId: string;
+  ingredients: RecipeIngredient[];
+};
+
+async function getRecipeAndFormData(id: string) {
+  return graphqlRequest<{
+    recipe: Recipe | null;
+    categories: Category[];
+  }>(
+    `
+      query GetRecipeAndFormData($id: ID!) {
+        recipe(id: $id) {
+          id
+          title
+          description
+          prepTime
+          cookTime
+          difficulty
+          servings
+          categoryId
+          ingredients {
+            ingredient {
+              id
+              name
+              unit
+            }
+            quantity
+          }
+        }
+        categories {
+          id
+          name
+          slug
+        }
+      }
+    `,
+    { id },
+  );
+}
+
+const difficulties = ["Easy", "Medium", "Hard"];
+
+export default async function EditRecipePage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [recipe, { categories, ingredients }] = await Promise.all([
-    getCommunityRecipe(id),
-    getCategoriesAndIngredients(),
-  ]);
+  const { recipe, categories } = await getRecipeAndFormData(id);
 
   if (!recipe) {
     notFound();
   }
 
+  const ingredientPayload = recipe.ingredients.map((ri) => ({
+    ingredientId: ri.ingredient.id,
+    quantity: ri.quantity,
+  }));
+
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">
       <div className="mx-auto max-w-4xl px-4 py-12">
         <Link
-          href={`/community-recipes/${recipe.id}`}
+          href={`/recipes/${recipe.id}`}
           className="mb-6 inline-block text-sm text-blue-600 hover:underline dark:text-blue-400"
         >
           &larr; Back to recipe
@@ -37,13 +100,10 @@ export default async function EditCommunityRecipePage({
             <h1 className="text-4xl font-bold text-zinc-900 dark:text-zinc-50">
               Edit Recipe
             </h1>
-            <p className="mt-2 text-lg text-zinc-600 dark:text-zinc-400">
-              Updates a row in Express&apos;s SQLite DB.
-            </p>
           </header>
 
           <form
-            action={updateCommunityRecipeAction.bind(null, recipe.id)}
+            action={updateRecipeAction.bind(null, recipe.id)}
             className="space-y-6"
           >
             <div>
@@ -132,7 +192,7 @@ export default async function EditCommunityRecipePage({
                   defaultValue={recipe.difficulty}
                   className="mt-1 block w-full rounded-md border border-zinc-300 px-3 py-2 text-zinc-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-zinc-600 dark:bg-zinc-700 dark:text-zinc-50"
                 >
-                  {communityRecipeDifficulties.map((difficulty) => (
+                  {difficulties.map((difficulty) => (
                     <option key={difficulty} value={difficulty}>
                       {difficulty}
                     </option>
@@ -192,7 +252,7 @@ export default async function EditCommunityRecipePage({
                 type="hidden"
                 id="ingredients"
                 name="ingredients"
-                value={JSON.stringify(recipe.ingredients)}
+                value={JSON.stringify(ingredientPayload)}
               />
               <div className="mt-2 space-y-2 rounded-md border border-zinc-300 p-4 dark:border-zinc-600">
                 {recipe.ingredients.length === 0 ? (
@@ -200,23 +260,17 @@ export default async function EditCommunityRecipePage({
                     No ingredients attached.
                   </p>
                 ) : (
-                  recipe.ingredients.map((entry) => {
-                    const info = ingredients.find(
-                      (i) => i.id === entry.ingredientId,
-                    );
-                    return (
-                      <div
-                        key={entry.ingredientId}
-                        className="flex items-center justify-between text-sm text-zinc-700 dark:text-zinc-300"
-                      >
-                        <span>
-                          {info
-                            ? `${entry.quantity} ${info.unit} ${info.name}`
-                            : `${entry.quantity} units (id ${entry.ingredientId})`}
-                        </span>
-                      </div>
-                    );
-                  })
+                  recipe.ingredients.map((entry) => (
+                    <div
+                      key={entry.ingredient.id}
+                      className="flex items-center justify-between text-sm text-zinc-700 dark:text-zinc-300"
+                    >
+                      <span>
+                        {entry.quantity} {entry.ingredient.unit}{" "}
+                        {entry.ingredient.name}
+                      </span>
+                    </div>
+                  ))
                 )}
               </div>
             </div>
@@ -229,7 +283,7 @@ export default async function EditCommunityRecipePage({
                 Save Changes
               </button>
               <Link
-                href={`/community-recipes/${recipe.id}`}
+                href={`/recipes/${recipe.id}`}
                 className="rounded-md border border-zinc-300 px-6 py-2 font-medium text-zinc-700 hover:bg-zinc-50 focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:ring-offset-2 dark:border-zinc-600 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:focus:ring-offset-zinc-900"
               >
                 Cancel

@@ -1,23 +1,45 @@
 import { trace } from "@opentelemetry/api";
 import { getExpressUrl } from "@obs-playground/env";
-import type { IngredientCost } from "../types/index.js";
-import {
-  recipes,
-  recipeIngredients,
-  categories,
-  ingredients,
-} from "../data/index.js";
+import type {
+  IngredientCost,
+  ExpressRecipeResponse,
+} from "../types/index.js";
+import { categories, ingredients } from "../data/index.js";
 import { getOperationSpan } from "../utils/otel.js";
-import { pricesResponseSchema, nutritionResponseSchema } from "../schemas.js";
+import {
+  pricesResponseSchema,
+  nutritionResponseSchema,
+  expressRecipeListSchema,
+  expressRecipeSingleSchema,
+} from "../schemas.js";
 import { logger } from "../otel.js";
 
+async function fetchRecipes(
+  search?: string,
+): Promise<ExpressRecipeResponse[]> {
+  const url = search
+    ? `${getExpressUrl()}/recipes?search=${encodeURIComponent(search)}`
+    : `${getExpressUrl()}/recipes`;
+  const response = await fetch(url);
+  const data = expressRecipeListSchema.parse(await response.json());
+  return data.recipes;
+}
+
+async function fetchRecipe(
+  id: string,
+): Promise<ExpressRecipeResponse | null> {
+  const response = await fetch(`${getExpressUrl()}/recipes/${id}`);
+  if (response.status === 404) return null;
+  return expressRecipeSingleSchema.parse(await response.json());
+}
+
 export const Query = {
-  recipe: (_: unknown, { id }: { id: string }) => {
+  recipe: async (_: unknown, { id }: { id: string }) => {
     const operationSpan = getOperationSpan();
 
     operationSpan?.setAttribute("resolver.recipe.id", id);
 
-    return recipes.find((r) => r.id === id);
+    return fetchRecipe(id);
   },
 
   recipeWithCost: async (_: unknown, { id }: { id: string }) => {
@@ -38,7 +60,7 @@ export const Query = {
       "recipe.id": id,
     });
 
-    const recipe = recipes.find((r) => r.id === id);
+    const recipe = await fetchRecipe(id);
     if (!recipe) {
       activeSpan?.setAttribute("recipe.found", false);
       operationSpan?.setAttribute("resolver.recipe_with_cost.found", false);
@@ -60,7 +82,7 @@ export const Query = {
       "recipe.servings": recipe.servings,
     });
 
-    const recipeIngs = recipeIngredients.filter((ri) => ri.recipeId === id);
+    const recipeIngs = recipe.ingredients;
     const ingredientIds = recipeIngs.map((ri) => ri.ingredientId);
 
     activeSpan?.setAttributes({
@@ -153,7 +175,7 @@ export const Query = {
       "recipe.id": id,
     });
 
-    const recipe = recipes.find((r) => r.id === id);
+    const recipe = await fetchRecipe(id);
     if (!recipe) {
       activeSpan?.setAttribute("recipe.found", false);
       logger.warn("Recipe not found in recipeWithNutrition", {
@@ -174,7 +196,7 @@ export const Query = {
       "recipe.servings": recipe.servings,
     });
 
-    const recipeIngs = recipeIngredients.filter((ri) => ri.recipeId === id);
+    const recipeIngs = recipe.ingredients;
 
     activeSpan?.setAttributes({
       "recipe.ingredient_count": recipeIngs.length,
@@ -255,14 +277,16 @@ export const Query = {
     };
   },
 
-  recipes: (
+  recipes: async (
     _: unknown,
     { categoryId, difficulty }: { categoryId?: string; difficulty?: string },
   ) => {
     const activeSpan = trace.getActiveSpan();
     const filtersApplied = [];
 
-    let filtered = recipes;
+    const allRecipes = await fetchRecipes();
+
+    let filtered = allRecipes;
     if (categoryId) {
       filtered = filtered.filter((r) => r.categoryId === categoryId);
       filtersApplied.push("category");
@@ -281,38 +305,23 @@ export const Query = {
       "filter.category_id": categoryId,
       "filter.category_name": category?.name,
       "filter.difficulty": difficulty,
-      "recipes.total_count": recipes.length,
+      "recipes.total_count": allRecipes.length,
       "recipes.result_count": filtered.length,
-      "recipes.filter_match_rate": filtered.length / recipes.length,
+      "recipes.filter_match_rate":
+        allRecipes.length > 0 ? filtered.length / allRecipes.length : 0,
     });
 
     return filtered;
   },
 
-  searchRecipes: (_: unknown, { query }: { query: string }) => {
+  searchRecipes: async (_: unknown, { query }: { query: string }) => {
     const activeSpan = trace.getActiveSpan();
-    const lowerQuery = query.toLowerCase();
 
-    const results = recipes.filter(
-      (r) =>
-        r.title.toLowerCase().includes(lowerQuery) ||
-        r.description.toLowerCase().includes(lowerQuery),
-    );
-
-    const titleMatches = results.filter((r) =>
-      r.title.toLowerCase().includes(lowerQuery),
-    ).length;
-    const descriptionMatches = results.filter((r) =>
-      r.description.toLowerCase().includes(lowerQuery),
-    ).length;
+    const results = await fetchRecipes(query);
 
     activeSpan?.setAttributes({
-      "search.query": lowerQuery,
+      "search.query": query,
       "search.result_count": results.length,
-      "search.matched_title_count": titleMatches,
-      "search.matched_description_count": descriptionMatches,
-      "search.total_recipes": recipes.length,
-      "search.match_rate": results.length / recipes.length,
     });
 
     return results;

@@ -43,3 +43,9 @@ export type NutritionData = {
   fat: number;
   carbs: number;
 };
+
+export type ExpressRecipeResponse = Recipe & {
+  createdAt: string;
+  updatedAt: string;
+  ingredients: { ingredientId: string; quantity: number }[];
+};

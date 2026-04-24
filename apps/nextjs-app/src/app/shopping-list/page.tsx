@@ -23,13 +23,13 @@ const shoppingListResponseSchema = z.object({
 
 const errorResponseSchema = z.object({
   error: z.unknown(),
+  items: z.never(),
 });
 
 type ShoppingListResponse = z.infer<typeof shoppingListResponseSchema>;
 
 async function generateShoppingList(
   recipeIds: string[],
-  isDefault: boolean,
 ): Promise<ShoppingListResponse> {
   const activeSpan = trace.getActiveSpan();
   const fetchStart = Date.now();
@@ -37,7 +37,6 @@ async function generateShoppingList(
   activeSpan?.setAttributes({
     "shopping_list.recipe_ids": recipeIds.join(","),
     "shopping_list.recipe_count": recipeIds.length,
-    "shopping_list.using_default_ids": isDefault,
   });
 
   const response = await fetch(`${getExpressUrl()}/shopping-list/generate`, {
@@ -74,7 +73,6 @@ async function generateShoppingList(
   logger.info("Shopping list page fetched", {
     "shopping_list.recipe_ids": recipeIds,
     "shopping_list.recipe_count": recipeIds.length,
-    "shopping_list.using_default_ids": isDefault,
     "shopping_list.total_items": result.data.items.length,
     "shopping_list.total_cost": result.data.totalCost,
     "shopping_list.out_of_stock_count": result.data.outOfStock.length,
@@ -91,9 +89,48 @@ export default async function ShoppingListPage({
   searchParams: Promise<{ ids?: string }>;
 }) {
   const params = await searchParams;
-  const hasCustomIds = Boolean(params.ids);
-  const ids = params.ids ? params.ids.split(",") : ["1", "2"];
-  const shoppingList = await generateShoppingList(ids, !hasCustomIds);
+  const ids = params.ids?.split(",").filter(Boolean);
+
+  if (!ids || ids.length === 0) {
+    return (
+      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">
+        <div className="mx-auto max-w-4xl px-4 py-12">
+          <Link
+            href="/"
+            className="mb-6 inline-block text-sm text-blue-600 hover:underline dark:text-blue-400"
+          >
+            &larr; Back to home
+          </Link>
+
+          <article className="rounded-lg border border-zinc-200 bg-white p-8 dark:border-zinc-700 dark:bg-zinc-800">
+            <header className="mb-6">
+              <h1 className="text-4xl font-bold text-zinc-900 dark:text-zinc-50">
+                Shopping List
+              </h1>
+              <p className="mt-2 text-lg text-zinc-600 dark:text-zinc-400">
+                Select recipes first to generate a shopping list.
+              </p>
+            </header>
+
+            <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-6 dark:border-zinc-700 dark:bg-zinc-900">
+              <p className="text-sm text-zinc-700 dark:text-zinc-300">
+                This page needs one or more recipe IDs in the `ids` query
+                parameter.
+              </p>
+              <Link
+                href="/"
+                className="mt-4 inline-block text-sm text-blue-600 hover:underline dark:text-blue-400"
+              >
+                Browse recipes
+              </Link>
+            </div>
+          </article>
+        </div>
+      </div>
+    );
+  }
+
+  const shoppingList = await generateShoppingList(ids);
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">
@@ -222,32 +259,6 @@ export default async function ShoppingListPage({
               </table>
             </div>
           </section>
-
-          <div className="mt-8 rounded-lg bg-zinc-100 p-6 dark:bg-zinc-700">
-            <h3 className="mb-4 text-lg font-semibold text-zinc-900 dark:text-zinc-50">
-              Try Different Combinations
-            </h3>
-            <div className="flex flex-wrap gap-2">
-              <Link
-                href="/shopping-list?ids=1"
-                className="rounded-lg bg-white px-4 py-2 text-sm hover:bg-zinc-50 dark:bg-zinc-800 dark:hover:bg-zinc-600"
-              >
-                Pancakes only
-              </Link>
-              <Link
-                href="/shopping-list?ids=1,2"
-                className="rounded-lg bg-white px-4 py-2 text-sm hover:bg-zinc-50 dark:bg-zinc-800 dark:hover:bg-zinc-600"
-              >
-                Pancakes + Fried Rice
-              </Link>
-              <Link
-                href="/shopping-list?ids=1,2,3"
-                className="rounded-lg bg-white px-4 py-2 text-sm hover:bg-zinc-50 dark:bg-zinc-800 dark:hover:bg-zinc-600"
-              >
-                All 3 Recipes
-              </Link>
-            </div>
-          </div>
         </article>
       </div>
     </div>

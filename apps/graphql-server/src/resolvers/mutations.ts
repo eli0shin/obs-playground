@@ -1,38 +1,12 @@
 import { trace } from "@opentelemetry/api";
+import { getExpressUrl } from "@obs-playground/env";
 import type { Recipe, RecipeIngredient } from "../types/index.js";
-import {
-  recipes,
-  recipeIngredients,
-  categories,
-  ingredients,
-  incrementRecipeIdCounter,
-} from "../data/index.js";
+import { categories, ingredients } from "../data/index.js";
+import { expressRecipeSingleSchema } from "../schemas.js";
 import { logger } from "../otel.js";
 
-function diffRecipeFields(
-  previous: Recipe,
-  next: Omit<Recipe, "id">,
-): string[] {
-  const changed: string[] = [];
-  const keys: (keyof Omit<Recipe, "id">)[] = [
-    "title",
-    "description",
-    "prepTime",
-    "cookTime",
-    "difficulty",
-    "servings",
-    "categoryId",
-  ];
-  for (const key of keys) {
-    if (previous[key] !== next[key]) {
-      changed.push(key);
-    }
-  }
-  return changed;
-}
-
 export const Mutation = {
-  createRecipe: (
+  createRecipe: async (
     _: unknown,
     {
       input,
@@ -41,21 +15,28 @@ export const Mutation = {
     },
   ) => {
     const activeSpan = trace.getActiveSpan();
-    const newRecipe = {
-      id: String(incrementRecipeIdCounter()),
-      ...input.recipe,
-    } satisfies Recipe;
-    recipes.push(newRecipe);
 
-    input.ingredients.forEach((ing) => {
-      recipeIngredients.push({
-        recipeId: newRecipe.id,
-        ingredientId: ing.ingredientId,
-        quantity: ing.quantity,
-      });
+    const response = await fetch(`${getExpressUrl()}/recipes`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ...input.recipe,
+        ingredients: input.ingredients.map((ing) => ({
+          ingredientId: ing.ingredientId,
+          quantity: ing.quantity,
+        })),
+      }),
     });
 
-    const category = categories.find((c) => c.id === newRecipe.categoryId);
+    if (!response.ok) {
+      const error = await response.text();
+      logger.error("Failed to create recipe via Express", { error });
+      throw new Error(`Failed to create recipe: ${response.status}`);
+    }
+
+    const created = expressRecipeSingleSchema.parse(await response.json());
+
+    const category = categories.find((c) => c.id === created.categoryId);
     const ingredientCategories = [
       ...new Set(
         input.ingredients
@@ -70,104 +51,99 @@ export const Mutation = {
     ];
 
     activeSpan?.setAttributes({
-      "recipe.id": newRecipe.id,
-      "recipe.title": newRecipe.title,
+      "recipe.id": created.id,
+      "recipe.title": created.title,
       "recipe.category": category?.name || "Unknown",
-      "recipe.difficulty": newRecipe.difficulty,
-      "recipe.prep_time": newRecipe.prepTime,
-      "recipe.cook_time": newRecipe.cookTime,
-      "recipe.total_time": newRecipe.prepTime + newRecipe.cookTime,
-      "recipe.servings": newRecipe.servings,
+      "recipe.difficulty": created.difficulty,
+      "recipe.prep_time": created.prepTime,
+      "recipe.cook_time": created.cookTime,
+      "recipe.total_time": created.prepTime + created.cookTime,
+      "recipe.servings": created.servings,
       "recipe.ingredient_count": input.ingredients.length,
       "recipe.ingredient_categories": ingredientCategories,
     });
 
     logger.info("Recipe created", {
-      "recipe.id": newRecipe.id,
-      "recipe.title": newRecipe.title,
+      "recipe.id": created.id,
+      "recipe.title": created.title,
       "recipe.category": category?.name,
-      "recipe.difficulty": newRecipe.difficulty,
-      "recipe.servings": newRecipe.servings,
+      "recipe.difficulty": created.difficulty,
+      "recipe.servings": created.servings,
       "recipe.ingredient_count": input.ingredients.length,
       "recipe.ingredient_categories": ingredientCategories,
     });
 
-    return newRecipe;
+    return created;
   },
 
-  updateRecipe: (
+  updateRecipe: async (
     _: unknown,
     { id, recipe }: { id: string; recipe: Omit<Recipe, "id"> },
   ) => {
     const activeSpan = trace.getActiveSpan();
-    const index = recipes.findIndex((r) => r.id === id);
     activeSpan?.setAttributes({
       "recipe.id": id,
     });
 
-    if (index === -1) {
+    const response = await fetch(`${getExpressUrl()}/recipes/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(recipe),
+    });
+
+    if (response.status === 404) {
       logger.warn("Recipe update target not found", {
         "recipe.id": id,
       });
       return null;
     }
 
-    const previous = recipes[index];
-    const changedFields = diffRecipeFields(previous, recipe);
+    if (!response.ok) {
+      const error = await response.text();
+      logger.error("Failed to update recipe via Express", { error });
+      throw new Error(`Failed to update recipe: ${response.status}`);
+    }
 
-    const updatedRecipe = { id, ...recipe };
-    recipes[index] = updatedRecipe;
+    const updated = expressRecipeSingleSchema.parse(await response.json());
 
-    const category = categories.find((c) => c.id === updatedRecipe.categoryId);
+    const category = categories.find((c) => c.id === updated.categoryId);
 
     activeSpan?.setAttributes({
-      "recipe.title": updatedRecipe.title,
+      "recipe.title": updated.title,
       "recipe.category": category?.name,
     });
 
     logger.info("Recipe updated", {
       "recipe.id": id,
-      "recipe.changed_fields": changedFields,
-      "recipe.changed_field_count": changedFields.length,
+      "recipe.title": updated.title,
     });
 
-    return recipes[index];
+    return updated;
   },
 
-  deleteRecipe: (_: unknown, { id }: { id: string }) => {
+  deleteRecipe: async (_: unknown, { id }: { id: string }) => {
     const activeSpan = trace.getActiveSpan();
-    const index = recipes.findIndex((r) => r.id === id);
     activeSpan?.setAttributes({
       "recipe.id": id,
     });
 
-    if (index === -1) {
+    const response = await fetch(`${getExpressUrl()}/recipes/${id}`, {
+      method: "DELETE",
+    });
+
+    if (response.status === 404) {
       logger.warn("Recipe deletion target not found", {
         "recipe.id": id,
       });
       return false;
     }
 
-    const recipe = recipes[index];
-    const category = categories.find((c) => c.id === recipe.categoryId);
-
-    recipes.splice(index, 1);
-    const ingIndexes = recipeIngredients
-      .map((ri, idx) => (ri.recipeId === id ? idx : -1))
-      .filter((idx) => idx !== -1)
-      .reverse();
-    ingIndexes.forEach((idx) => recipeIngredients.splice(idx, 1));
-
     activeSpan?.setAttributes({
-      "recipe.title": recipe.title,
-      "recipe.category": category?.name,
+      "recipe.deleted": true,
     });
 
     logger.info("Recipe deleted", {
       "recipe.id": id,
-      "recipe.title": recipe.title,
-      "recipe.category": category?.name,
-      "recipe.ingredient_links_removed": ingIndexes.length,
     });
 
     return true;
