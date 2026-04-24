@@ -16,37 +16,29 @@ const recipeIngredientInputSchema = z.object({
   quantity: z.number().positive(),
 });
 
-export const communityRecipeDifficultySchema = z.enum([
-  "Easy",
-  "Medium",
-  "Hard",
-]);
+export const recipeDifficultySchema = z.enum(["Easy", "Medium", "Hard"]);
 
-const communityRecipeBaseSchema = z.object({
+const recipeBaseSchema = z.object({
   title: z.string().min(1),
   description: z.string(),
   prepTime: z.number().int().nonnegative(),
   cookTime: z.number().int().nonnegative(),
-  difficulty: communityRecipeDifficultySchema,
+  difficulty: recipeDifficultySchema,
   servings: z.number().int().positive(),
   categoryId: z.string().min(1),
   ingredients: z.array(recipeIngredientInputSchema),
 });
 
-export const communityRecipeCreateSchema = communityRecipeBaseSchema.extend({
+export const recipeCreateSchema = recipeBaseSchema.extend({
   description: z.string().default(""),
   ingredients: z.array(recipeIngredientInputSchema).default([]),
 });
 
-export const communityRecipeUpdateSchema = communityRecipeBaseSchema
+export const recipeUpdateSchema = recipeBaseSchema
   .partial()
   .refine((data) => Object.keys(data).length > 0, {
     message: "At least one field is required",
   });
 
-export type CommunityRecipeCreateInput = z.infer<
-  typeof communityRecipeCreateSchema
->;
-export type CommunityRecipeUpdateInput = z.infer<
-  typeof communityRecipeUpdateSchema
->;
+export type RecipeCreateInput = z.infer<typeof recipeCreateSchema>;
+export type RecipeUpdateInput = z.infer<typeof recipeUpdateSchema>;

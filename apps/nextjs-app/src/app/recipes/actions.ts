@@ -180,12 +180,10 @@ async function updateRecipe(id: string, formData: FormData) {
   redirect(`/recipes/${id}`);
 }
 
-async function deleteRecipe(id: string) {
+async function deleteRecipe(id: string, _formData: FormData) {
   const activeSpan = trace.getActiveSpan();
 
   activeSpan?.setAttributes({
-    "action.type": "delete_recipe",
-    "action.source": "server_action",
     "recipe.id": id,
   });
 

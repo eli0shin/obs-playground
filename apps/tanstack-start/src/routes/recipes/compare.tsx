@@ -3,18 +3,63 @@ import { z } from "zod";
 import { getRecipesWithCost } from "../../server-fns/recipes";
 
 const compareSearchSchema = z.object({
-  ids: z.string().optional().default("1,2"),
+  ids: z.string().optional(),
 });
 
 export const Route = createFileRoute("/recipes/compare")({
   validateSearch: compareSearchSchema,
   loaderDeps: ({ search }) => ({ ids: search.ids }),
-  loader: ({ deps }) => getRecipesWithCost({ data: deps.ids }),
+  loader: ({ deps }) => {
+    if (!deps.ids) {
+      return null;
+    }
+
+    return getRecipesWithCost({ data: deps.ids });
+  },
   component: CompareRecipesPage,
 });
 
 function CompareRecipesPage() {
   const recipes = Route.useLoaderData();
+
+  if (!recipes) {
+    return (
+      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">
+        <div className="mx-auto max-w-7xl px-4 py-12">
+          <Link
+            to="/"
+            className="mb-6 inline-block text-sm text-blue-600 hover:underline dark:text-blue-400"
+          >
+            &larr; Back to home
+          </Link>
+
+          <article className="rounded-lg border border-zinc-200 bg-white p-8 dark:border-zinc-700 dark:bg-zinc-800">
+            <header className="mb-6">
+              <h1 className="text-4xl font-bold text-zinc-900 dark:text-zinc-50">
+                Compare Recipes
+              </h1>
+              <p className="mt-2 text-lg text-zinc-600 dark:text-zinc-400">
+                Select recipes first to compare them.
+              </p>
+            </header>
+
+            <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-6 dark:border-zinc-700 dark:bg-zinc-900">
+              <p className="text-sm text-zinc-700 dark:text-zinc-300">
+                This page needs one or more recipe IDs in the `ids` query
+                parameter.
+              </p>
+              <Link
+                to="/"
+                className="mt-4 inline-block text-sm text-blue-600 hover:underline dark:text-blue-400"
+              >
+                Browse recipes
+              </Link>
+            </div>
+          </article>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">
@@ -115,35 +160,6 @@ function CompareRecipesPage() {
               </div>
             </article>
           ))}
-        </div>
-
-        <div className="mt-8 rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-800">
-          <h3 className="mb-4 text-lg font-semibold text-zinc-900 dark:text-zinc-50">
-            Try Comparing Other Recipes
-          </h3>
-          <div className="flex flex-wrap gap-2">
-            <Link
-              to="/recipes/compare"
-              search={{ ids: "1,2" }}
-              className="rounded-lg bg-zinc-100 px-4 py-2 text-sm hover:bg-zinc-200 dark:bg-zinc-700 dark:hover:bg-zinc-600"
-            >
-              Pancakes vs Fried Rice
-            </Link>
-            <Link
-              to="/recipes/compare"
-              search={{ ids: "1,3" }}
-              className="rounded-lg bg-zinc-100 px-4 py-2 text-sm hover:bg-zinc-200 dark:bg-zinc-700 dark:hover:bg-zinc-600"
-            >
-              Pancakes vs Garlic Chicken
-            </Link>
-            <Link
-              to="/recipes/compare"
-              search={{ ids: "2,3" }}
-              className="rounded-lg bg-zinc-100 px-4 py-2 text-sm hover:bg-zinc-200 dark:bg-zinc-700 dark:hover:bg-zinc-600"
-            >
-              Fried Rice vs Garlic Chicken
-            </Link>
-          </div>
         </div>
       </div>
     </div>

@@ -1,6 +1,6 @@
 import { sqliteTable, text, integer, real } from "drizzle-orm/sqlite-core";
 
-export const communityRecipes = sqliteTable("community_recipes", {
+export const recipes = sqliteTable("recipes", {
   id: text("id").primaryKey(),
   title: text("title").notNull(),
   description: text("description").notNull().default(""),
@@ -13,21 +13,16 @@ export const communityRecipes = sqliteTable("community_recipes", {
   updatedAt: text("updated_at").notNull(),
 });
 
-export const communityRecipeIngredients = sqliteTable(
-  "community_recipe_ingredients",
-  {
-    id: integer("id").primaryKey({ autoIncrement: true }),
-    recipeId: text("recipe_id")
-      .notNull()
-      .references(() => communityRecipes.id, { onDelete: "cascade" }),
-    ingredientId: text("ingredient_id").notNull(),
-    quantity: real("quantity").notNull(),
-  },
-);
+export const recipeIngredients = sqliteTable("recipe_ingredients", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  recipeId: text("recipe_id")
+    .notNull()
+    .references(() => recipes.id, { onDelete: "cascade" }),
+  ingredientId: text("ingredient_id").notNull(),
+  quantity: real("quantity").notNull(),
+});
 
-export type CommunityRecipeRow = typeof communityRecipes.$inferSelect;
-export type CommunityRecipeInsert = typeof communityRecipes.$inferInsert;
-export type CommunityRecipeIngredientRow =
-  typeof communityRecipeIngredients.$inferSelect;
-export type CommunityRecipeIngredientInsert =
-  typeof communityRecipeIngredients.$inferInsert;
+export type RecipeRow = typeof recipes.$inferSelect;
+export type RecipeInsert = typeof recipes.$inferInsert;
+export type RecipeIngredientRow = typeof recipeIngredients.$inferSelect;
+export type RecipeIngredientInsert = typeof recipeIngredients.$inferInsert;

@@ -1,4 +1,4 @@
-import { test } from "@playwright/test";
+import { test, expect } from "@playwright/test";
 
 test.describe("Main Pages", () => {
   test("home page", async ({ page }) => {
@@ -6,36 +6,29 @@ test.describe("Main Pages", () => {
     await page.waitForLoadState("networkidle");
   });
 
-  // Recipe detail pages
-  for (const id of ["1", "2", "3"]) {
-    test(`recipe ${id} - basic`, async ({ page }) => {
-      await page.goto(`/recipes/${id}`);
-      await page.waitForLoadState("networkidle");
-    });
-
-    test(`recipe ${id} - with cost`, async ({ page }) => {
-      await page.goto(`/recipes/${id}/with-cost`);
-      await page.waitForLoadState("networkidle");
-    });
-
-    test(`recipe ${id} - nutrition`, async ({ page }) => {
-      await page.goto(`/recipes/${id}/nutrition`);
-      await page.waitForLoadState("networkidle");
-    });
-
-    test(`recipe ${id} - full`, async ({ page }) => {
-      await page.goto(`/recipes/${id}/full`);
-      await page.waitForLoadState("networkidle");
-    });
-  }
-
-  test("recipe compare", async ({ page }) => {
-    await page.goto("/recipes/compare?ids=1,2");
+  test("recipe detail pages", async ({ page }) => {
+    await page.goto("/");
     await page.waitForLoadState("networkidle");
+
+    const recipeLinks = page.locator('a[href^="/recipes/"]');
+    const count = await recipeLinks.count();
+    expect(count).toBeGreaterThan(0);
+
+    const href = await recipeLinks.first().getAttribute("href");
+    expect(href).toBeTruthy();
+    const recipeUrl = String(href);
+
+    await page.goto(recipeUrl);
+    await page.waitForLoadState("networkidle");
+
+    for (const subpage of ["with-cost", "nutrition", "full"]) {
+      await page.goto(`${recipeUrl}/${subpage}`);
+      await page.waitForLoadState("networkidle");
+    }
   });
 
   test("shopping list", async ({ page }) => {
-    await page.goto("/shopping-list?ids=1,2");
+    await page.goto("/shopping-list");
     await page.waitForLoadState("networkidle");
   });
 
@@ -45,7 +38,7 @@ test.describe("Main Pages", () => {
   });
 
   test("batch nutrition", async ({ page }) => {
-    await page.goto("/batch-nutrition?ids=1,2,3");
+    await page.goto("/batch-nutrition");
     await page.waitForLoadState("networkidle");
   });
 

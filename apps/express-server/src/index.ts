@@ -1,6 +1,7 @@
 import { logger } from "./otel";
 import express from "express";
 import { runMigrations } from "./db/migrate";
+import { seedIfEmpty } from "./db/seed";
 import { errorHandler } from "./error-middleware";
 import { requestLogger } from "./request-logger";
 import { responseInstrumentation } from "./response-instrumentation";
@@ -11,12 +12,13 @@ import inventoryRoutes from "./routes/inventory";
 import shoppingListRoutes from "./routes/shopping-list";
 import mealPlanRoutes from "./routes/meal-plan";
 import batchNutritionRoutes from "./routes/batch-nutrition";
-import communityRecipesRoutes from "./routes/community-recipes";
+import recipesRoutes from "./routes/recipes";
 import errorRoutes from "./routes/error";
 import slowRoutes from "./routes/slow";
 
 try {
   runMigrations();
+  seedIfEmpty();
 } catch (err) {
   logger.error("Migration failed", { err });
   process.exit(1);
@@ -38,7 +40,7 @@ app.use(inventoryRoutes);
 app.use(shoppingListRoutes);
 app.use(mealPlanRoutes);
 app.use(batchNutritionRoutes);
-app.use(communityRecipesRoutes);
+app.use(recipesRoutes);
 app.use(errorRoutes);
 app.use(slowRoutes);
 
