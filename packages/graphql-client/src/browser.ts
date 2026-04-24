@@ -1,9 +1,5 @@
 import { datadogRum } from "@datadog/browser-rum";
-import type {
-  ResultOf,
-  TypedDocumentNode,
-  VariablesOf,
-} from "@graphql-typed-document-node/core";
+import type { TypedDocumentNode } from "@graphql-typed-document-node/core";
 import { getPublicGraphqlUrl } from "@obs-playground/env";
 import { print } from "graphql";
 
@@ -16,10 +12,10 @@ function getQueryText(document: TypedDocumentNode<any, any> | string) {
   return typeof document === "string" ? document : print(document);
 }
 
-export function graphqlRequest<TDocument extends TypedDocumentNode<any, any>>(
-  document: TDocument,
-  variables?: VariablesOf<TDocument>,
-): Promise<GraphQLResponse<ResultOf<TDocument>>>;
+export function graphqlRequest<TResult, TVariables>(
+  document: TypedDocumentNode<TResult, TVariables>,
+  variables?: TVariables,
+): Promise<GraphQLResponse<TResult>>;
 export function graphqlRequest<T>(
   query: string,
   variables?: Record<string, unknown>,

@@ -1,8 +1,10 @@
 import { Router, type Request, type Response } from "express";
 import { trace } from "@opentelemetry/api";
-import { graphqlRequest } from "@obs-playground/graphql-client";
+import {
+  graphqlRequest,
+  AllRecipesForAggregationDocument,
+} from "@obs-playground/graphql-client";
 import { ingredientPrices } from "../data";
-import type { GraphQLRecipe } from "../types";
 import { logger } from "../otel";
 
 const router = Router();
@@ -24,24 +26,9 @@ router.get("/meal-plan/estimate", async (req: Request, res: Response) => {
     "meal_plan.recipe_count": idsArray.length,
   });
 
-  const { recipes: allRecipes } = await graphqlRequest<{
-    recipes: GraphQLRecipe[];
-  }>(`
-    query GetAllRecipes {
-      recipes {
-        id
-        title
-        ingredients {
-          ingredient {
-            id
-            name
-            unit
-          }
-          quantity
-        }
-      }
-    }
-  `);
+  const { recipes: allRecipes } = await graphqlRequest(
+    AllRecipesForAggregationDocument,
+  );
   const selectedRecipes = allRecipes.filter((r) => idsArray.includes(r.id));
   logger.info("Meal plan recipes fetched from GraphQL", {
     requested: idsArray.length,

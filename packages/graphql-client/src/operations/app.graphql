@@ -110,6 +110,21 @@ query CategoriesAndIngredients {
   }
 }
 
+query AllRecipesForAggregation {
+  recipes {
+    id
+    title
+    ingredients {
+      ingredient {
+        id
+        name
+        unit
+      }
+      quantity
+    }
+  }
+}
+
 mutation CreateRecipe($input: CreateRecipeInput!) {
   createRecipe(input: $input) {
     id

@@ -1,14 +1,10 @@
 import { trace, SpanStatusCode } from "@opentelemetry/api";
-import type {
-  ResultOf,
-  TypedDocumentNode,
-  VariablesOf,
-} from "@graphql-typed-document-node/core";
+import type { TypedDocumentNode } from "@graphql-typed-document-node/core";
 import { getGraphqlUrl } from "@obs-playground/env";
 import { print } from "graphql";
 import { z } from "zod";
 
-export type * from "./generated/graphql.js";
+export * from "./generated/graphql.js";
 
 export type GraphQLResponse<T> = {
   data?: T;
@@ -30,12 +26,10 @@ function getQueryText(document: TypedDocumentNode<unknown, unknown> | string) {
   return typeof document === "string" ? document : print(document);
 }
 
-export function graphqlRequest<
-  TDocument extends TypedDocumentNode<unknown, unknown>,
->(
-  document: TDocument,
-  variables?: VariablesOf<TDocument>,
-): Promise<ResultOf<TDocument>>;
+export function graphqlRequest<TResult, TVariables>(
+  document: TypedDocumentNode<TResult, TVariables>,
+  variables?: TVariables,
+): Promise<TResult>;
 export function graphqlRequest<T>(
   query: string,
   variables?: Record<string, unknown>,
