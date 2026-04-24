@@ -1,8 +1,11 @@
 import { Router, type Request, type Response } from "express";
 import { trace } from "@opentelemetry/api";
-import { graphqlRequest } from "@obs-playground/graphql-client";
+import {
+  graphqlRequest,
+  AllRecipesForAggregationDocument,
+} from "@obs-playground/graphql-client";
 import { ingredientNutrition } from "../data";
-import type { RecipeNutrition, GraphQLRecipe } from "../types";
+import type { RecipeNutrition } from "../types";
 import { batchNutritionSchema } from "../schemas";
 import { logger } from "../otel";
 
@@ -35,24 +38,9 @@ router.post("/batch/nutrition", async (req: Request, res: Response) => {
   });
 
   const graphqlStart = Date.now();
-  const { recipes: allRecipes } = await graphqlRequest<{
-    recipes: GraphQLRecipe[];
-  }>(`
-    query GetAllRecipes {
-      recipes {
-        id
-        title
-        ingredients {
-          ingredient {
-            id
-            name
-            unit
-          }
-          quantity
-        }
-      }
-    }
-  `);
+  const { recipes: allRecipes } = await graphqlRequest(
+    AllRecipesForAggregationDocument,
+  );
   const selectedRecipes = allRecipes.filter((r) => recipeIds.includes(r.id));
   const foundIds = selectedRecipes.map((r) => r.id);
   const missingIds = recipeIds.filter((id) => !foundIds.includes(id));

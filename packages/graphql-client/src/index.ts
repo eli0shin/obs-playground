@@ -1,15 +1,11 @@
 import { trace, SpanStatusCode } from "@opentelemetry/api";
-import type {
-  ResultOf,
-  TypedDocumentNode,
-  VariablesOf,
-} from "@graphql-typed-document-node/core";
+import type { TypedDocumentNode } from "@graphql-typed-document-node/core";
 import { getGraphqlUrl } from "@obs-playground/env";
 import type { DocumentNode } from "graphql";
 import { print } from "graphql";
 import { z } from "zod";
 
-export type * from "./generated/graphql.js";
+export * from "./generated/graphql.js";
 
 export type GraphQLResponse<T> = {
   data?: T;
