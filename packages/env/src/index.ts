@@ -19,14 +19,18 @@ function normalizeBaseUrl(base: string): string {
 }
 
 function getEnv(key: keyof RuntimeEnv): string | undefined {
-  if (globalThis.__ENV?.[key]) return globalThis.__ENV[key];
-  return typeof process !== "undefined" ? process.env[key] : undefined;
+  if (globalThis.__ENV?.[key] !== undefined) return globalThis.__ENV[key];
+  if (typeof process === "undefined") return undefined;
+  if (process.env.IS_PULL_REQUEST === "true") {
+    return process.env[`${key}_STAGE`] ?? process.env[key];
+  }
+  return process.env[key];
 }
 
 export function getRuntimeEnv(): RuntimeEnv {
   return {
-    GRAPHQL_BASE_URL: process.env.GRAPHQL_BASE_URL,
-    EXPRESS_BASE_URL: process.env.EXPRESS_BASE_URL,
+    GRAPHQL_BASE_URL: getEnv("GRAPHQL_BASE_URL"),
+    EXPRESS_BASE_URL: getEnv("EXPRESS_BASE_URL"),
   };
 }
 

@@ -25,6 +25,8 @@ services:
       - key: DD_HOSTNAME
         value: obs-graphql
       - key: EXPRESS_BASE_URL
+        value: https://api.obs-playground.com
+      - key: EXPRESS_BASE_URL_STAGE
         fromService:
           name: obs-express
           type: web
@@ -77,6 +79,8 @@ services:
       - key: DD_HOSTNAME
         value: obs-express
       - key: GRAPHQL_BASE_URL
+        value: https://graphql.obs-playground.com
+      - key: GRAPHQL_BASE_URL_STAGE
         fromService:
           name: obs-graphql
           type: web
@@ -123,11 +127,15 @@ services:
       - key: DD_HOSTNAME
         value: obs-nextjs
       - key: GRAPHQL_BASE_URL
+        value: https://graphql.obs-playground.com
+      - key: GRAPHQL_BASE_URL_STAGE
         fromService:
           name: obs-graphql
           type: web
           envVarKey: RENDER_EXTERNAL_URL
       - key: EXPRESS_BASE_URL
+        value: https://api.obs-playground.com
+      - key: EXPRESS_BASE_URL_STAGE
         fromService:
           name: obs-express
           type: web
@@ -180,11 +188,15 @@ services:
       - key: DD_HOSTNAME
         value: obs-nextjs-custom
       - key: GRAPHQL_BASE_URL
+        value: https://graphql.obs-playground.com
+      - key: GRAPHQL_BASE_URL_STAGE
         fromService:
           name: obs-graphql
           type: web
           envVarKey: RENDER_EXTERNAL_URL
       - key: EXPRESS_BASE_URL
+        value: https://api.obs-playground.com
+      - key: EXPRESS_BASE_URL_STAGE
         fromService:
           name: obs-express
           type: web
@@ -235,11 +247,15 @@ services:
       - key: DD_HOSTNAME
         value: obs-tanstack
       - key: GRAPHQL_BASE_URL
+        value: https://graphql.obs-playground.com
+      - key: GRAPHQL_BASE_URL_STAGE
         fromService:
           name: obs-graphql
           type: web
           envVarKey: RENDER_EXTERNAL_URL
       - key: EXPRESS_BASE_URL
+        value: https://api.obs-playground.com
+      - key: EXPRESS_BASE_URL_STAGE
         fromService:
           name: obs-express
           type: web
