@@ -37,6 +37,7 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <script
+          // eslint-disable-next-line @eslint-react/dom/no-dangerously-set-innerhtml -- runtime env injection requires raw script content
           dangerouslySetInnerHTML={{
             __html: `window.__ENV=${JSON.stringify(runtimeEnv)}`,
           }}

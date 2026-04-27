@@ -9,9 +9,7 @@ import { getRuntimeEnv } from "@obs-playground/env";
 
 import "../styles.css";
 
-const fetchRuntimeEnv = createServerFn({ method: "GET" }).handler(() =>
-  getRuntimeEnv(),
-);
+const fetchRuntimeEnv = createServerFn({ method: "GET" }).handler(getRuntimeEnv);
 
 export const Route = createRootRoute({
   beforeLoad: async () => ({ runtimeEnv: await fetchRuntimeEnv() }),
@@ -33,6 +31,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <head>
         <HeadContent />
         <script
+          // eslint-disable-next-line @eslint-react/dom/no-dangerously-set-innerhtml -- runtime env injection requires raw script content
           dangerouslySetInnerHTML={{
             __html: `window.__ENV=${JSON.stringify(runtimeEnv)}`,
           }}
