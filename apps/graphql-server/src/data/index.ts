@@ -1,9 +1,4 @@
-import type {
-  Category,
-  Ingredient,
-  Recipe,
-  RecipeIngredient,
-} from "../types/index.js";
+import type { Category, Ingredient } from "../types/index.js";
 
 export const categories: Category[] = [
   { id: "1", name: "Breakfast", slug: "breakfast" },
@@ -25,61 +20,3 @@ export const ingredients: Ingredient[] = [
   { id: "9", name: "Onion", category: "Vegetables", unit: "piece" },
   { id: "10", name: "Garlic", category: "Vegetables", unit: "clove" },
 ];
-
-export const recipes: Recipe[] = [
-  {
-    id: "1",
-    title: "Pancakes",
-    description: "Fluffy breakfast pancakes",
-    prepTime: 10,
-    cookTime: 15,
-    difficulty: "Easy",
-    servings: 4,
-    categoryId: "1",
-  },
-  {
-    id: "2",
-    title: "Chicken Fried Rice",
-    description: "Classic Asian-style fried rice with chicken",
-    prepTime: 15,
-    cookTime: 20,
-    difficulty: "Medium",
-    servings: 4,
-    categoryId: "3",
-  },
-  {
-    id: "3",
-    title: "Garlic Butter Chicken",
-    description: "Tender chicken with garlic butter sauce",
-    prepTime: 10,
-    cookTime: 25,
-    difficulty: "Medium",
-    servings: 4,
-    categoryId: "3",
-  },
-];
-
-export const recipeIngredients: RecipeIngredient[] = [
-  // Pancakes
-  { recipeId: "1", ingredientId: "1", quantity: 2 },
-  { recipeId: "1", ingredientId: "2", quantity: 1.5 },
-  { recipeId: "1", ingredientId: "3", quantity: 1 },
-  { recipeId: "1", ingredientId: "4", quantity: 0.25 },
-  { recipeId: "1", ingredientId: "5", quantity: 2 },
-  // Chicken Fried Rice
-  { recipeId: "2", ingredientId: "6", quantity: 1 },
-  { recipeId: "2", ingredientId: "7", quantity: 2 },
-  { recipeId: "2", ingredientId: "1", quantity: 2 },
-  { recipeId: "2", ingredientId: "9", quantity: 1 },
-  { recipeId: "2", ingredientId: "10", quantity: 3 },
-  // Garlic Butter Chicken
-  { recipeId: "3", ingredientId: "6", quantity: 1.5 },
-  { recipeId: "3", ingredientId: "5", quantity: 4 },
-  { recipeId: "3", ingredientId: "10", quantity: 6 },
-];
-
-export let recipeIdCounter = recipes.length + 1;
-
-export function incrementRecipeIdCounter(): number {
-  return recipeIdCounter++;
-}

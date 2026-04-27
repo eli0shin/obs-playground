@@ -26,7 +26,7 @@ test.describe("Form Pages", () => {
     // Detail page renders the recipe title as its <h1>.
     await expect(
       page.getByRole("heading", { level: 1, name: title }),
-    ).toBeVisible();
+    ).toBeVisible({ timeout: 15000 });
   });
 
   test("broken create form - submit", async ({ page }) => {

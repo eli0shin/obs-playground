@@ -1,0 +1,203 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "prevIds": [
+    "689652c7-6d75-40ac-868d-ce39fa8df9d5"
+  ],
+  "ddl": [
+    {
+      "name": "recipe_ingredients",
+      "entityType": "tables"
+    },
+    {
+      "name": "recipes",
+      "entityType": "tables"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": true,
+      "default": null,
+      "generated": null,
+      "name": "id",
+      "entityType": "columns",
+      "table": "recipe_ingredients"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "recipe_id",
+      "entityType": "columns",
+      "table": "recipe_ingredients"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "ingredient_id",
+      "entityType": "columns",
+      "table": "recipe_ingredients"
+    },
+    {
+      "type": "real",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "quantity",
+      "entityType": "columns",
+      "table": "recipe_ingredients"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "id",
+      "entityType": "columns",
+      "table": "recipes"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "title",
+      "entityType": "columns",
+      "table": "recipes"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "''",
+      "generated": null,
+      "name": "description",
+      "entityType": "columns",
+      "table": "recipes"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "prep_time",
+      "entityType": "columns",
+      "table": "recipes"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "cook_time",
+      "entityType": "columns",
+      "table": "recipes"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "difficulty",
+      "entityType": "columns",
+      "table": "recipes"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "servings",
+      "entityType": "columns",
+      "table": "recipes"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "category_id",
+      "entityType": "columns",
+      "table": "recipes"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "table": "recipes"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "table": "recipes"
+    },
+    {
+      "columns": [
+        "recipe_id"
+      ],
+      "tableTo": "recipes",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "nameExplicit": false,
+      "name": "fk_recipe_ingredients_recipe_id_recipes_id_fk",
+      "entityType": "fks",
+      "table": "recipe_ingredients"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "recipe_ingredients_pk",
+      "table": "recipe_ingredients",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "recipes_pk",
+      "table": "recipes",
+      "entityType": "pks"
+    }
+  ],
+  "renames": [
+    {
+      "from": "community_recipes",
+      "to": "recipes",
+      "entityType": "tables"
+    },
+    {
+      "from": "community_recipe_ingredients",
+      "to": "recipe_ingredients",
+      "entityType": "tables"
+    }
+  ]
+}
