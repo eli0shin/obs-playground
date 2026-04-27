@@ -13,34 +13,8 @@ const httpsOptions = {
   cert: fs.readFileSync("certs/cert.pem"),
 };
 
-// Shared middleware for API and GraphQL routes
+// Shared middleware for additional app routes
 function setupSharedRoutes(app: Application): void {
-  // GraphQL proxy - must come before /api to avoid conflicts
-  app.use(
-    "/graphql",
-    createProxyMiddleware({
-      target: "http://localhost:4000",
-      changeOrigin: true,
-      xfwd: true,
-      pathRewrite: {
-        "^/": "/graphql",
-      },
-    }),
-  );
-
-  // Express API proxy
-  app.use(
-    "/api",
-    createProxyMiddleware({
-      target: "http://localhost:3001",
-      changeOrigin: true,
-      xfwd: true,
-      pathRewrite: {
-        "^/": "/api/",
-      },
-    }),
-  );
-
   // TanStack Start proxy
   app.use(
     "/tanstack",
@@ -93,14 +67,10 @@ https.createServer(httpsOptions, normalApp).listen(PROXY_PORT, () => {
 │                                                               │
 │  Normal mode (port ${PROXY_PORT}):${" ".repeat(Math.max(0, 39 - PROXY_PORT.toString().length))}  │
 │  • ${normalUrl.padEnd(24)} → Next.js (built-in server)       │
-│  • ${(normalUrl + "/api").padEnd(24)} → Express                         │
-│  • ${(normalUrl + "/graphql").padEnd(24)} → GraphQL                        │
 │  • ${(normalUrl + "/tanstack").padEnd(24)} → TanStack Start                │
 │                                                               │
 │  Custom mode (port ${PROXY_PORT_CUSTOM}):${" ".repeat(Math.max(0, 37 - PROXY_PORT_CUSTOM.toString().length))}    │
 │  • ${customUrl.padEnd(24)} → Next.js (custom server)         │
-│  • ${(customUrl + "/api").padEnd(24)} → Express                       │
-│  • ${(customUrl + "/graphql").padEnd(24)} → GraphQL                   │
 │  • ${(customUrl + "/tanstack").padEnd(24)} → TanStack Start           │
 ╰───────────────────────────────────────────────────────────────╯
   `);

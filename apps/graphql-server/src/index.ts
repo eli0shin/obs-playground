@@ -62,6 +62,22 @@ const app = express();
 const PORT = +(process.env.PORT || "4000");
 const HOST = "0.0.0.0";
 
+app.use(
+  cors({
+    allowedHeaders: [
+      "Content-Type",
+      "baggage",
+      "traceparent",
+      "tracestate",
+      "x-datadog-trace-id",
+      "x-datadog-parent-id",
+      "x-datadog-origin",
+      "x-datadog-sampling-priority",
+      "x-datadog-tags",
+    ],
+  }),
+);
+
 app.use((req, res, next) => {
   const start = Date.now();
 
@@ -92,7 +108,7 @@ app.use((req, res, next) => {
   next();
 });
 
-app.post("/graphql", cors(), express.json(), expressMiddleware(server));
+app.post("/graphql", express.json(), expressMiddleware(server));
 
 app.listen(PORT, HOST, () => {
   logger.info("GraphQL server listening", { port: PORT });

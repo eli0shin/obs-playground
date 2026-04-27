@@ -1,5 +1,6 @@
 import { datadogRum } from "@datadog/browser-rum";
 import type { TypedDocumentNode } from "@graphql-typed-document-node/core";
+import { getGraphqlUrl } from "@obs-playground/env";
 import type { GraphqlDocument } from "./index.js";
 import { print } from "graphql";
 
@@ -26,7 +27,7 @@ export async function graphqlRequest<T>(
   variables?: unknown,
 ): Promise<GraphQLResponse<T>> {
   const query = getQueryText(document);
-  const response = await fetch("/graphql", {
+  const response = await fetch(getGraphqlUrl(), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ query, variables }),

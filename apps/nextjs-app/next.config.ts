@@ -10,16 +10,6 @@ const nextConfig = {
     "import-in-the-middle",
     "require-in-the-middle",
   ],
-  async rewrites() {
-    const graphqlBaseUrl = process.env.GRAPHQL_BASE_URL?.replace(/\/+$/, "");
-    if (!graphqlBaseUrl) return [];
-    return [
-      {
-        source: "/graphql",
-        destination: `${graphqlBaseUrl}/graphql`,
-      },
-    ];
-  },
 } satisfies NextConfig;
 
 export default nextConfig;

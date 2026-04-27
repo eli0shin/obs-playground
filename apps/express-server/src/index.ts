@@ -1,5 +1,6 @@
 import { logger } from "./otel";
 import express from "express";
+import cors from "cors";
 import { runMigrations } from "./db/migrate";
 import { seedIfEmpty } from "./db/seed";
 import { errorHandler } from "./error-middleware";
@@ -28,6 +29,21 @@ const app = express();
 const PORT = +(process.env.PORT ?? 3001);
 const HOST = "0.0.0.0";
 
+app.use(
+  cors({
+    allowedHeaders: [
+      "Content-Type",
+      "baggage",
+      "traceparent",
+      "tracestate",
+      "x-datadog-trace-id",
+      "x-datadog-parent-id",
+      "x-datadog-origin",
+      "x-datadog-sampling-priority",
+      "x-datadog-tags",
+    ],
+  }),
+);
 app.use(express.json());
 app.use(requestLogger);
 app.use(responseInstrumentation);

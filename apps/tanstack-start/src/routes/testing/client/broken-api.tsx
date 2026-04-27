@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { z } from "zod";
+import { getExpressUrl } from "@obs-playground/env";
 
 export const Route = createFileRoute("/testing/client/broken-api")({
   component: BrokenApiPage,
@@ -19,7 +20,7 @@ function BrokenApiPage() {
     setResponse(null);
 
     try {
-      const res = await fetch("/api/error/test");
+      const res = await fetch(`${getExpressUrl()}/api/error/test`);
 
       if (!res.ok) {
         throw new Error(`HTTP ${res.status}: ${res.statusText}`);
@@ -41,7 +42,7 @@ function BrokenApiPage() {
     setResponse(null);
 
     try {
-      const res = await fetch("/api/error/not-found");
+      const res = await fetch(`${getExpressUrl()}/api/error/not-found`);
       const text = await res.text();
       const json = z.record(z.string(), z.unknown()).parse(JSON.parse(text));
       const message =
@@ -67,7 +68,7 @@ function BrokenApiPage() {
     setResponse(null);
 
     try {
-      const res = await fetch("/api/error/validation");
+      const res = await fetch(`${getExpressUrl()}/api/error/validation`);
       const text = await res.text();
       const json = z.record(z.string(), z.unknown()).parse(JSON.parse(text));
       const message =
