@@ -2,9 +2,6 @@
 const config = {
   schema: "./apps/graphql-server/src/schema/schema.graphql",
   documents: ["./packages/graphql-client/src/operations/**/*.graphql"],
-  skipDocumentsValidation: {
-    ignoreRules: ["NoUnusedVariables"],
-  },
   generates: {
     "./apps/graphql-server/src/generated/resolvers-types.ts": {
       plugins: ["typescript", "typescript-resolvers"],

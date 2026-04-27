@@ -203,7 +203,6 @@ export const Query = {
       "nutrition.parallel_requests": recipeIngs.length,
     });
 
-    const expressStart = Date.now();
     const nutritionPromises = recipeIngs.map(async (ri) => {
       const response = await fetch(
         `${getExpressUrl()}/nutrition/ingredient/${ri.ingredientId}`,

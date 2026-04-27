@@ -12,6 +12,8 @@ export type GraphQLResponse<T> = {
   errors?: { message: string }[];
 };
 
+export type GraphqlDocument = DocumentNode | string;
+
 const graphqlResponseSchema = z.object({
   data: z.unknown().optional(),
   errors: z
@@ -23,7 +25,7 @@ const graphqlResponseSchema = z.object({
     .optional(),
 });
 
-function getQueryText(document: DocumentNode | string) {
+function getQueryText(document: GraphqlDocument) {
   return typeof document === "string" ? document : print(document);
 }
 
@@ -47,7 +49,7 @@ export function graphqlRequest<T>(
  * @obs-playground/graphql-client/documents.
  */
 export async function graphqlRequest<T>(
-  document: DocumentNode | string,
+  document: GraphqlDocument,
   variables?: unknown,
 ): Promise<T> {
   const activeSpan = trace.getActiveSpan();

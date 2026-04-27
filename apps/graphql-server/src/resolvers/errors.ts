@@ -65,8 +65,6 @@ export const ErrorMutation = {
   },
 
   validationErrorMutation: () => {
-    const operationSpan = getOperationSpan();
-
     const validationErrors = [
       {
         field: "recipe.title",

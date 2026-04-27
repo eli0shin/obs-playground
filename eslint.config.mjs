@@ -51,9 +51,17 @@ export default [
     ignores: [
       "**/dist/**",
       "**/node_modules/**",
+      "**/.turbo/**",
       "**/.next/**",
+      "**/*.tsbuildinfo",
       "apps/graphql-server/src/generated/**",
+      "apps/nextjs-app/.next-custom/**",
+      "apps/tanstack-start/.output/**",
+      "apps/tanstack-start/src/routeTree.gen.ts",
+      "apps/express-server/drizzle/**",
       "packages/graphql-client/src/generated/**",
+      "packages/playwright-tests/playwright-report/**",
+      "packages/playwright-tests/test-results/**",
     ],
   },
 ];
