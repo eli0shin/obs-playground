@@ -1,8 +1,11 @@
 import { Router, type Request, type Response } from "express";
 import { trace } from "@opentelemetry/api";
-import { graphqlRequest } from "@obs-playground/graphql-client";
+import {
+  graphqlRequest,
+  AllRecipesForAggregationDocument,
+} from "@obs-playground/graphql-client";
 import { ingredientPrices, ingredientInventory } from "../data";
-import type { ShoppingListItem, GraphQLRecipe } from "../types";
+import type { ShoppingListItem } from "../types";
 import { shoppingListSchema } from "../schemas";
 import { logger } from "../otel";
 
@@ -39,24 +42,9 @@ router.post("/shopping-list/generate", async (req: Request, res: Response) => {
   });
 
   const graphqlStart = Date.now();
-  const { recipes: allRecipes } = await graphqlRequest<{
-    recipes: GraphQLRecipe[];
-  }>(`
-    query GetAllRecipes {
-      recipes {
-        id
-        title
-        ingredients {
-          ingredient {
-            id
-            name
-            unit
-          }
-          quantity
-        }
-      }
-    }
-  `);
+  const { recipes: allRecipes } = await graphqlRequest(
+    AllRecipesForAggregationDocument,
+  );
   const selectedRecipes = allRecipes.filter((r) => recipeIds.includes(r.id));
   const foundIds = selectedRecipes.map((r) => r.id);
   const missingIds = recipeIds.filter((id) => !foundIds.includes(id));

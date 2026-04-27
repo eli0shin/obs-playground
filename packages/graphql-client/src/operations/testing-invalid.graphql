@@ -1,0 +1,6 @@
+query RecipeQueryWithUnusedVariable($unusedVariable: ID!) {
+  recipes {
+    id
+    title
+  }
+}

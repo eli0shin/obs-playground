@@ -1,11 +1,18 @@
 import { trace, SpanStatusCode } from "@opentelemetry/api";
+import type { TypedDocumentNode } from "@graphql-typed-document-node/core";
 import { getGraphqlUrl } from "@obs-playground/env";
+import type { DocumentNode } from "graphql";
+import { print } from "graphql";
 import { z } from "zod";
+
+export * from "./generated/graphql.js";
 
 export type GraphQLResponse<T> = {
   data?: T;
   errors?: { message: string }[];
 };
+
+export type GraphqlDocument = DocumentNode | string;
 
 const graphqlResponseSchema = z.object({
   data: z.unknown().optional(),
@@ -18,22 +25,36 @@ const graphqlResponseSchema = z.object({
     .optional(),
 });
 
-/**
- * Minimal GraphQL client that handles errors and OTEL instrumentation.
- *
- * @param query - GraphQL query or mutation string
- * @param variables - Optional variables object
- * @returns Promise resolving to typed data
- * @throws Error on HTTP failure, GraphQL errors, or missing data
- *
- * Automatically records errors in the active OpenTelemetry span.
- */
-export async function graphqlRequest<T>(
+function getQueryText(document: GraphqlDocument) {
+  return typeof document === "string" ? document : print(document);
+}
+
+type VarsArg<TVariables> = [TVariables] extends [Record<string, never>]
+  ? [variables?: TVariables]
+  : [variables: TVariables];
+
+export function graphqlRequest<TResult, TVariables>(
+  document: TypedDocumentNode<TResult, TVariables>,
+  ...args: VarsArg<TVariables>
+): Promise<TResult>;
+export function graphqlRequest<T>(
   query: string,
   variables?: Record<string, unknown>,
+): Promise<T>;
+
+/**
+ * GraphQL client that handles errors and OTEL instrumentation.
+ *
+ * Prefer passing generated typed documents from
+ * @obs-playground/graphql-client/documents.
+ */
+export async function graphqlRequest<T>(
+  document: GraphqlDocument,
+  variables?: unknown,
 ): Promise<T> {
   const activeSpan = trace.getActiveSpan();
   const graphqlUrl = getGraphqlUrl();
+  const query = getQueryText(document);
 
   try {
     const response = await fetch(graphqlUrl, {

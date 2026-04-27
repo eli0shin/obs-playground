@@ -1,5 +1,9 @@
 import Link from "next/link";
 import { graphqlRequest } from "@obs-playground/graphql-client";
+import {
+  NotFoundRecipeDocument,
+  RecipeSummaryByIdDocument,
+} from "@obs-playground/graphql-client/documents";
 import { getExpressUrl } from "@obs-playground/env";
 import { z } from "zod";
 
@@ -12,9 +16,7 @@ type FetchResult = {
 
 async function fetchRecipe1() {
   try {
-    const data = await graphqlRequest<{
-      recipe: { id: string; title: string };
-    }>(`query { recipe(id: "1") { id title } }`);
+    const data = await graphqlRequest(RecipeSummaryByIdDocument, { id: "1" });
     return { name: "Recipe 1 (Success)", success: true, data };
   } catch (error) {
     return {
@@ -27,9 +29,7 @@ async function fetchRecipe1() {
 
 async function fetchNonExistentRecipe() {
   try {
-    const data = await graphqlRequest<{
-      notFoundRecipe: { id: string; title: string } | null;
-    }>(`query { notFoundRecipe { id title } }`);
+    const data = await graphqlRequest(NotFoundRecipeDocument);
 
     if (!data.notFoundRecipe) {
       throw new Error("Recipe not found");
@@ -72,9 +72,7 @@ async function fetchExpressError() {
 
 async function fetchRecipe2() {
   try {
-    const data = await graphqlRequest<{
-      recipe: { id: string; title: string };
-    }>(`query { recipe(id: "2") { id title } }`);
+    const data = await graphqlRequest(RecipeSummaryByIdDocument, { id: "2" });
     return { name: "Recipe 2 (Success)", success: true, data };
   } catch (error) {
     return {

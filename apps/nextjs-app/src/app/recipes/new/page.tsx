@@ -1,37 +1,11 @@
 import Link from "next/link";
 import { graphqlRequest } from "@obs-playground/graphql-client";
+import { CategoriesAndIngredientsDocument } from "@obs-playground/graphql-client/documents";
 import { createRecipeAction } from "../actions";
 import { LoggedForm } from "@/components/logged-form";
 
-type Category = {
-  id: string;
-  name: string;
-  slug: string;
-};
-
-type Ingredient = {
-  id: string;
-  name: string;
-  unit: string;
-};
-
 async function getCategoriesAndIngredients() {
-  return graphqlRequest<{ categories: Category[]; ingredients: Ingredient[] }>(
-    `
-      query GetCategoriesAndIngredients {
-        categories {
-          id
-          name
-          slug
-        }
-        ingredients {
-          id
-          name
-          unit
-        }
-      }
-    `,
-  );
+  return graphqlRequest(CategoriesAndIngredientsDocument);
 }
 
 export default async function NewRecipePage() {
@@ -229,8 +203,8 @@ export default async function NewRecipePage() {
                   </div>
                 ))}
                 <p className="mt-2 text-xs italic text-zinc-500 dark:text-zinc-500">
-                  Demo: Uses predefined ingredients (2x {ingredients[0].name},
-                  1x {ingredients[1].name})
+                  Demo: Uses predefined ingredients (2x {ingredients[0]?.name},
+                  1x {ingredients[1]?.name})
                 </p>
               </div>
             </div>

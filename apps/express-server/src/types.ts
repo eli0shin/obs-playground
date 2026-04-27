@@ -25,19 +25,6 @@ export type ShoppingListItem = {
   inStock: boolean;
 };
 
-export type GraphQLRecipe = {
-  id: string;
-  title: string;
-  ingredients: {
-    ingredient: {
-      id: string;
-      name: string;
-      unit: string;
-    };
-    quantity: number;
-  }[];
-};
-
 export type BatchNutritionRequest = {
   recipeIds: string[];
 };

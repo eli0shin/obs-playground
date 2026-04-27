@@ -2,9 +2,11 @@ import { trace } from "@opentelemetry/api";
 import { getExpressUrl } from "@obs-playground/env";
 import type {
   IngredientCost,
-  ExpressRecipeResponse,
-} from "../types/index.js";
+  QueryResolvers as QueryResolverMap,
+} from "../generated/resolvers-types.js";
+import type { ExpressRecipeResponse } from "../types/index.js";
 import { categories, ingredients } from "../data/index.js";
+import { toGraphqlRecipe } from "./fields.js";
 import { getOperationSpan } from "../utils/otel.js";
 import {
   pricesResponseSchema,
@@ -14,9 +16,7 @@ import {
 } from "../schemas.js";
 import { logger } from "../otel.js";
 
-async function fetchRecipes(
-  search?: string,
-): Promise<ExpressRecipeResponse[]> {
+async function fetchRecipes(search?: string): Promise<ExpressRecipeResponse[]> {
   const url = search
     ? `${getExpressUrl()}/recipes?search=${encodeURIComponent(search)}`
     : `${getExpressUrl()}/recipes`;
@@ -25,9 +25,7 @@ async function fetchRecipes(
   return data.recipes;
 }
 
-async function fetchRecipe(
-  id: string,
-): Promise<ExpressRecipeResponse | null> {
+async function fetchRecipe(id: string): Promise<ExpressRecipeResponse | null> {
   const response = await fetch(`${getExpressUrl()}/recipes/${id}`);
   if (response.status === 404) return null;
   return expressRecipeSingleSchema.parse(await response.json());
@@ -39,13 +37,13 @@ export const Query = {
 
     operationSpan?.setAttribute("resolver.recipe.id", id);
 
-    return fetchRecipe(id);
+    const recipe = await fetchRecipe(id);
+    return recipe ? toGraphqlRecipe(recipe) : null;
   },
 
-  recipeWithCost: async (_: unknown, { id }: { id: string }) => {
+  recipeWithCost: async (_parent, { id }) => {
     const activeSpan = trace.getActiveSpan();
     const operationSpan = getOperationSpan();
-    const resolverStart = Date.now();
 
     activeSpan?.setAttributes({
       "recipe.id": id,
@@ -97,7 +95,6 @@ export const Query = {
       "recipe.ingredient_ids": ingredientIds,
     });
 
-    const expressStart = Date.now();
     const response = await fetch(
       `${getExpressUrl()}/ingredients/prices?ids=${ingredientIds.join(",")}`,
     );
@@ -108,7 +105,6 @@ export const Query = {
       "recipe.id": id,
       "pricing.ingredient_count": Object.keys(prices).length,
       "pricing.parse_success": pricesResult.success,
-      "express.duration_ms": Date.now() - expressStart,
     });
 
     const ingredientCosts: IngredientCost[] = recipeIngs.flatMap((ri) => {
@@ -153,7 +149,6 @@ export const Query = {
       "recipe.total_cost": totalCost,
       "recipe.cost_per_serving": costPerServing,
       "recipe.ingredient_count": ingredientCosts.length,
-      "resolver.duration_ms": Date.now() - resolverStart,
     });
 
     return {
@@ -163,9 +158,8 @@ export const Query = {
     };
   },
 
-  recipeWithNutrition: async (_: unknown, { id }: { id: string }) => {
+  recipeWithNutrition: async (_parent, { id }) => {
     const activeSpan = trace.getActiveSpan();
-    const resolverStart = Date.now();
 
     activeSpan?.setAttributes({
       "recipe.id": id,
@@ -209,7 +203,6 @@ export const Query = {
       "nutrition.parallel_requests": recipeIngs.length,
     });
 
-    const expressStart = Date.now();
     const nutritionPromises = recipeIngs.map(async (ri) => {
       const response = await fetch(
         `${getExpressUrl()}/nutrition/ingredient/${ri.ingredientId}`,
@@ -233,7 +226,6 @@ export const Query = {
       "recipe.id": id,
       "nutrition.parallel_requests": recipeIngs.length,
       "nutrition.responses_received": nutritionData.length,
-      "express.duration_ms": Date.now() - expressStart,
     });
 
     const totalNutrition = nutritionData.reduce(
@@ -268,7 +260,6 @@ export const Query = {
       "nutrition.total_calories": totalNutrition.calories,
       "nutrition.calories_per_serving": caloriesPerServing,
       "nutrition.protein_per_serving": proteinPerServing,
-      "resolver.duration_ms": Date.now() - resolverStart,
     });
 
     return {
@@ -279,7 +270,10 @@ export const Query = {
 
   recipes: async (
     _: unknown,
-    { categoryId, difficulty }: { categoryId?: string; difficulty?: string },
+    {
+      categoryId,
+      difficulty,
+    }: { categoryId?: string | null; difficulty?: string | null },
   ) => {
     const activeSpan = trace.getActiveSpan();
     const filtersApplied = [];
@@ -302,16 +296,16 @@ export const Query = {
     activeSpan?.setAttributes({
       "filter.applied_count": filtersApplied.length,
       "filter.applied": filtersApplied,
-      "filter.category_id": categoryId,
+      "filter.category_id": categoryId ?? undefined,
       "filter.category_name": category?.name,
-      "filter.difficulty": difficulty,
+      "filter.difficulty": difficulty ?? undefined,
       "recipes.total_count": allRecipes.length,
       "recipes.result_count": filtered.length,
       "recipes.filter_match_rate":
         allRecipes.length > 0 ? filtered.length / allRecipes.length : 0,
     });
 
-    return filtered;
+    return filtered.map(toGraphqlRecipe);
   },
 
   searchRecipes: async (_: unknown, { query }: { query: string }) => {
@@ -324,10 +318,10 @@ export const Query = {
       "search.result_count": results.length,
     });
 
-    return results;
+    return results.map(toGraphqlRecipe);
   },
 
   categories: () => categories,
 
   ingredients: () => ingredients,
-};
+} satisfies QueryResolverMap;

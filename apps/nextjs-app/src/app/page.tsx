@@ -1,41 +1,9 @@
 import Link from "next/link";
 import { graphqlRequest } from "@obs-playground/graphql-client";
-
-type Recipe = {
-  id: string;
-  title: string;
-  description: string;
-  prepTime: number;
-  cookTime: number;
-  difficulty: string;
-  servings: number;
-};
-
-type Category = {
-  id: string;
-  name: string;
-  slug: string;
-};
+import { HomeRecipesAndCategoriesDocument } from "@obs-playground/graphql-client/documents";
 
 async function getRecipesAndCategories() {
-  return graphqlRequest<{ recipes: Recipe[]; categories: Category[] }>(`
-    query GetRecipesAndCategories {
-      recipes {
-        id
-        title
-        description
-        prepTime
-        cookTime
-        difficulty
-        servings
-      }
-      categories {
-        id
-        name
-        slug
-      }
-    }
-  `);
+  return graphqlRequest(HomeRecipesAndCategoriesDocument);
 }
 
 export default async function Home() {

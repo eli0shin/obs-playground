@@ -1,13 +1,10 @@
 import { graphqlRequest } from "@obs-playground/graphql-client";
+import { ErrorQueryDocument } from "@obs-playground/graphql-client/documents";
 
 export const dynamic = "force-dynamic";
 
 async function callFailingGraphQLQuery() {
-  return graphqlRequest<{ errorQuery: unknown }>(`
-    query ErrorQuery {
-      errorQuery
-    }
-  `);
+  return graphqlRequest(ErrorQueryDocument);
 }
 
 export default async function GraphQLErrorPage() {
