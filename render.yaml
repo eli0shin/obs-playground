@@ -5,6 +5,8 @@ services:
     plan: starter
     dockerfilePath: ./deploy/render/app-with-datadog/Dockerfile
     dockerContext: .
+    domains:
+      - graphql.obs-playground.com
     previews:
       generation: automatic
     envVars:
@@ -23,10 +25,7 @@ services:
       - key: DD_HOSTNAME
         value: obs-graphql
       - key: EXPRESS_BASE_URL
-        fromService:
-          name: obs-express
-          type: web
-          envVarKey: RENDER_EXTERNAL_URL
+        value: https://api.obs-playground.com
       - key: HONEYCOMB_ENDPOINT
         value: https://api.honeycomb.io
       - key: GRAFANA_OTLP_ENDPOINT
@@ -49,6 +48,8 @@ services:
     plan: starter
     dockerfilePath: ./deploy/render/app-with-datadog/Dockerfile
     dockerContext: .
+    domains:
+      - api.obs-playground.com
     previews:
       generation: automatic
     disk:
@@ -73,10 +74,7 @@ services:
       - key: DD_HOSTNAME
         value: obs-express
       - key: GRAPHQL_BASE_URL
-        fromService:
-          name: obs-graphql
-          type: web
-          envVarKey: RENDER_EXTERNAL_URL
+        value: https://graphql.obs-playground.com
       - key: HONEYCOMB_ENDPOINT
         value: https://api.honeycomb.io
       - key: GRAFANA_OTLP_ENDPOINT
@@ -99,6 +97,8 @@ services:
     plan: free
     dockerfilePath: ./deploy/render/app-with-datadog/Dockerfile
     dockerContext: .
+    domains:
+      - obs-playground.com
     previews:
       generation: automatic
     envVars:
@@ -117,20 +117,11 @@ services:
       - key: DD_HOSTNAME
         value: obs-nextjs
       - key: GRAPHQL_BASE_URL
-        fromService:
-          name: obs-graphql
-          type: web
-          envVarKey: RENDER_EXTERNAL_URL
+        value: https://graphql.obs-playground.com
       - key: EXPRESS_BASE_URL
-        fromService:
-          name: obs-express
-          type: web
-          envVarKey: RENDER_EXTERNAL_URL
+        value: https://api.obs-playground.com
       - key: NEXT_PUBLIC_GRAPHQL_BASE_URL
-        fromService:
-          name: obs-graphql
-          type: web
-          envVarKey: RENDER_EXTERNAL_URL
+        value: https://graphql.obs-playground.com
       - key: HONEYCOMB_ENDPOINT
         value: https://api.honeycomb.io
       - key: GRAFANA_OTLP_ENDPOINT
@@ -157,6 +148,8 @@ services:
     plan: free
     dockerfilePath: ./deploy/render/app-with-datadog/Dockerfile
     dockerContext: .
+    domains:
+      - next-custom.obs-playground.com
     previews:
       generation: automatic
     envVars:
@@ -177,20 +170,11 @@ services:
       - key: DD_HOSTNAME
         value: obs-nextjs-custom
       - key: GRAPHQL_BASE_URL
-        fromService:
-          name: obs-graphql
-          type: web
-          envVarKey: RENDER_EXTERNAL_URL
+        value: https://graphql.obs-playground.com
       - key: EXPRESS_BASE_URL
-        fromService:
-          name: obs-express
-          type: web
-          envVarKey: RENDER_EXTERNAL_URL
+        value: https://api.obs-playground.com
       - key: NEXT_PUBLIC_GRAPHQL_BASE_URL
-        fromService:
-          name: obs-graphql
-          type: web
-          envVarKey: RENDER_EXTERNAL_URL
+        value: https://graphql.obs-playground.com
       - key: HONEYCOMB_ENDPOINT
         value: https://api.honeycomb.io
       - key: GRAFANA_OTLP_ENDPOINT
@@ -217,6 +201,8 @@ services:
     plan: free
     dockerfilePath: ./deploy/render/app-with-datadog/Dockerfile
     dockerContext: .
+    domains:
+      - tanstack.obs-playground.com
     previews:
       generation: automatic
     envVars:
@@ -235,20 +221,11 @@ services:
       - key: DD_HOSTNAME
         value: obs-tanstack
       - key: GRAPHQL_BASE_URL
-        fromService:
-          name: obs-graphql
-          type: web
-          envVarKey: RENDER_EXTERNAL_URL
+        value: https://graphql.obs-playground.com
       - key: EXPRESS_BASE_URL
-        fromService:
-          name: obs-express
-          type: web
-          envVarKey: RENDER_EXTERNAL_URL
+        value: https://api.obs-playground.com
       - key: VITE_GRAPHQL_BASE_URL
-        fromService:
-          name: obs-graphql
-          type: web
-          envVarKey: RENDER_EXTERNAL_URL
+        value: https://graphql.obs-playground.com
       - key: HONEYCOMB_ENDPOINT
         value: https://api.honeycomb.io
       - key: GRAFANA_OTLP_ENDPOINT
