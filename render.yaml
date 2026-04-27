@@ -25,7 +25,10 @@ services:
       - key: DD_HOSTNAME
         value: obs-graphql
       - key: EXPRESS_BASE_URL
-        value: https://api.obs-playground.com
+        fromService:
+          name: obs-express
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL
       - key: HONEYCOMB_ENDPOINT
         value: https://api.honeycomb.io
       - key: GRAFANA_OTLP_ENDPOINT
@@ -74,7 +77,10 @@ services:
       - key: DD_HOSTNAME
         value: obs-express
       - key: GRAPHQL_BASE_URL
-        value: https://graphql.obs-playground.com
+        fromService:
+          name: obs-graphql
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL
       - key: HONEYCOMB_ENDPOINT
         value: https://api.honeycomb.io
       - key: GRAFANA_OTLP_ENDPOINT
@@ -117,11 +123,15 @@ services:
       - key: DD_HOSTNAME
         value: obs-nextjs
       - key: GRAPHQL_BASE_URL
-        value: https://graphql.obs-playground.com
+        fromService:
+          name: obs-graphql
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL
       - key: EXPRESS_BASE_URL
-        value: https://api.obs-playground.com
-      - key: NEXT_PUBLIC_GRAPHQL_BASE_URL
-        value: https://graphql.obs-playground.com
+        fromService:
+          name: obs-express
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL
       - key: HONEYCOMB_ENDPOINT
         value: https://api.honeycomb.io
       - key: GRAFANA_OTLP_ENDPOINT
@@ -170,11 +180,15 @@ services:
       - key: DD_HOSTNAME
         value: obs-nextjs-custom
       - key: GRAPHQL_BASE_URL
-        value: https://graphql.obs-playground.com
+        fromService:
+          name: obs-graphql
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL
       - key: EXPRESS_BASE_URL
-        value: https://api.obs-playground.com
-      - key: NEXT_PUBLIC_GRAPHQL_BASE_URL
-        value: https://graphql.obs-playground.com
+        fromService:
+          name: obs-express
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL
       - key: HONEYCOMB_ENDPOINT
         value: https://api.honeycomb.io
       - key: GRAFANA_OTLP_ENDPOINT
@@ -221,11 +235,15 @@ services:
       - key: DD_HOSTNAME
         value: obs-tanstack
       - key: GRAPHQL_BASE_URL
-        value: https://graphql.obs-playground.com
+        fromService:
+          name: obs-graphql
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL
       - key: EXPRESS_BASE_URL
-        value: https://api.obs-playground.com
-      - key: VITE_GRAPHQL_BASE_URL
-        value: https://graphql.obs-playground.com
+        fromService:
+          name: obs-express
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL
       - key: HONEYCOMB_ENDPOINT
         value: https://api.honeycomb.io
       - key: GRAFANA_OTLP_ENDPOINT

@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ShoppingListRouteImport } from './routes/shopping-list'
 import { Route as MealPlannerRouteImport } from './routes/meal-planner'
+import { Route as GraphqlRouteImport } from './routes/graphql'
 import { Route as BatchNutritionRouteImport } from './routes/batch-nutrition'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RecipesNewRouteImport } from './routes/recipes/new'
@@ -42,6 +43,11 @@ const ShoppingListRoute = ShoppingListRouteImport.update({
 const MealPlannerRoute = MealPlannerRouteImport.update({
   id: '/meal-planner',
   path: '/meal-planner',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GraphqlRoute = GraphqlRouteImport.update({
+  id: '/graphql',
+  path: '/graphql',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BatchNutritionRoute = BatchNutritionRouteImport.update({
@@ -165,6 +171,7 @@ const RecipesIdFullRoute = RecipesIdFullRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/batch-nutrition': typeof BatchNutritionRoute
+  '/graphql': typeof GraphqlRoute
   '/meal-planner': typeof MealPlannerRoute
   '/shopping-list': typeof ShoppingListRoute
   '/testing/errors': typeof TestingErrorsRouteRouteWithChildren
@@ -191,6 +198,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/batch-nutrition': typeof BatchNutritionRoute
+  '/graphql': typeof GraphqlRoute
   '/meal-planner': typeof MealPlannerRoute
   '/shopping-list': typeof ShoppingListRoute
   '/categories/$slug': typeof CategoriesSlugRoute
@@ -217,6 +225,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/batch-nutrition': typeof BatchNutritionRoute
+  '/graphql': typeof GraphqlRoute
   '/meal-planner': typeof MealPlannerRoute
   '/shopping-list': typeof ShoppingListRoute
   '/testing/errors': typeof TestingErrorsRouteRouteWithChildren
@@ -245,6 +254,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/batch-nutrition'
+    | '/graphql'
     | '/meal-planner'
     | '/shopping-list'
     | '/testing/errors'
@@ -271,6 +281,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/batch-nutrition'
+    | '/graphql'
     | '/meal-planner'
     | '/shopping-list'
     | '/categories/$slug'
@@ -296,6 +307,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/batch-nutrition'
+    | '/graphql'
     | '/meal-planner'
     | '/shopping-list'
     | '/testing/errors'
@@ -323,6 +335,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BatchNutritionRoute: typeof BatchNutritionRoute
+  GraphqlRoute: typeof GraphqlRoute
   MealPlannerRoute: typeof MealPlannerRoute
   ShoppingListRoute: typeof ShoppingListRoute
   TestingErrorsRouteRoute: typeof TestingErrorsRouteRouteWithChildren
@@ -352,6 +365,13 @@ declare module '@tanstack/react-router' {
       path: '/meal-planner'
       fullPath: '/meal-planner'
       preLoaderRoute: typeof MealPlannerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/graphql': {
+      id: '/graphql'
+      path: '/graphql'
+      fullPath: '/graphql'
+      preLoaderRoute: typeof GraphqlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/batch-nutrition': {
@@ -541,6 +561,7 @@ const TestingErrorsRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BatchNutritionRoute: BatchNutritionRoute,
+  GraphqlRoute: GraphqlRoute,
   MealPlannerRoute: MealPlannerRoute,
   ShoppingListRoute: ShoppingListRoute,
   TestingErrorsRouteRoute: TestingErrorsRouteRouteWithChildren,
