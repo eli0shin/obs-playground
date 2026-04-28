@@ -18,11 +18,24 @@ function normalizeBaseUrl(base: string): string {
   return `http://${trimmedBase}`;
 }
 
+const PREVIEW_SERVICE_MAP: Record<keyof RuntimeEnv, string> = {
+  GRAPHQL_BASE_URL: "obs-graphql",
+  EXPRESS_BASE_URL: "obs-express",
+};
+
+function getPreviewUrl(key: keyof RuntimeEnv): string | undefined {
+  const externalUrl = process.env.RENDER_EXTERNAL_URL;
+  if (!externalUrl) return undefined;
+  const previewSuffix =
+    externalUrl.match(/-pr-\d+(?=\.onrender\.com)/)?.[0] ?? "";
+  return `https://${PREVIEW_SERVICE_MAP[key]}${previewSuffix}.onrender.com`;
+}
+
 function getEnv(key: keyof RuntimeEnv): string | undefined {
   if (globalThis.__ENV?.[key] !== undefined) return globalThis.__ENV[key];
   if (typeof process === "undefined") return undefined;
   if (process.env.IS_PULL_REQUEST === "true") {
-    return process.env[`${key}_STAGE`] ?? process.env[key];
+    return getPreviewUrl(key) ?? process.env[key];
   }
   return process.env[key];
 }
