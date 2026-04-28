@@ -4,7 +4,6 @@ type RuntimeEnv = {
 };
 
 declare global {
-  // eslint-disable-next-line no-var
   var __ENV: RuntimeEnv | undefined;
 }
 
@@ -18,10 +17,10 @@ function normalizeBaseUrl(base: string): string {
   return `http://${trimmedBase}`;
 }
 
-const PREVIEW_SERVICE_MAP: Record<keyof RuntimeEnv, string> = {
+const PREVIEW_SERVICE_MAP = {
   GRAPHQL_BASE_URL: "obs-graphql",
   EXPRESS_BASE_URL: "obs-express",
-};
+} satisfies Record<keyof RuntimeEnv, string>;
 
 function getPreviewUrl(key: keyof RuntimeEnv): string | undefined {
   const externalUrl = process.env.RENDER_EXTERNAL_URL;
