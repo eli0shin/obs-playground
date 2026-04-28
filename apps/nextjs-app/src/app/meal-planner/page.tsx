@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getExpressUrl } from "@obs-playground/env";
 import { z } from "zod";
-import { logger } from "@/otel";
+import { logger } from "@/logger";
 
 const recipeCostSchema = z.object({
   recipeId: z.string(),

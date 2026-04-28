@@ -2,7 +2,7 @@ import Link from "next/link";
 import { trace } from "@opentelemetry/api";
 import { getExpressUrl } from "@obs-playground/env";
 import { z } from "zod";
-import { logger } from "@/otel";
+import { logger } from "@/logger";
 
 const shoppingListItemSchema = z.object({
   ingredientId: z.string(),

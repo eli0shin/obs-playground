@@ -3,7 +3,7 @@ import { graphqlRequest } from "@obs-playground/graphql-client";
 import { RecipeDetailDocument } from "@obs-playground/graphql-client/documents";
 import { getExpressUrl } from "@obs-playground/env";
 import { z } from "zod";
-import { logger } from "@/otel";
+import { logger } from "@/logger";
 
 const pricesSchema = z.record(z.string(), z.number());
 
