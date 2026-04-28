@@ -14,7 +14,7 @@ import {
   UpdateRecipeDocument,
 } from "@obs-playground/graphql-client/documents";
 import { z } from "zod";
-import { logger } from "@/otel";
+import { logger } from "@/logger";
 
 type ServerAction<TArgs extends unknown[], TReturn> = (
   ...args: TArgs

@@ -1,4 +1,5 @@
-import { logger } from "./src/otel";
+import "./src/otel";
+import { logger } from "./src/logger";
 import express from "express";
 import next from "next";
 import { fileURLToPath } from "node:url";

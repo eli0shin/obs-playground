@@ -2,7 +2,7 @@ import { initializeOtel } from "@obs-playground/otel";
 
 process.env.NEXT_OTEL_FETCH_DISABLED = "1";
 
-export const { logger } = initializeOtel({
+initializeOtel({
   serviceName: process.env.CUSTOM_SERVER
     ? "nextjs-custom-server"
     : "nextjs-app",

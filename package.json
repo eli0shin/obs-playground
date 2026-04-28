@@ -16,6 +16,7 @@
     "dev:dd": "bash scripts/dev.sh dd",
     "start": "bash scripts/start.sh",
     "build": "turbo run build && npm run build:custom -w nextjs-app",
+    "build:packages": "turbo run build --filter='./packages/*'",
     "type-check": "turbo run type-check",
     "lint": "turbo run lint && npm run graphql:lint",
     "graphql:codegen": "graphql-codegen --config codegen.mjs",

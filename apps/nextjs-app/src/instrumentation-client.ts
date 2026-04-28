@@ -2,6 +2,17 @@ import { datadogLogs } from "@datadog/browser-logs";
 import { datadogRum } from "@datadog/browser-rum";
 import { reactPlugin } from "@datadog/browser-rum-react";
 
+function getRootDomain(hostname: string) {
+  const parts = hostname.split(".");
+  if (parts.length <= 2) return hostname;
+  return parts.slice(-2).join(".");
+}
+
+function matchesTraceDomain(hostname: string) {
+  const rootDomain = getRootDomain(window.location.hostname);
+  return hostname === rootDomain || hostname.endsWith(`.${rootDomain}`);
+}
+
 datadogLogs.init({
   clientToken: process.env.NEXT_PUBLIC_DATADOG_CLIENT_TOKEN ?? "",
   site: "datadoghq.com",
@@ -33,7 +44,7 @@ datadogRum.init({
         if (parsedUrl.pathname.startsWith("/_")) {
           return false;
         }
-        if (parsedUrl.hostname !== window.location.hostname) {
+        if (!matchesTraceDomain(parsedUrl.hostname)) {
           return false;
         }
         return true;
