@@ -76,6 +76,7 @@ export const getRecipe = createServerFn({ method: "GET" })
             cookTime
             difficulty
             servings
+            categoryId
             ingredients {
               ingredient {
                 id

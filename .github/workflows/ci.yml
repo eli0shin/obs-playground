@@ -62,16 +62,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Generate SSL certificates
-        run: bash scripts/generate-cert.sh
-
       - name: Create .env files
         run: |
           cat > .env << EOF
-          # Service URLs
-          GRAPHQL_BASE_URL=http://localhost:4000
-          EXPRESS_BASE_URL=http://localhost:3001
-
           # OTEL backends
           HONEYCOMB_ENDPOINT=${{ secrets.HONEYCOMB_ENDPOINT }}
           HONEYCOMB_API_KEY=${{ secrets.HONEYCOMB_API_KEY }}
@@ -84,10 +77,6 @@ jobs:
           EOF
 
           cat > apps/nextjs-app/.env.local << EOF
-          # Service URLs
-          GRAPHQL_BASE_URL=http://localhost:4000
-          EXPRESS_BASE_URL=http://localhost:3001
-
           # OTEL backends
           HONEYCOMB_ENDPOINT=${{ secrets.HONEYCOMB_ENDPOINT }}
           HONEYCOMB_API_KEY=${{ secrets.HONEYCOMB_API_KEY }}
@@ -120,17 +109,20 @@ jobs:
         run: npm run build
 
       - name: Start all services
-        run: PROXY_PORT=3443 PROXY_PORT_CUSTOM=8443 npm start &
+        run: npm start &
         env:
           CI: true
+          PORTLESS_HTTPS: 0
+          PORTLESS_PORT: 8080
 
       - name: Wait for services to be healthy
         run: |
+          eval "$(node scripts/portless-env.mjs shell)"
           echo "Waiting for services to start..."
 
           # Wait for Express server
           for i in {1..60}; do
-            if curl -s http://localhost:3001/health > /dev/null 2>&1; then
+            if curl -s "${EXPRESS_BASE_URL}/health" > /dev/null 2>&1; then
               echo "Express server is ready"
               break
             fi
@@ -141,7 +133,7 @@ jobs:
 
           # Wait for GraphQL server
           for i in {1..60}; do
-            if curl -s -X POST http://localhost:4000/graphql -H 'Content-Type: application/json' -d '{"query":"{__typename}"}' > /dev/null 2>&1; then
+            if curl -s -X POST "${GRAPHQL_BASE_URL}/graphql" -H 'Content-Type: application/json' -d '{"query":"{__typename}"}' > /dev/null 2>&1; then
               echo "GraphQL server is ready"
               break
             fi
@@ -150,34 +142,49 @@ jobs:
             sleep 1
           done
 
-          # Wait for normal mode proxy
+          # Wait for normal mode URL
           for i in {1..60}; do
-            if curl -ks https://localhost:3443 > /dev/null 2>&1; then
-              echo "Normal mode proxy is ready"
+            if curl -s "${BASE_URL}" > /dev/null 2>&1; then
+              echo "Normal mode URL is ready"
               break
             fi
-            if [ "$i" -eq 60 ]; then echo "Normal mode proxy failed to start" && exit 1; fi
-            echo "Waiting for normal mode proxy... ($i/60)"
+            if [ "$i" -eq 60 ]; then echo "Normal mode URL failed to start" && exit 1; fi
+            echo "Waiting for normal mode URL... ($i/60)"
             sleep 1
           done
 
-          # Wait for custom mode proxy
+          # Wait for custom mode URL
           for i in {1..60}; do
-            if curl -ks https://localhost:8443 > /dev/null 2>&1; then
-              echo "Custom mode proxy is ready"
+            if curl -s "${CUSTOM_URL}" > /dev/null 2>&1; then
+              echo "Custom mode URL is ready"
               break
             fi
-            if [ "$i" -eq 60 ]; then echo "Custom mode proxy failed to start" && exit 1; fi
-            echo "Waiting for custom mode proxy... ($i/60)"
+            if [ "$i" -eq 60 ]; then echo "Custom mode URL failed to start" && exit 1; fi
+            echo "Waiting for custom mode URL... ($i/60)"
+            sleep 1
+          done
+
+          # Wait for TanStack URL
+          for i in {1..60}; do
+            if curl -s "${TANSTACK_URL}" > /dev/null 2>&1; then
+              echo "TanStack URL is ready"
+              break
+            fi
+            if [ "$i" -eq 60 ]; then echo "TanStack URL failed to start" && exit 1; fi
+            echo "Waiting for TanStack URL... ($i/60)"
             sleep 1
           done
 
           echo "All services are ready!"
+        env:
+          PORTLESS_HTTPS: 0
+          PORTLESS_PORT: 8080
 
       - name: Run Playwright tests (normal mode)
         run: npm run playwright:normal
         env:
-          NORMAL_URL: https://localhost:3443
+          PORTLESS_HTTPS: 0
+          PORTLESS_PORT: 8080
           PLAYWRIGHT_OUTPUT_DIR: test-results-normal
           PLAYWRIGHT_HTML_REPORT: playwright-report-normal
 
@@ -195,7 +202,8 @@ jobs:
       - name: Run Playwright tests (custom mode)
         run: npm run playwright:custom
         env:
-          CUSTOM_URL: https://localhost:8443
+          PORTLESS_HTTPS: 0
+          PORTLESS_PORT: 8080
           PLAYWRIGHT_OUTPUT_DIR: test-results-custom
           PLAYWRIGHT_HTML_REPORT: playwright-report-custom
 
@@ -207,5 +215,24 @@ jobs:
           path: |
             packages/playwright-tests/test-results-custom
             packages/playwright-tests/playwright-report-custom
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Run Playwright tests (TanStack)
+        run: npm run playwright:tanstack
+        env:
+          PORTLESS_HTTPS: 0
+          PORTLESS_PORT: 8080
+          PLAYWRIGHT_OUTPUT_DIR: test-results-tanstack
+          PLAYWRIGHT_HTML_REPORT: playwright-report-tanstack
+
+      - name: Upload Playwright artifacts (TanStack)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-tanstack
+          path: |
+            packages/playwright-tests/test-results-tanstack
+            packages/playwright-tests/playwright-report-tanstack
           retention-days: 7
           if-no-files-found: ignore

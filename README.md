@@ -4,10 +4,12 @@ A multi-service reference implementation demonstrating distributed tracing with 
 
 ## Architecture
 
-- **Next.js** (port 3000) - Frontend UI
-- **Express API** (port 3001) - REST endpoints for pricing, nutrition, inventory
-- **GraphQL Server** (port 4000) - Apollo Server with recipe schema
-- **HTTPS Proxy** (port 443) - Unified development server
+- **Next.js** - Frontend UI
+- **Next.js custom server** - Alternate frontend tracing path
+- **Express API** - REST endpoints for pricing, nutrition, inventory
+- **GraphQL Server** - Apollo Server with recipe schema
+- **TanStack Start** - Alternate frontend
+- **Portless** - Worktree-aware named development URLs
 
 Services export traces to Honeycomb, Grafana Cloud, Sentry, and Datadog.
 
@@ -31,13 +33,6 @@ cp .env.example .env
 # Edit .env and replace all placeholder values with your actual API keys
 ```
 
-3. Generate HTTPS certificates (optional, for proxy):
-
-```bash
-mkdir certs
-# Add key.pem and cert.pem to certs/ directory
-```
-
 ## Running
 
 Start all services:
@@ -49,10 +44,14 @@ npm run dev:dd     # With built-in Next.js server and Datadog native tracing
 
 Access the app:
 
-- HTTPS Proxy: https://localhost (requires certificates)
-- Next.js: http://localhost:3000
-- Express API: http://localhost:3001
-- GraphQL Playground: http://localhost:4000/graphql
+- Next.js: https://obs-playground.localhost
+- Next.js custom server: https://custom.obs-playground.localhost
+- Express API: https://api.obs-playground.localhost
+- GraphQL Playground: https://graphql.obs-playground.localhost/graphql
+- TanStack Start: https://tanstack.obs-playground.localhost
+
+Linked git worktrees get the branch name as a subdomain prefix, for example
+`https://my-branch.obs-playground.localhost`.
 
 Using native Datadog tracing requires that you have the datadog agent setup locally with opentelemetry ingest/egress enabled.
 
