@@ -33,6 +33,7 @@ import { Route as TestingClientBrokenApiRouteImport } from './routes/testing/cli
 import { Route as RecipesIdWithCostRouteImport } from './routes/recipes/$id/with-cost'
 import { Route as RecipesIdNutritionRouteImport } from './routes/recipes/$id/nutrition'
 import { Route as RecipesIdFullRouteImport } from './routes/recipes/$id/full'
+import { Route as RecipesIdEditRouteImport } from './routes/recipes/$id/edit'
 
 const ShoppingListRoute = ShoppingListRouteImport.update({
   id: '/shopping-list',
@@ -161,6 +162,11 @@ const RecipesIdFullRoute = RecipesIdFullRouteImport.update({
   path: '/recipes/$id/full',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RecipesIdEditRoute = RecipesIdEditRouteImport.update({
+  id: '/recipes/$id/edit',
+  path: '/recipes/$id/edit',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -171,6 +177,7 @@ export interface FileRoutesByFullPath {
   '/categories/$slug': typeof CategoriesSlugRoute
   '/recipes/compare': typeof RecipesCompareRoute
   '/recipes/new': typeof RecipesNewRoute
+  '/recipes/$id/edit': typeof RecipesIdEditRoute
   '/recipes/$id/full': typeof RecipesIdFullRoute
   '/recipes/$id/nutrition': typeof RecipesIdNutritionRoute
   '/recipes/$id/with-cost': typeof RecipesIdWithCostRoute
@@ -196,6 +203,7 @@ export interface FileRoutesByTo {
   '/categories/$slug': typeof CategoriesSlugRoute
   '/recipes/compare': typeof RecipesCompareRoute
   '/recipes/new': typeof RecipesNewRoute
+  '/recipes/$id/edit': typeof RecipesIdEditRoute
   '/recipes/$id/full': typeof RecipesIdFullRoute
   '/recipes/$id/nutrition': typeof RecipesIdNutritionRoute
   '/recipes/$id/with-cost': typeof RecipesIdWithCostRoute
@@ -223,6 +231,7 @@ export interface FileRoutesById {
   '/categories/$slug': typeof CategoriesSlugRoute
   '/recipes/compare': typeof RecipesCompareRoute
   '/recipes/new': typeof RecipesNewRoute
+  '/recipes/$id/edit': typeof RecipesIdEditRoute
   '/recipes/$id/full': typeof RecipesIdFullRoute
   '/recipes/$id/nutrition': typeof RecipesIdNutritionRoute
   '/recipes/$id/with-cost': typeof RecipesIdWithCostRoute
@@ -251,6 +260,7 @@ export interface FileRouteTypes {
     | '/categories/$slug'
     | '/recipes/compare'
     | '/recipes/new'
+    | '/recipes/$id/edit'
     | '/recipes/$id/full'
     | '/recipes/$id/nutrition'
     | '/recipes/$id/with-cost'
@@ -276,6 +286,7 @@ export interface FileRouteTypes {
     | '/categories/$slug'
     | '/recipes/compare'
     | '/recipes/new'
+    | '/recipes/$id/edit'
     | '/recipes/$id/full'
     | '/recipes/$id/nutrition'
     | '/recipes/$id/with-cost'
@@ -302,6 +313,7 @@ export interface FileRouteTypes {
     | '/categories/$slug'
     | '/recipes/compare'
     | '/recipes/new'
+    | '/recipes/$id/edit'
     | '/recipes/$id/full'
     | '/recipes/$id/nutrition'
     | '/recipes/$id/with-cost'
@@ -329,6 +341,7 @@ export interface RootRouteChildren {
   CategoriesSlugRoute: typeof CategoriesSlugRoute
   RecipesCompareRoute: typeof RecipesCompareRoute
   RecipesNewRoute: typeof RecipesNewRoute
+  RecipesIdEditRoute: typeof RecipesIdEditRoute
   RecipesIdFullRoute: typeof RecipesIdFullRoute
   RecipesIdNutritionRoute: typeof RecipesIdNutritionRoute
   RecipesIdWithCostRoute: typeof RecipesIdWithCostRoute
@@ -508,6 +521,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RecipesIdFullRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/recipes/$id/edit': {
+      id: '/recipes/$id/edit'
+      path: '/recipes/$id/edit'
+      fullPath: '/recipes/$id/edit'
+      preLoaderRoute: typeof RecipesIdEditRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -547,6 +567,7 @@ const rootRouteChildren: RootRouteChildren = {
   CategoriesSlugRoute: CategoriesSlugRoute,
   RecipesCompareRoute: RecipesCompareRoute,
   RecipesNewRoute: RecipesNewRoute,
+  RecipesIdEditRoute: RecipesIdEditRoute,
   RecipesIdFullRoute: RecipesIdFullRoute,
   RecipesIdNutritionRoute: RecipesIdNutritionRoute,
   RecipesIdWithCostRoute: RecipesIdWithCostRoute,

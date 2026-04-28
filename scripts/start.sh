@@ -5,13 +5,14 @@
 
 set -e
 
+eval "$(node scripts/portless-env.mjs shell)"
+
 # Start all services in production mode
 npx concurrently \
-  --names "NEXT,CUSTOM,EXPRESS,GRAPHQL,TANSTACK,PROXY" \
-  --prefix-colors "cyan,red,magenta,yellow,#ff6600,green" \
-  "cd apps/nextjs-app && PORT=3000 npm run start" \
-  "cd apps/nextjs-app && CUSTOM_SERVER=true NODE_ENV=production PORT=3002 tsx server.ts" \
-  "cd apps/express-server && PORT=3001 node --env-file=../../.env dist/index.js" \
-  "cd apps/graphql-server && PORT=4000 node --env-file=../../.env dist/index.js" \
-  "cd apps/tanstack-start && PORT=3100 npm run start" \
-  "tsx dev-proxy.ts"
+  --names "NEXT,CUSTOM,EXPRESS,GRAPHQL,TANSTACK" \
+  --prefix-colors "cyan,red,magenta,yellow,#ff6600" \
+  "npx portless run --name obs-playground npm run start --workspace=nextjs-app" \
+  "CUSTOM_SERVER=true NODE_ENV=production npx portless run --name custom.obs-playground npm run start:custom --workspace=nextjs-app" \
+  "npx portless run --name api.obs-playground bash -lc 'cd apps/express-server && node --env-file=../../.env dist/index.js'" \
+  "npx portless run --name graphql.obs-playground bash -lc 'cd apps/graphql-server && node --env-file=../../.env dist/index.js'" \
+  "npx portless run --name tanstack.obs-playground npm run start --workspace=tanstack-start"

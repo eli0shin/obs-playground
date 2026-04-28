@@ -20,7 +20,7 @@ export default defineConfig({
     ],
   ],
   use: {
-    baseURL: process.env.BASE_URL || "https://localhost",
+    baseURL: process.env.BASE_URL || "https://obs-playground.localhost",
     trace: "on",
     screenshot: "only-on-failure",
     ignoreHTTPSErrors: true,

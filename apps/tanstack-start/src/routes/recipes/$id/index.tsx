@@ -1,5 +1,6 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { getRecipe } from "../../../server-fns/recipes";
+import { deleteRecipe } from "../../../server-fns/mutations";
 
 export const Route = createFileRoute("/recipes/$id/")({
   loader: ({ params }) => getRecipe({ data: params.id }),
@@ -8,6 +9,7 @@ export const Route = createFileRoute("/recipes/$id/")({
 
 function RecipePage() {
   const recipe = Route.useLoaderData();
+  const navigate = useNavigate();
 
   if (!recipe) {
     return (
@@ -36,6 +38,26 @@ function RecipePage() {
         >
           &larr; Back to recipes
         </Link>
+
+        <div className="mb-6 flex gap-4">
+          <Link
+            to="/recipes/$id/edit"
+            params={{ id: recipe.id }}
+            className="rounded-md bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700"
+          >
+            Edit
+          </Link>
+          <button
+            type="button"
+            onClick={async () => {
+              await deleteRecipe({ data: recipe.id });
+              await navigate({ to: "/" });
+            }}
+            className="rounded-md bg-red-600 px-4 py-2 font-medium text-white hover:bg-red-700"
+          >
+            Delete
+          </button>
+        </div>
 
         <article className="rounded-lg border border-zinc-200 bg-white p-8 dark:border-zinc-700 dark:bg-zinc-800">
           <header className="mb-8">

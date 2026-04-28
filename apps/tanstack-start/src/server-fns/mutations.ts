@@ -5,6 +5,8 @@ import { trace, SpanStatusCode } from "@opentelemetry/api";
 import { z } from "zod";
 import type { CreateRecipeInput } from "../types";
 
+type RecipeInput = CreateRecipeInput["recipe"];
+
 export const createRecipe = createServerFn({ method: "POST" })
   .inputValidator((data: CreateRecipeInput) => data)
   .handler(async ({ data }) => {
@@ -76,6 +78,41 @@ export const deleteRecipe = createServerFn({ method: "POST" })
     }
 
     return success;
+  });
+
+export const updateRecipe = createServerFn({ method: "POST" })
+  .inputValidator((data: { id: string; recipe: RecipeInput }) => data)
+  .handler(async ({ data }) => {
+    const activeSpan = trace.getActiveSpan();
+    activeSpan?.setAttributes({
+      "recipe.action": "update",
+      "recipe.id": data.id,
+      "recipe.title": data.recipe.title,
+      "recipe.difficulty": data.recipe.difficulty,
+      "recipe.prep_time": data.recipe.prepTime,
+      "recipe.cook_time": data.recipe.cookTime,
+    });
+
+    const result = await graphqlRequest<{
+      updateRecipe: { id: string; title: string; description: string } | null;
+    }>(
+      `
+        mutation UpdateRecipe($id: ID!, $recipe: RecipeInput!) {
+          updateRecipe(id: $id, recipe: $recipe) {
+            id
+            title
+            description
+          }
+        }
+      `,
+      data,
+    );
+
+    if (!result.updateRecipe) {
+      throw new Error("Failed to update recipe");
+    }
+
+    return result.updateRecipe;
   });
 
 export const brokenCreateRecipe = createServerFn({
