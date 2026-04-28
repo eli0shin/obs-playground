@@ -71,8 +71,6 @@ jobs:
           # Service URLs
           GRAPHQL_BASE_URL=http://localhost:4000
           EXPRESS_BASE_URL=http://localhost:3001
-          NEXT_PUBLIC_GRAPHQL_BASE_URL=https://localhost:3443
-          NEXT_PUBLIC_EXPRESS_BASE_URL=https://localhost:3443
 
           # OTEL backends
           HONEYCOMB_ENDPOINT=${{ secrets.HONEYCOMB_ENDPOINT }}
@@ -89,8 +87,6 @@ jobs:
           # Service URLs
           GRAPHQL_BASE_URL=http://localhost:4000
           EXPRESS_BASE_URL=http://localhost:3001
-          NEXT_PUBLIC_GRAPHQL_BASE_URL=https://localhost:3443
-          NEXT_PUBLIC_EXPRESS_BASE_URL=https://localhost:3443
 
           # OTEL backends
           HONEYCOMB_ENDPOINT=${{ secrets.HONEYCOMB_ENDPOINT }}

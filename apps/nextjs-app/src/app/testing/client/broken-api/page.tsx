@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { z } from "zod";
 import { datadogLogs } from "@datadog/browser-logs";
+import { getExpressUrl } from "@obs-playground/env";
 
 const apiResponseSchema = z.record(z.string(), z.unknown());
 
@@ -20,7 +21,7 @@ export default function BrokenAPIPage() {
     setResponse(null);
 
     const fetchStart = Date.now();
-    const url = "/api/error/test";
+    const url = `${getExpressUrl()}/api/error/test`;
     try {
       const res = await fetch(url);
 
@@ -57,7 +58,7 @@ export default function BrokenAPIPage() {
     setResponse(null);
 
     const fetchStart = Date.now();
-    const url = "/api/error/not-found";
+    const url = `${getExpressUrl()}/api/error/not-found`;
     try {
       const res = await fetch(url);
       const json: unknown = await res.json();
@@ -97,7 +98,7 @@ export default function BrokenAPIPage() {
     setResponse(null);
 
     const fetchStart = Date.now();
-    const url = "/api/error/validation";
+    const url = `${getExpressUrl()}/api/error/validation`;
     try {
       const res = await fetch(url);
       const json: unknown = await res.json();

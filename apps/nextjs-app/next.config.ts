@@ -10,7 +10,6 @@ const nextConfig = {
     "import-in-the-middle",
     "require-in-the-middle",
   ],
-  /* config options here */
 } satisfies NextConfig;
 
 export default nextConfig;
