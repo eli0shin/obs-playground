@@ -6,7 +6,12 @@ import { useState, type ReactNode } from "react";
 import { trpc } from "./client";
 
 export function TrpcProvider({ children }: { children: ReactNode }) {
-  const [queryClient] = useState(() => new QueryClient());
+  const [queryClient] = useState(
+    () =>
+      new QueryClient({
+        defaultOptions: { queries: { retry: false } },
+      }),
+  );
   const [trpcClient] = useState(() =>
     trpc.createClient({
       links: [

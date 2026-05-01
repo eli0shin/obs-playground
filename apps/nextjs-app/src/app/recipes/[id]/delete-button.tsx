@@ -5,10 +5,11 @@ import { trpc } from "@/trpc/client";
 
 export function DeleteRecipeButton({ id }: { id: string }) {
   const router = useRouter();
+  const utils = trpc.useUtils();
   const deleteRecipe = trpc.recipe.delete.useMutation({
-    onSuccess: () => {
+    onSuccess: async () => {
+      await utils.home.recipesAndCategories.invalidate();
       router.push("/");
-      router.refresh();
     },
   });
 

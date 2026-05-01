@@ -27,7 +27,10 @@ export const appRouter = t.router({
         );
 
         if (!success) {
-          throw new Error("Failed to delete recipe");
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Failed to delete recipe",
+          });
         }
 
         return { success };
