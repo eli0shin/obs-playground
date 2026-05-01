@@ -53,5 +53,13 @@ test.describe("Recipe CRUD", () => {
     await page.getByRole("button", { name: /Delete/i }).click();
 
     await page.waitForURL("/");
+
+    await expect(
+      page.getByRole("heading", { level: 2, name: "All Recipes" }),
+    ).toBeVisible({ timeout: 15000 });
+
+    await expect(
+      page.getByRole("heading", { level: 3, name: title }),
+    ).toHaveCount(0);
   });
 });
