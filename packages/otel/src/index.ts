@@ -98,5 +98,6 @@ export function initializeOtel(config: OtelConfig): OtelResult {
 }
 
 export { createLogger } from "./logger.js";
+export { recordExceptionWithCauses } from "./record-exception.js";
 export type { Logger } from "./logger.js";
 export type { OtelConfig, OtelResult } from "./types.js";
