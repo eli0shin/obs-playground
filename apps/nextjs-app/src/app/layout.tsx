@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { getRuntimeEnv } from "@obs-playground/env";
+import { TrpcProvider } from "@/trpc/provider";
 import "./globals.css";
 
 // Force all pages to be dynamically rendered at runtime
@@ -46,7 +47,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <TrpcProvider>{children}</TrpcProvider>
       </body>
     </html>
   );
