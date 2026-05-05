@@ -14,7 +14,8 @@
     "build": "tsc",
     "dev": "tsc --watch --preserveWatchOutput",
     "type-check": "tsc --noEmit",
-    "lint": "eslint src"
+    "lint": "eslint src",
+    "test": "vitest --exclude 'dist/**'"
   },
   "dependencies": {
     "@obs-playground/otel": "*",
@@ -25,6 +26,7 @@
   "devDependencies": {
     "@types/node": "^25.0.1",
     "eslint": "^9.39.2",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.5"
   }
 }

@@ -55,14 +55,14 @@ export function tracing(options: TracingOptions = {}): TracingMiddleware {
       },
       async (span) => {
         try {
-          const result = await opts.next();
-
           if (options.collectInput) {
             const rawInput = await opts.getRawInput();
             if (rawInput !== null && typeof rawInput === "object") {
               span.setAttributes(flatten({ input: rawInput }));
             }
           }
+
+          const result = await opts.next();
 
           if (!result.ok) {
             span.setStatus({
