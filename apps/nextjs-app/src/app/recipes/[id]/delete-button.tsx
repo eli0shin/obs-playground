@@ -14,13 +14,20 @@ export function DeleteRecipeButton({ id }: { id: string }) {
   });
 
   return (
-    <button
-      type="button"
-      disabled={deleteRecipe.isPending}
-      onClick={() => deleteRecipe.mutate({ id })}
-      className="w-full rounded-md border border-red-300 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-950"
-    >
-      {deleteRecipe.isPending ? "Deleting..." : "Delete"}
-    </button>
+    <div>
+      <button
+        type="button"
+        disabled={deleteRecipe.isPending}
+        onClick={() => deleteRecipe.mutate({ id })}
+        className="w-full rounded-md border border-red-300 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-950"
+      >
+        {deleteRecipe.isPending ? "Deleting..." : "Delete"}
+      </button>
+      {deleteRecipe.isError ? (
+        <p className="mt-2 text-sm text-red-600 dark:text-red-400">
+          Failed to delete: {deleteRecipe.error.message}
+        </p>
+      ) : null}
+    </div>
   );
 }

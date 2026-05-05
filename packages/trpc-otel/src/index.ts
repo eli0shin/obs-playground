@@ -54,21 +54,37 @@ export function tracing(options: TracingOptions = {}): TracingMiddleware {
         kind: SpanKind.SERVER,
       },
       async (span) => {
-        const result = await opts.next();
+        try {
+          const result = await opts.next();
 
-        const rawInput = await opts.getRawInput();
-        if (options.collectInput && typeof rawInput === "object") {
-          span.setAttributes(flatten({ input: rawInput }));
-        }
-        if (!result.ok) {
+          if (options.collectInput) {
+            const rawInput = await opts.getRawInput();
+            if (rawInput !== null && typeof rawInput === "object") {
+              span.setAttributes(flatten({ input: rawInput }));
+            }
+          }
+
+          if (!result.ok) {
+            span.setStatus({
+              code: SpanStatusCode.ERROR,
+              message: result.error.message,
+            });
+            recordExceptionWithCauses(span, result.error);
+          }
+
+          return result;
+        } catch (error) {
           span.setStatus({
             code: SpanStatusCode.ERROR,
-            message: result.error.message,
+            message: error instanceof Error ? error.message : undefined,
           });
-          recordExceptionWithCauses(span, result.error);
+          if (error instanceof Error) {
+            recordExceptionWithCauses(span, error);
+          }
+          throw error;
+        } finally {
+          span.end();
         }
-        span.end();
-        return result;
       },
     );
   };

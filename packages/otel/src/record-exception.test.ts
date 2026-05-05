@@ -4,14 +4,33 @@ import { recordExceptionWithCauses } from "./record-exception.js";
 
 function createSpanRecorder() {
   const exceptions: Exception[] = [];
+  function returnSpan(this: Span) {
+    return this;
+  }
+
+  const span = {
+    addEvent: returnSpan,
+    addLink: returnSpan,
+    addLinks: returnSpan,
+    end: () => undefined,
+    isRecording: () => true,
+    recordException: (exception: Exception) => {
+      exceptions.push(exception);
+    },
+    setAttribute: returnSpan,
+    setAttributes: returnSpan,
+    setStatus: returnSpan,
+    spanContext: () => ({
+      spanId: "0000000000000000",
+      traceFlags: 0,
+      traceId: "00000000000000000000000000000000",
+    }),
+    updateName: returnSpan,
+  } satisfies Span;
 
   return {
     exceptions,
-    span: {
-      recordException: (exception: Exception) => {
-        exceptions.push(exception);
-      },
-    } as Span,
+    span,
   };
 }
 
