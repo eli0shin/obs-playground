@@ -52,7 +52,12 @@ test.describe("Client-Side Actions", () => {
   });
 
   test.describe("broken tRPC page", () => {
-    test("click all tRPC error buttons", async ({ page }) => {
+    test("click all tRPC error buttons", async ({ page, baseURL }) => {
+      test.skip(
+        baseURL?.includes("tanstack.") ?? false,
+        "TanStack app does not expose the Next.js tRPC test route or API",
+      );
+
       const observedStatus = new Map<string, number>();
       page.on("response", (response) => {
         const url = response.url();
