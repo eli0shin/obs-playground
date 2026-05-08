@@ -4,6 +4,23 @@ test.describe("Main Pages", () => {
   test("home page", async ({ page }) => {
     await page.goto("/");
     await page.waitForLoadState("networkidle");
+
+    await expect(
+      page.getByRole("heading", {
+        level: 1,
+        name: /Recipe .* Meal Planning/i,
+      }),
+    ).toBeVisible();
+
+    await expect(
+      page.getByRole("heading", { level: 2, name: "Browse by Category" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("heading", { level: 2, name: "All Recipes" }),
+    ).toBeVisible();
+
+    await expect(page.getByRole("heading", { name: "Breakfast" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Pancakes" })).toBeVisible();
   });
 
   test("recipe detail pages", async ({ page }) => {

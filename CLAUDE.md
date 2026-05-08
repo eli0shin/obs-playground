@@ -41,6 +41,8 @@ npm run type-check
 npm run lint
 ```
 
+ALWAYS run lint and type-check for the entire project after making a change.
+
 ## Code Conventions
 
 **TypeScript:**

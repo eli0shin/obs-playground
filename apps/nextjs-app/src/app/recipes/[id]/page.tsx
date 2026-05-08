@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { graphqlRequest } from "@obs-playground/graphql-client";
-import { deleteRecipeAction } from "../actions";
 import { RecipeDetailDocument } from "@obs-playground/graphql-client/documents";
+import { DeleteRecipeButton } from "./delete-button";
 
 async function getRecipe(id: string) {
   const data = await graphqlRequest(RecipeDetailDocument, { id });
@@ -63,14 +63,7 @@ export default async function RecipePage({
                 >
                   Edit
                 </Link>
-                <form action={deleteRecipeAction.bind(null, recipe.id)}>
-                  <button
-                    type="submit"
-                    className="w-full rounded-md border border-red-300 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-950"
-                  >
-                    Delete
-                  </button>
-                </form>
+                <DeleteRecipeButton id={recipe.id} />
               </div>
             </div>
 
