@@ -15,6 +15,7 @@
     "proxy": "npx portless proxy start",
     "dev": "bash scripts/dev.sh otel",
     "dev:dd": "bash scripts/dev.sh dd",
+    "dev:proxy": "sudo portless proxy start",
     "start": "bash scripts/start.sh",
     "build": "turbo run build && npm run build:custom -w nextjs-app",
     "build:packages": "turbo run build --filter='./packages/*'",
