@@ -29,12 +29,11 @@ COPY --from=builder --chown=node:node /app/node_modules ./node_modules
 COPY --from=builder --chown=node:node /app/package.json ./package.json
 COPY --from=builder --chown=node:node /app/apps/graphql-server/package.json ./apps/graphql-server/package.json
 COPY --from=builder --chown=node:node /app/apps/graphql-server/dist ./apps/graphql-server/dist
-COPY --from=builder --chown=node:node /app/apps/graphql-server/node_modules ./apps/graphql-server/node_modules
 COPY --from=builder --chown=node:node /app/packages/env/package.json ./packages/env/package.json
 COPY --from=builder --chown=node:node /app/packages/env/dist ./packages/env/dist
-COPY --from=builder --chown=node:node /app/packages/env/node_modules ./packages/env/node_modules
 COPY --from=builder --chown=node:node /app/packages/otel/package.json ./packages/otel/package.json
 COPY --from=builder --chown=node:node /app/packages/otel/dist ./packages/otel/dist
+# npm keeps conflicting OpenTelemetry production versions local to this workspace.
 COPY --from=builder --chown=node:node /app/packages/otel/node_modules ./packages/otel/node_modules
 
 USER node
