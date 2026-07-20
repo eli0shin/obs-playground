@@ -1,9 +1,15 @@
 .git
 .github
 .opencode
-.env*
-**/.env*
 .turbo
+.env
+.env.*
+**/.env
+**/.env.*
+.npmrc
+**/.npmrc
+datadog.yaml
+**/datadog.yaml
 node_modules
 apps/*/node_modules
 packages/*/node_modules
