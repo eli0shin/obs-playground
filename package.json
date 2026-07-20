@@ -32,7 +32,8 @@
     "playwright:tanstack": "eval \"$(node scripts/portless-env.mjs shell)\" && BASE_URL=${TANSTACK_URL} npm run test -w @obs-playground/playwright-tests",
     "playwright:slow": "eval \"$(node scripts/portless-env.mjs shell)\" && BASE_URL=${BASE_URL} SLOW_TESTS=true npm run test -w @obs-playground/playwright-tests",
     "playwright:repeat": "npm run test:repeat -w @obs-playground/playwright-tests",
-    "smoke:express-container": "bash deploy/docker/express/smoke-test.sh"
+    "smoke:express-container": "bash deploy/docker/express/smoke-test.sh",
+    "smoke:tanstack-container": "bash deploy/docker/tanstack/smoke-test.sh"
   },
   "keywords": [],
   "author": "elimelech.oshinsky@gmail.com",

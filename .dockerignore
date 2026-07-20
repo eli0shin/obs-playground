@@ -16,6 +16,7 @@ packages/*/node_modules
 apps/nextjs-app/.next
 apps/nextjs-app/.next-custom
 apps/nextjs-app/out
+apps/*/.output
 apps/*/dist
 packages/*/dist
 certs
