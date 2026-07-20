@@ -12,6 +12,9 @@ type ExporterCalls = {
   httpLogs: unknown[];
   httpMetrics: unknown[];
   httpTraces: unknown[];
+  protoLogs: unknown[];
+  protoMetrics: unknown[];
+  protoTraces: unknown[];
 };
 
 const exporterCalls = vi.hoisted<ExporterCalls>(() => ({
@@ -21,11 +24,20 @@ const exporterCalls = vi.hoisted<ExporterCalls>(() => ({
   httpLogs: [],
   httpMetrics: [],
   httpTraces: [],
+  protoLogs: [],
+  protoMetrics: [],
+  protoTraces: [],
 }));
 
 vi.mock("@opentelemetry/exporter-trace-otlp-http", () => ({
   OTLPTraceExporter: vi.fn(function OTLPTraceExporter(config: unknown) {
     exporterCalls.httpTraces.push(config);
+  }),
+}));
+
+vi.mock("@opentelemetry/exporter-trace-otlp-proto", () => ({
+  OTLPTraceExporter: vi.fn(function OTLPTraceExporter(config: unknown) {
+    exporterCalls.protoTraces.push(config);
   }),
 }));
 
@@ -41,6 +53,12 @@ vi.mock("@opentelemetry/exporter-logs-otlp-http", () => ({
   }),
 }));
 
+vi.mock("@opentelemetry/exporter-logs-otlp-proto", () => ({
+  OTLPLogExporter: vi.fn(function OTLPLogExporter(config: unknown) {
+    exporterCalls.protoLogs.push(config);
+  }),
+}));
+
 vi.mock("@opentelemetry/exporter-logs-otlp-grpc", () => ({
   OTLPLogExporter: vi.fn(function OTLPLogExporter(config: unknown) {
     exporterCalls.grpcLogs.push(config);
@@ -50,6 +68,12 @@ vi.mock("@opentelemetry/exporter-logs-otlp-grpc", () => ({
 vi.mock("@opentelemetry/exporter-metrics-otlp-http", () => ({
   OTLPMetricExporter: vi.fn(function OTLPMetricExporter(config: unknown) {
     exporterCalls.httpMetrics.push(config);
+  }),
+}));
+
+vi.mock("@opentelemetry/exporter-metrics-otlp-proto", () => ({
+  OTLPMetricExporter: vi.fn(function OTLPMetricExporter(config: unknown) {
+    exporterCalls.protoMetrics.push(config);
   }),
 }));
 
@@ -97,15 +121,18 @@ describe("Datadog OTLP exporters", () => {
 
     createDatadogExporters();
 
-    expect(exporterCalls.httpTraces).toEqual([
+    expect(exporterCalls.protoTraces).toEqual([
       { url: "http://datadog-agent:4318/v1/traces" },
     ]);
-    expect(exporterCalls.httpLogs).toEqual([
+    expect(exporterCalls.protoLogs).toEqual([
       { url: "http://datadog-agent:4318/v1/logs" },
     ]);
-    expect(exporterCalls.httpMetrics).toEqual([
+    expect(exporterCalls.protoMetrics).toEqual([
       { url: "http://datadog-agent:4318/v1/metrics" },
     ]);
+    expect(exporterCalls.httpTraces).toHaveLength(0);
+    expect(exporterCalls.httpLogs).toHaveLength(0);
+    expect(exporterCalls.httpMetrics).toHaveLength(0);
     expect(exporterCalls.grpcTraces).toHaveLength(0);
     expect(exporterCalls.grpcLogs).toHaveLength(0);
     expect(exporterCalls.grpcMetrics).toHaveLength(0);
@@ -129,6 +156,9 @@ describe("Datadog OTLP exporters", () => {
     expect(exporterCalls.httpTraces).toHaveLength(0);
     expect(exporterCalls.httpLogs).toHaveLength(0);
     expect(exporterCalls.httpMetrics).toHaveLength(0);
+    expect(exporterCalls.protoTraces).toHaveLength(0);
+    expect(exporterCalls.protoLogs).toHaveLength(0);
+    expect(exporterCalls.protoMetrics).toHaveLength(0);
   });
 
   it("keeps other backends on HTTP when Datadog uses gRPC", () => {
@@ -185,6 +215,9 @@ describe("Datadog OTLP exporters", () => {
         url: "https://clickstack.example/v1/metrics",
       },
     ]);
+    expect(exporterCalls.protoTraces).toHaveLength(0);
+    expect(exporterCalls.protoLogs).toHaveLength(0);
+    expect(exporterCalls.protoMetrics).toHaveLength(0);
   });
 
   it("rejects unsupported protocols", () => {

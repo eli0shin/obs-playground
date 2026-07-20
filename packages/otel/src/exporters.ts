@@ -1,8 +1,11 @@
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
+import { OTLPTraceExporter as OTLPProtoTraceExporter } from "@opentelemetry/exporter-trace-otlp-proto";
 import { OTLPTraceExporter as OTLPGrpcTraceExporter } from "@opentelemetry/exporter-trace-otlp-grpc";
 import { OTLPLogExporter } from "@opentelemetry/exporter-logs-otlp-http";
+import { OTLPLogExporter as OTLPProtoLogExporter } from "@opentelemetry/exporter-logs-otlp-proto";
 import { OTLPLogExporter as OTLPGrpcLogExporter } from "@opentelemetry/exporter-logs-otlp-grpc";
 import { OTLPMetricExporter } from "@opentelemetry/exporter-metrics-otlp-http";
+import { OTLPMetricExporter as OTLPProtoMetricExporter } from "@opentelemetry/exporter-metrics-otlp-proto";
 import { OTLPMetricExporter as OTLPGrpcMetricExporter } from "@opentelemetry/exporter-metrics-otlp-grpc";
 import {
   BatchSpanProcessor,
@@ -94,7 +97,7 @@ export function createSpanProcessors(): SpanProcessor[] {
                     "traces",
                   ),
                 })
-              : new OTLPTraceExporter({
+              : new OTLPProtoTraceExporter({
                   url: getDatadogExporterUrl(
                     process.env.DATADOG_OTLP_ENDPOINT,
                     "http/protobuf",
@@ -173,7 +176,7 @@ export function createLogProcessors(): LogRecordProcessor[] {
                     "logs",
                   ),
                 })
-              : new OTLPLogExporter({
+              : new OTLPProtoLogExporter({
                   url: getDatadogExporterUrl(
                     process.env.DATADOG_OTLP_ENDPOINT,
                     "http/protobuf",
@@ -253,7 +256,7 @@ export function createMetricReaders(): MetricReader[] {
                       "metrics",
                     ),
                   })
-                : new OTLPMetricExporter({
+                : new OTLPProtoMetricExporter({
                     url: getDatadogExporterUrl(
                       process.env.DATADOG_OTLP_ENDPOINT,
                       "http/protobuf",
