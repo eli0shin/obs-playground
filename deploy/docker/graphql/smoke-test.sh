@@ -23,6 +23,7 @@ docker build \
   .
 
 docker run \
+  --platform linux/amd64 \
   --detach \
   --name "${CONTAINER}" \
   --publish "127.0.0.1:${PORT}:${CONTAINER_PORT}" \
