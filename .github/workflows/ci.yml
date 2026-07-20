@@ -33,6 +33,7 @@ jobs:
   tanstack-container:
     name: TanStack Container Smoke Test
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - name: Checkout code

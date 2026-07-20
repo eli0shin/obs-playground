@@ -18,11 +18,9 @@ COPY packages/otel ./packages/otel
 
 ARG DATADOG_APP_ID
 ARG DATADOG_CLIENT_TOKEN
-ARG VITE_GRAPHQL_BASE_URL
 
 ENV VITE_DATADOG_APP_ID=$DATADOG_APP_ID \
-    VITE_DATADOG_CLIENT_TOKEN=$DATADOG_CLIENT_TOKEN \
-    VITE_GRAPHQL_BASE_URL=$VITE_GRAPHQL_BASE_URL
+    VITE_DATADOG_CLIENT_TOKEN=$DATADOG_CLIENT_TOKEN
 
 RUN npm run build --workspace=@obs-playground/env \
     && npm run build --workspace=@obs-playground/graphql-client \
@@ -45,6 +43,7 @@ RUN npm ci --omit=dev --ignore-scripts \
       --include-workspace-root=false \
     && test ! -e node_modules/@tanstack/react-start
 
+# npm scripts are disabled above, so restore the two patch-package outputs from the builder.
 COPY --from=builder /app/node_modules/@opentelemetry/instrumentation-graphql ./node_modules/@opentelemetry/instrumentation-graphql
 COPY --from=builder /app/node_modules/@opentelemetry/instrumentation-http ./node_modules/@opentelemetry/instrumentation-http
 
