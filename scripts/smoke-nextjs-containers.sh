@@ -35,6 +35,8 @@ test "$(docker image inspect --format '{{json .Config.Cmd}}' "$standard_image")"
   '["node","server.js"]'
 test "$(docker image inspect --format '{{json .Config.Cmd}}' "$custom_image")" = \
   '["node","--import","tsx","server.ts"]'
+test "$(docker image inspect --format '{{.Config.User}}' "$standard_image")" = "node"
+test "$(docker image inspect --format '{{.Config.User}}' "$custom_image")" = "node"
 
 docker run --rm "$standard_image" sh -c \
   'test -f .next/BUILD_ID && test ! -e .next-custom && test ! -e server.ts'

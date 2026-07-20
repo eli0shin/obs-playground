@@ -46,27 +46,29 @@ ENV CUSTOM_SERVER=true \
 
 WORKDIR /app
 
-COPY --from=builder /app/apps/nextjs-app/.next-custom/standalone ./
-COPY --from=builder /app/apps/nextjs-app/.next-custom/static ./apps/nextjs-app/.next-custom/static
-COPY --from=builder /app/apps/nextjs-app/public ./apps/nextjs-app/public
-COPY --from=builder /app/apps/nextjs-app/next.config.ts ./apps/nextjs-app/next.config.ts
-COPY --from=builder /app/apps/nextjs-app/server.ts ./apps/nextjs-app/server.ts
-COPY --from=builder /app/apps/nextjs-app/src/otel.ts ./apps/nextjs-app/src/otel.ts
-COPY --from=builder /app/apps/nextjs-app/src/logger.ts ./apps/nextjs-app/src/logger.ts
-COPY --from=production-dependencies /app/node_modules ./node_modules
+COPY --chown=node:node --from=builder /app/apps/nextjs-app/.next-custom/standalone ./
+COPY --chown=node:node --from=builder /app/apps/nextjs-app/.next-custom/static ./apps/nextjs-app/.next-custom/static
+COPY --chown=node:node --from=builder /app/apps/nextjs-app/public ./apps/nextjs-app/public
+COPY --chown=node:node --from=builder /app/apps/nextjs-app/next.config.ts ./apps/nextjs-app/next.config.ts
+COPY --chown=node:node --from=builder /app/apps/nextjs-app/server.ts ./apps/nextjs-app/server.ts
+COPY --chown=node:node --from=builder /app/apps/nextjs-app/src/otel.ts ./apps/nextjs-app/src/otel.ts
+COPY --chown=node:node --from=builder /app/apps/nextjs-app/src/logger.ts ./apps/nextjs-app/src/logger.ts
+COPY --chown=node:node --from=production-dependencies /app/node_modules ./node_modules
 # The production install skips postinstall; keep these copies in sync with runtime dependencies in patches/.
-COPY --from=builder /app/node_modules/@opentelemetry/instrumentation-graphql ./node_modules/@opentelemetry/instrumentation-graphql
-COPY --from=builder /app/node_modules/@opentelemetry/instrumentation-http ./node_modules/@opentelemetry/instrumentation-http
-COPY --from=builder /app/packages/env/package.json ./packages/env/package.json
-COPY --from=builder /app/packages/env/dist ./packages/env/dist
-COPY --from=builder /app/packages/graphql-client/package.json ./packages/graphql-client/package.json
-COPY --from=builder /app/packages/graphql-client/dist ./packages/graphql-client/dist
-COPY --from=builder /app/packages/otel/package.json ./packages/otel/package.json
-COPY --from=builder /app/packages/otel/dist ./packages/otel/dist
-COPY --from=builder /app/packages/trpc-otel/package.json ./packages/trpc-otel/package.json
-COPY --from=builder /app/packages/trpc-otel/dist ./packages/trpc-otel/dist
+COPY --chown=node:node --from=builder /app/node_modules/@opentelemetry/instrumentation-graphql ./node_modules/@opentelemetry/instrumentation-graphql
+COPY --chown=node:node --from=builder /app/node_modules/@opentelemetry/instrumentation-http ./node_modules/@opentelemetry/instrumentation-http
+COPY --chown=node:node --from=builder /app/packages/env/package.json ./packages/env/package.json
+COPY --chown=node:node --from=builder /app/packages/env/dist ./packages/env/dist
+COPY --chown=node:node --from=builder /app/packages/graphql-client/package.json ./packages/graphql-client/package.json
+COPY --chown=node:node --from=builder /app/packages/graphql-client/dist ./packages/graphql-client/dist
+COPY --chown=node:node --from=builder /app/packages/otel/package.json ./packages/otel/package.json
+COPY --chown=node:node --from=builder /app/packages/otel/dist ./packages/otel/dist
+COPY --chown=node:node --from=builder /app/packages/trpc-otel/package.json ./packages/trpc-otel/package.json
+COPY --chown=node:node --from=builder /app/packages/trpc-otel/dist ./packages/trpc-otel/dist
 
 WORKDIR /app/apps/nextjs-app
+
+USER node
 
 EXPOSE 3000
 

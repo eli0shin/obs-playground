@@ -31,11 +31,13 @@ ENV NODE_ENV=production \
 
 WORKDIR /app
 
-COPY --from=builder /app/apps/nextjs-app/.next/standalone ./
-COPY --from=builder /app/apps/nextjs-app/.next/static ./apps/nextjs-app/.next/static
-COPY --from=builder /app/apps/nextjs-app/public ./apps/nextjs-app/public
+COPY --chown=node:node --from=builder /app/apps/nextjs-app/.next/standalone ./
+COPY --chown=node:node --from=builder /app/apps/nextjs-app/.next/static ./apps/nextjs-app/.next/static
+COPY --chown=node:node --from=builder /app/apps/nextjs-app/public ./apps/nextjs-app/public
 
 WORKDIR /app/apps/nextjs-app
+
+USER node
 
 EXPOSE 3000
 
