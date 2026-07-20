@@ -20,7 +20,10 @@
 {{- end }}
 
 {{- define "obs-playground.workloadName" -}}
-{{- printf "%s-%s" (include "obs-playground.fullname" .root) (include "obs-playground.componentName" .component) | trunc 63 | trimSuffix "-" }}
+{{- $component := include "obs-playground.componentName" .component }}
+{{- $prefixLength := sub 62 (len $component) }}
+{{- $prefix := include "obs-playground.fullname" .root | trunc (int $prefixLength) | trimSuffix "-" }}
+{{- printf "%s-%s" $prefix $component }}
 {{- end }}
 
 {{- define "obs-playground.labels" -}}
@@ -37,5 +40,12 @@ app.kubernetes.io/component: {{ include "obs-playground.componentName" .componen
 {{- end }}
 
 {{- define "obs-playground.expressClaimName" -}}
-{{- default (printf "%s-express-data" (include "obs-playground.fullname" .)) .Values.persistence.existingClaim }}
+{{- if .Values.persistence.existingClaim }}
+{{- .Values.persistence.existingClaim }}
+{{- else }}
+{{- $suffix := "express-data" }}
+{{- $prefixLength := sub 62 (len $suffix) }}
+{{- $prefix := include "obs-playground.fullname" . | trunc (int $prefixLength) | trimSuffix "-" }}
+{{- printf "%s-%s" $prefix $suffix }}
+{{- end }}
 {{- end }}

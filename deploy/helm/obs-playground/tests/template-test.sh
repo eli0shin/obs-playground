@@ -12,14 +12,21 @@ chart_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 values_file="${chart_dir}/tests/representative-values.yaml"
 rendered=$(mktemp)
 rendered_json=$(mktemp)
-trap 'rm -f "${rendered}" "${rendered_json}"' EXIT
+long_rendered=$(mktemp)
+long_rendered_json=$(mktemp)
+trap 'rm -f "${rendered}" "${rendered_json}" "${long_rendered}" "${long_rendered_json}"' EXIT
 
 helm lint "${chart_dir}"
 helm template test "${chart_dir}" --values "${values_file}" > "${rendered}"
 kubeconform -strict -summary < "${rendered}"
 yq eval-all -o=json -I=0 '.' "${rendered}" > "${rendered_json}"
 
-python3 - "${rendered_json}" <<'PY'
+long_release=$(printf 'r%.0s' {1..50})
+helm template "${long_release}" "${chart_dir}" > "${long_rendered}"
+kubeconform -strict -summary < "${long_rendered}"
+yq eval-all -o=json -I=0 '.' "${long_rendered}" > "${long_rendered_json}"
+
+python3 - "${rendered_json}" "${long_rendered_json}" <<'PY'
 import json
 import sys
 from pathlib import Path
@@ -99,6 +106,18 @@ for component in ["nextjs", "nextjs-custom", "tanstack"]:
     assert env["EXPRESS_BASE_URL"] == f"http://{prefix}-express:3001"
     assert env["PUBLIC_GRAPHQL_BASE_URL"] == "https://graphql.example.test"
     assert env["PUBLIC_EXPRESS_BASE_URL"] == "https://express.example.test"
+
+long_objects = [json.loads(line) for line in Path(sys.argv[2]).read_text().splitlines()]
+for kind in ["Deployment", "Service"]:
+    names = [obj["metadata"]["name"] for obj in long_objects if obj["kind"] == kind]
+    assert len(names) == len(set(names)) == 5
+    for component in components:
+        assert sum(name.endswith(f"-{component}") for name in names) == 1
+    assert all(len(name) <= 63 for name in names)
+
+long_pvc = next(obj for obj in long_objects if obj["kind"] == "PersistentVolumeClaim")
+assert long_pvc["metadata"]["name"].endswith("-express-data")
+assert len(long_pvc["metadata"]["name"]) <= 63
 PY
 
 if helm template test "${chart_dir}" --set workloads.graphql.ingress.enabled=true >/dev/null 2>&1; then
