@@ -1,0 +1,91 @@
+{{- $root := . -}}
+{{- range $component := list "graphql" "express" "nextjs" "nextjsCustom" "tanstack" }}
+{{- $workload := index $root.Values.workloads $component }}
+{{- $context := dict "root" $root "component" $component }}
+{{- $customEnv := dict }}
+{{- $reservedEnv := list "NODE_ENV" "PORT" "DATADOG_OTLP_PROTOCOL" "DATADOG_OTLP_ENDPOINT" "GRAPHQL_BASE_URL" "EXPRESS_BASE_URL" "SQLITE_PATH" }}
+{{- range $entry := concat $root.Values.global.env $workload.env }}
+{{- if not $entry.name }}{{ fail (printf "global.env and workloads.%s.env entries require a name" $component) }}{{ end }}
+{{- if has $entry.name $reservedEnv }}{{ fail (printf "%s is managed by the chart and cannot be set in global.env or workloads.%s.env" $entry.name $component) }}{{ end }}
+{{- $_ := set $customEnv $entry.name $entry }}
+{{- end }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "obs-playground.workloadName" $context }}
+  labels:
+    {{- include "obs-playground.labels" $root | nindent 4 }}
+    app.kubernetes.io/component: {{ include "obs-playground.componentName" $component }}
+spec:
+  replicas: {{ if eq $component "express" }}1{{ else }}{{ $workload.replicaCount }}{{ end }}
+  strategy:
+    type: {{ if eq $component "express" }}Recreate{{ else }}RollingUpdate{{ end }}
+  selector:
+    matchLabels:
+      {{- include "obs-playground.selectorLabels" $context | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "obs-playground.selectorLabels" $context | nindent 8 }}
+    spec:
+      {{- with $root.Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ include "obs-playground.componentName" $component }}
+          image: "{{ $workload.image.repository }}:{{ default $root.Chart.AppVersion $workload.image.tag }}"
+          imagePullPolicy: {{ $workload.image.pullPolicy }}
+          env:
+            - name: NODE_ENV
+              value: production
+            - name: PORT
+              value: {{ $workload.containerPort | quote }}
+            - name: DATADOG_OTLP_PROTOCOL
+              value: {{ $root.Values.datadog.otlpProtocol | quote }}
+            {{- with $root.Values.datadog.otlpEndpoint }}
+            - name: DATADOG_OTLP_ENDPOINT
+              value: {{ . | quote }}
+            {{- end }}
+            {{- if or (eq $component "express") (eq $component "nextjs") (eq $component "nextjsCustom") (eq $component "tanstack") }}
+            - name: GRAPHQL_BASE_URL
+              value: "http://{{ include "obs-playground.workloadName" (dict "root" $root "component" "graphql") }}:{{ $root.Values.workloads.graphql.service.port }}"
+            {{- end }}
+            {{- if or (eq $component "graphql") (eq $component "nextjs") (eq $component "nextjsCustom") (eq $component "tanstack") }}
+            - name: EXPRESS_BASE_URL
+              value: "http://{{ include "obs-playground.workloadName" (dict "root" $root "component" "express") }}:{{ $root.Values.workloads.express.service.port }}"
+            {{- end }}
+            {{- if eq $component "express" }}
+            - name: SQLITE_PATH
+              value: /var/data/app.db
+            {{- end }}
+            {{- range $name := keys $customEnv | sortAlpha }}
+            {{- list (index $customEnv $name) | toYaml | nindent 12 }}
+            {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ $workload.containerPort }}
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+          resources:
+            {{- toYaml $workload.resources | nindent 12 }}
+          {{- if eq $component "express" }}
+          volumeMounts:
+            - name: data
+              mountPath: /var/data
+          {{- end }}
+      {{- if eq $component "express" }}
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ include "obs-playground.expressClaimName" $root }}
+      {{- end }}
+---
+{{- end }}

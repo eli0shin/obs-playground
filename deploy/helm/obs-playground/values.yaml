@@ -1,0 +1,143 @@
+nameOverride: ""
+fullnameOverride: ""
+imagePullSecrets: []
+
+# These variables are added to every service. Use secretKeyRef entries for secrets.
+global:
+  env: []
+
+datadog:
+  otlpProtocol: grpc
+  # Leave empty to disable the Datadog exporter. For example:
+  # http://datadog-agent.datadog.svc.cluster.local:4317
+  otlpEndpoint: ""
+
+persistence:
+  storageClass: ""
+  capacity: 1Gi
+  existingClaim: ""
+
+workloads:
+  graphql:
+    replicaCount: 1
+    containerPort: 4000
+    image:
+      repository: ghcr.io/eli0shin/obs-playground-graphql
+      tag: ""
+      pullPolicy: IfNotPresent
+    service:
+      type: ClusterIP
+      port: 4000
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+    env: []
+    ingress:
+      enabled: false
+      className: ""
+      annotations: {}
+      hosts: []
+      tls: []
+
+  express:
+    containerPort: 3001
+    image:
+      repository: ghcr.io/eli0shin/obs-playground-express
+      tag: ""
+      pullPolicy: IfNotPresent
+    service:
+      type: ClusterIP
+      port: 3001
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+    env: []
+    ingress:
+      enabled: false
+      className: ""
+      annotations: {}
+      hosts: []
+      tls: []
+
+  nextjs:
+    replicaCount: 1
+    containerPort: 3000
+    image:
+      repository: ghcr.io/eli0shin/obs-playground-nextjs
+      tag: ""
+      pullPolicy: IfNotPresent
+    service:
+      type: ClusterIP
+      port: 3000
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+    env: []
+    ingress:
+      enabled: false
+      className: ""
+      annotations: {}
+      hosts: []
+      tls: []
+
+  nextjsCustom:
+    replicaCount: 1
+    containerPort: 3000
+    image:
+      repository: ghcr.io/eli0shin/obs-playground-nextjs-custom
+      tag: ""
+      pullPolicy: IfNotPresent
+    service:
+      type: ClusterIP
+      port: 3000
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+    env: []
+    ingress:
+      enabled: false
+      className: ""
+      annotations: {}
+      hosts: []
+      tls: []
+
+  tanstack:
+    replicaCount: 1
+    containerPort: 3000
+    image:
+      repository: ghcr.io/eli0shin/obs-playground-tanstack
+      tag: ""
+      pullPolicy: IfNotPresent
+    service:
+      type: ClusterIP
+      port: 3000
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+    env: []
+    ingress:
+      enabled: false
+      className: ""
+      annotations: {}
+      hosts: []
+      tls: []

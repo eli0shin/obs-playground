@@ -1,0 +1,63 @@
+global:
+  env:
+    - name: EXAMPLE_RUNTIME_SETTING
+      value: global-default
+
+datadog:
+  otlpProtocol: grpc
+  otlpEndpoint: http://datadog-agent.monitoring.svc.cluster.local:4317
+
+persistence:
+  storageClass: test-storage
+  capacity: 2Gi
+
+workloads:
+  graphql:
+    replicaCount: 2
+    service:
+      port: 80
+    ingress:
+      enabled: true
+      hosts:
+        - host: graphql.example.test
+          paths:
+            - path: /
+              pathType: Prefix
+  express:
+    env:
+      - name: EXAMPLE_RUNTIME_SETTING
+        value: configured-at-runtime
+    ingress:
+      enabled: true
+      hosts:
+        - host: express.example.test
+          paths:
+            - path: /
+              pathType: Prefix
+  nextjs:
+    replicaCount: 3
+    ingress:
+      enabled: true
+      hosts:
+        - host: nextjs.example.test
+          paths:
+            - path: /
+              pathType: Prefix
+  nextjsCustom:
+    replicaCount: 4
+    ingress:
+      enabled: true
+      hosts:
+        - host: nextjs-custom.example.test
+          paths:
+            - path: /
+              pathType: Prefix
+  tanstack:
+    replicaCount: 5
+    ingress:
+      enabled: true
+      hosts:
+        - host: tanstack.example.test
+          paths:
+            - path: /
+              pathType: Prefix
