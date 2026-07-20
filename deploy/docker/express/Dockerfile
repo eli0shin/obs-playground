@@ -1,26 +1,24 @@
+FROM node:24-bookworm-slim AS pruner
+
+WORKDIR /app
+
+RUN npm install --global turbo@2.5.8
+
+COPY . .
+RUN turbo prune express-server --docker
+
 FROM node:24-bookworm-slim AS builder
 
 WORKDIR /app
 
-# Install only the Express workspace and the shared packages in its runtime graph.
-COPY package.json package-lock.json ./
-COPY patches ./patches
-COPY apps/express-server/package.json ./apps/express-server/package.json
-COPY packages/env/package.json ./packages/env/package.json
-COPY packages/graphql-client/package.json ./packages/graphql-client/package.json
-COPY packages/otel/package.json ./packages/otel/package.json
-
+# The pruned manifests and lockfile contain only the Express dependency graph.
+COPY --from=pruner /app/out/json/ ./
+COPY --from=pruner /app/out/package-lock.json ./package-lock.json
+COPY --from=pruner /app/patches ./patches
 RUN npm ci
 
-COPY apps/express-server ./apps/express-server
-COPY packages/env ./packages/env
-COPY packages/graphql-client ./packages/graphql-client
-COPY packages/otel ./packages/otel
-
-RUN npm run build --workspace=@obs-playground/env \
-    && npm run build --workspace=@obs-playground/graphql-client \
-    && npm run build --workspace=@obs-playground/otel \
-    && npm run build --workspace=express-server \
+COPY --from=pruner /app/out/full/ ./
+RUN npx turbo run build --filter=express-server \
     && npm prune --omit=dev --ignore-scripts
 
 FROM node:24-bookworm-slim AS runtime
@@ -41,6 +39,7 @@ COPY --from=builder --chown=node:node /app/packages/graphql-client/package.json 
 COPY --from=builder --chown=node:node /app/packages/graphql-client/dist ./packages/graphql-client/dist
 COPY --from=builder --chown=node:node /app/packages/otel/package.json ./packages/otel/package.json
 COPY --from=builder --chown=node:node /app/packages/otel/dist ./packages/otel/dist
+COPY --from=builder --chown=node:node /app/packages/otel/node_modules ./packages/otel/node_modules
 
 RUN mkdir -p /var/data
 
