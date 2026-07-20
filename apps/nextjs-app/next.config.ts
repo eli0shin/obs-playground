@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { fileURLToPath } from "node:url";
 
 function hostnameFromUrl(url: string | undefined): string | null {
   if (!url) return null;
@@ -17,6 +18,7 @@ const allowedDevOrigins = [
 const nextConfig = {
   distDir: process.env.CUSTOM_SERVER === "true" ? ".next-custom" : ".next",
   output: "standalone",
+  outputFileTracingRoot: fileURLToPath(new URL("../..", import.meta.url)),
   allowedDevOrigins,
   serverExternalPackages: [
     "@opentelemetry/api",
