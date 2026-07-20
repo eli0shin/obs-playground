@@ -41,6 +41,11 @@ docker run --rm "$standard_image" sh -c \
 docker run --rm "$custom_image" sh -c \
   'test -f .next-custom/BUILD_ID && test ! -e .next && test -f server.ts && node --import tsx --eval ""'
 
+for image in "$standard_image" "$custom_image"; do
+  docker run --rm "$image" sh -c \
+    'grep --quiet "Only set status if it.*ERROR" /app/node_modules/@opentelemetry/instrumentation-http/build/src/http.js && grep --quiet OPERATION_SPAN_KEY /app/node_modules/@opentelemetry/instrumentation-graphql/build/src/instrumentation.js'
+done
+
 docker run --detach --name "$standard_container" --publish 3100:3000 \
   "$standard_image" >/dev/null
 docker run --detach --name "$custom_container" --publish 3101:3000 \

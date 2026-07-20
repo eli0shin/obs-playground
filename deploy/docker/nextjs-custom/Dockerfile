@@ -54,7 +54,7 @@ COPY --from=builder /app/apps/nextjs-app/server.ts ./apps/nextjs-app/server.ts
 COPY --from=builder /app/apps/nextjs-app/src/otel.ts ./apps/nextjs-app/src/otel.ts
 COPY --from=builder /app/apps/nextjs-app/src/logger.ts ./apps/nextjs-app/src/logger.ts
 COPY --from=production-dependencies /app/node_modules ./node_modules
-# The production install skips postinstall, so restore dependencies patched in the builder.
+# The production install skips postinstall; keep these copies in sync with runtime dependencies in patches/.
 COPY --from=builder /app/node_modules/@opentelemetry/instrumentation-graphql ./node_modules/@opentelemetry/instrumentation-graphql
 COPY --from=builder /app/node_modules/@opentelemetry/instrumentation-http ./node_modules/@opentelemetry/instrumentation-http
 COPY --from=builder /app/packages/env/package.json ./packages/env/package.json
