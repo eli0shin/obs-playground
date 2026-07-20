@@ -1,6 +1,8 @@
 .git
 .github
 .opencode
+.env*
+**/.env*
 .turbo
 node_modules
 apps/*/node_modules
