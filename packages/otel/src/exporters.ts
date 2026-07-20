@@ -1,6 +1,9 @@
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
+import { OTLPTraceExporter as OTLPGrpcTraceExporter } from "@opentelemetry/exporter-trace-otlp-grpc";
 import { OTLPLogExporter } from "@opentelemetry/exporter-logs-otlp-http";
+import { OTLPLogExporter as OTLPGrpcLogExporter } from "@opentelemetry/exporter-logs-otlp-grpc";
 import { OTLPMetricExporter } from "@opentelemetry/exporter-metrics-otlp-http";
+import { OTLPMetricExporter as OTLPGrpcMetricExporter } from "@opentelemetry/exporter-metrics-otlp-grpc";
 import {
   BatchSpanProcessor,
   type SpanProcessor,
@@ -22,6 +25,29 @@ const batchConfig = {
   maxQueueSize: 500, // Reduced from default 2048
   scheduledDelayMillis: 5000, // Export every 5 seconds
 };
+
+type DatadogOtlpProtocol = "http/protobuf" | "grpc";
+type OtlpSignal = "traces" | "logs" | "metrics";
+
+function getDatadogOtlpProtocol(): DatadogOtlpProtocol {
+  const protocol = process.env.DATADOG_OTLP_PROTOCOL ?? "http/protobuf";
+
+  if (protocol === "http/protobuf" || protocol === "grpc") {
+    return protocol;
+  }
+
+  throw new Error(
+    `Invalid DATADOG_OTLP_PROTOCOL "${protocol}". Expected "http/protobuf" or "grpc".`,
+  );
+}
+
+function getDatadogExporterUrl(
+  endpoint: string,
+  protocol: DatadogOtlpProtocol,
+  signal: OtlpSignal,
+): string {
+  return protocol === "grpc" ? endpoint : `${endpoint}/v1/${signal}`;
+}
 
 // Configure trace exporters
 export function createSpanProcessors(): SpanProcessor[] {
@@ -60,9 +86,21 @@ export function createSpanProcessors(): SpanProcessor[] {
     ...(process.env.DATADOG_OTLP_ENDPOINT
       ? [
           new BatchSpanProcessor(
-            new OTLPTraceExporter({
-              url: `${process.env.DATADOG_OTLP_ENDPOINT}/v1/traces`,
-            }),
+            getDatadogOtlpProtocol() === "grpc"
+              ? new OTLPGrpcTraceExporter({
+                  url: getDatadogExporterUrl(
+                    process.env.DATADOG_OTLP_ENDPOINT,
+                    "grpc",
+                    "traces",
+                  ),
+                })
+              : new OTLPTraceExporter({
+                  url: getDatadogExporterUrl(
+                    process.env.DATADOG_OTLP_ENDPOINT,
+                    "http/protobuf",
+                    "traces",
+                  ),
+                }),
             batchConfig,
           ),
         ]
@@ -127,9 +165,21 @@ export function createLogProcessors(): LogRecordProcessor[] {
     ...(process.env.DATADOG_OTLP_ENDPOINT
       ? [
           new BatchLogRecordProcessor(
-            new OTLPLogExporter({
-              url: `${process.env.DATADOG_OTLP_ENDPOINT}/v1/logs`,
-            }),
+            getDatadogOtlpProtocol() === "grpc"
+              ? new OTLPGrpcLogExporter({
+                  url: getDatadogExporterUrl(
+                    process.env.DATADOG_OTLP_ENDPOINT,
+                    "grpc",
+                    "logs",
+                  ),
+                })
+              : new OTLPLogExporter({
+                  url: getDatadogExporterUrl(
+                    process.env.DATADOG_OTLP_ENDPOINT,
+                    "http/protobuf",
+                    "logs",
+                  ),
+                }),
           ),
         ]
       : []),
@@ -194,9 +244,22 @@ export function createMetricReaders(): MetricReader[] {
     ...(process.env.DATADOG_OTLP_ENDPOINT
       ? [
           new PeriodicExportingMetricReader({
-            exporter: new OTLPMetricExporter({
-              url: `${process.env.DATADOG_OTLP_ENDPOINT}/v1/metrics`,
-            }),
+            exporter:
+              getDatadogOtlpProtocol() === "grpc"
+                ? new OTLPGrpcMetricExporter({
+                    url: getDatadogExporterUrl(
+                      process.env.DATADOG_OTLP_ENDPOINT,
+                      "grpc",
+                      "metrics",
+                    ),
+                  })
+                : new OTLPMetricExporter({
+                    url: getDatadogExporterUrl(
+                      process.env.DATADOG_OTLP_ENDPOINT,
+                      "http/protobuf",
+                      "metrics",
+                    ),
+                  }),
             exportIntervalMillis: 60000,
           }),
         ]
