@@ -78,6 +78,7 @@ for component in components:
     assert rule["http"]["paths"][0]["backend"]["service"] == {"name": name, "port": {"name": "http"}}
 
 _, _, express_pod, _, express_env = deployment_details("express")
+assert express_pod["securityContext"] == {"fsGroup": 1000, "fsGroupChangePolicy": "OnRootMismatch"}
 assert express_env["SQLITE_PATH"] == "/var/data/app.db"
 assert express_env["EXAMPLE_RUNTIME_SETTING"] == "configured-at-runtime"
 assert express_pod["volumes"] == [{"name": "data", "persistentVolumeClaim": {"claimName": f"{prefix}-express-data"}}]
@@ -96,6 +97,8 @@ for component in ["express", "nextjs", "nextjs-custom", "tanstack"]:
 for component in ["nextjs", "nextjs-custom", "tanstack"]:
     _, _, _, _, env = deployment_details(component)
     assert env["EXPRESS_BASE_URL"] == f"http://{prefix}-express:3001"
+    assert env["PUBLIC_GRAPHQL_BASE_URL"] == "https://graphql.example.test"
+    assert env["PUBLIC_EXPRESS_BASE_URL"] == "https://express.example.test"
 PY
 
 if helm template test "${chart_dir}" --set workloads.graphql.ingress.enabled=true >/dev/null 2>&1; then

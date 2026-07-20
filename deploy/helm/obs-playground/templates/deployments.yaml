@@ -3,7 +3,7 @@
 {{- $workload := index $root.Values.workloads $component }}
 {{- $context := dict "root" $root "component" $component }}
 {{- $customEnv := dict }}
-{{- $reservedEnv := list "NODE_ENV" "PORT" "DATADOG_OTLP_PROTOCOL" "DATADOG_OTLP_ENDPOINT" "GRAPHQL_BASE_URL" "EXPRESS_BASE_URL" "SQLITE_PATH" }}
+{{- $reservedEnv := list "NODE_ENV" "PORT" "DATADOG_OTLP_PROTOCOL" "DATADOG_OTLP_ENDPOINT" "GRAPHQL_BASE_URL" "EXPRESS_BASE_URL" "PUBLIC_GRAPHQL_BASE_URL" "PUBLIC_EXPRESS_BASE_URL" "SQLITE_PATH" }}
 {{- range $entry := concat $root.Values.global.env $workload.env }}
 {{- if not $entry.name }}{{ fail (printf "global.env and workloads.%s.env entries require a name" $component) }}{{ end }}
 {{- if has $entry.name $reservedEnv }}{{ fail (printf "%s is managed by the chart and cannot be set in global.env or workloads.%s.env" $entry.name $component) }}{{ end }}
@@ -28,6 +28,11 @@ spec:
       labels:
         {{- include "obs-playground.selectorLabels" $context | nindent 8 }}
     spec:
+      {{- if eq $component "express" }}
+      securityContext:
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+      {{- end }}
       {{- with $root.Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
@@ -54,6 +59,16 @@ spec:
             {{- if or (eq $component "graphql") (eq $component "nextjs") (eq $component "nextjsCustom") (eq $component "tanstack") }}
             - name: EXPRESS_BASE_URL
               value: "http://{{ include "obs-playground.workloadName" (dict "root" $root "component" "express") }}:{{ $root.Values.workloads.express.service.port }}"
+            {{- end }}
+            {{- if or (eq $component "nextjs") (eq $component "nextjsCustom") (eq $component "tanstack") }}
+            {{- with $root.Values.publicBaseUrls.graphql }}
+            - name: PUBLIC_GRAPHQL_BASE_URL
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with $root.Values.publicBaseUrls.express }}
+            - name: PUBLIC_EXPRESS_BASE_URL
+              value: {{ . | quote }}
+            {{- end }}
             {{- end }}
             {{- if eq $component "express" }}
             - name: SQLITE_PATH

@@ -3,6 +3,10 @@ global:
     - name: EXAMPLE_RUNTIME_SETTING
       value: global-default
 
+publicBaseUrls:
+  graphql: https://graphql.example.test
+  express: https://express.example.test
+
 datadog:
   otlpProtocol: grpc
   otlpEndpoint: http://datadog-agent.monitoring.svc.cluster.local:4317

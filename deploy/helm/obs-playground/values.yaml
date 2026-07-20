@@ -6,6 +6,12 @@ imagePullSecrets: []
 global:
   env: []
 
+# Browser-reachable backend URLs injected into frontend pages at runtime.
+# Keep these separate from the cluster-local URLs used by server-side requests.
+publicBaseUrls:
+  graphql: ""
+  express: ""
+
 datadog:
   otlpProtocol: grpc
   # Leave empty to disable the Datadog exporter. For example:
