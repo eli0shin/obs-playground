@@ -62,6 +62,10 @@ const app = express();
 const PORT = +(process.env.PORT || "4000");
 const HOST = "0.0.0.0";
 
+app.get("/health", (_req, res) => {
+  res.json({ status: "healthy" });
+});
+
 app.use(
   cors({
     allowedHeaders: [
@@ -106,10 +110,6 @@ app.use((req, res, next) => {
   });
 
   next();
-});
-
-app.get("/health", (_req, res) => {
-  res.json({ status: "healthy" });
 });
 
 app.post("/graphql", express.json(), expressMiddleware(server));
