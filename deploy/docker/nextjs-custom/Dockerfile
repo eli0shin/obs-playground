@@ -63,6 +63,7 @@ COPY --chown=node:node --from=builder /app/packages/graphql-client/package.json 
 COPY --chown=node:node --from=builder /app/packages/graphql-client/dist ./packages/graphql-client/dist
 COPY --chown=node:node --from=builder /app/packages/otel/package.json ./packages/otel/package.json
 COPY --chown=node:node --from=builder /app/packages/otel/dist ./packages/otel/dist
+COPY --chown=node:node --from=production-dependencies /app/packages/otel/node_modules ./packages/otel/node_modules
 COPY --chown=node:node --from=builder /app/packages/trpc-otel/package.json ./packages/trpc-otel/package.json
 COPY --chown=node:node --from=builder /app/packages/trpc-otel/dist ./packages/trpc-otel/dist
 

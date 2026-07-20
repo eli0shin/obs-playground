@@ -42,6 +42,8 @@ docker run --rm "$standard_image" sh -c \
   'test -f .next/BUILD_ID && test ! -e .next-custom && test ! -e server.ts'
 docker run --rm "$custom_image" sh -c \
   'test -f .next-custom/BUILD_ID && test ! -e .next && test -f server.ts && node --import tsx --eval ""'
+docker run --rm "$custom_image" sh -c \
+  'node --eval "const version = require(\"/app/packages/otel/node_modules/@opentelemetry/api-logs/package.json\").version; if (version !== \"0.214.0\") process.exit(1)"'
 
 for image in "$standard_image" "$custom_image"; do
   docker run --rm "$image" sh -c \
