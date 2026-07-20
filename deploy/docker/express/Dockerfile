@@ -29,17 +29,17 @@ ENV NODE_ENV=production \
     PORT=3001 \
     SQLITE_PATH=/var/data/app.db
 
-COPY --from=builder --chown=node:node /app/node_modules ./node_modules
-COPY --from=builder --chown=node:node /app/apps/express-server/package.json ./apps/express-server/package.json
-COPY --from=builder --chown=node:node /app/apps/express-server/dist ./apps/express-server/dist
-COPY --from=builder --chown=node:node /app/apps/express-server/drizzle ./apps/express-server/drizzle
-COPY --from=builder --chown=node:node /app/packages/env/package.json ./packages/env/package.json
-COPY --from=builder --chown=node:node /app/packages/env/dist ./packages/env/dist
-COPY --from=builder --chown=node:node /app/packages/graphql-client/package.json ./packages/graphql-client/package.json
-COPY --from=builder --chown=node:node /app/packages/graphql-client/dist ./packages/graphql-client/dist
-COPY --from=builder --chown=node:node /app/packages/otel/package.json ./packages/otel/package.json
-COPY --from=builder --chown=node:node /app/packages/otel/dist ./packages/otel/dist
-COPY --from=builder --chown=node:node /app/packages/otel/node_modules ./packages/otel/node_modules
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/apps/express-server/package.json ./apps/express-server/package.json
+COPY --from=builder /app/apps/express-server/dist ./apps/express-server/dist
+COPY --from=builder /app/apps/express-server/drizzle ./apps/express-server/drizzle
+COPY --from=builder /app/packages/env/package.json ./packages/env/package.json
+COPY --from=builder /app/packages/env/dist ./packages/env/dist
+COPY --from=builder /app/packages/graphql-client/package.json ./packages/graphql-client/package.json
+COPY --from=builder /app/packages/graphql-client/dist ./packages/graphql-client/dist
+COPY --from=builder /app/packages/otel/package.json ./packages/otel/package.json
+COPY --from=builder /app/packages/otel/dist ./packages/otel/dist
+COPY --from=builder /app/packages/otel/node_modules ./packages/otel/node_modules
 
 RUN mkdir -p /var/data
 
