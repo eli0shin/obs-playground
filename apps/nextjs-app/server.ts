@@ -17,6 +17,10 @@ const handle = app.getRequestHandler();
 const server = express();
 
 app.prepare().then(() => {
+  server.get("/health", (_req, res) => {
+    res.json({ status: "healthy" });
+  });
+
   server.use((req, res) => {
     return handle(req, res);
   });

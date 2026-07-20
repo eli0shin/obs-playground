@@ -16,6 +16,7 @@ const allowedDevOrigins = [
 
 const nextConfig = {
   distDir: process.env.CUSTOM_SERVER === "true" ? ".next-custom" : ".next",
+  output: "standalone",
   allowedDevOrigins,
   serverExternalPackages: [
     "@opentelemetry/api",
