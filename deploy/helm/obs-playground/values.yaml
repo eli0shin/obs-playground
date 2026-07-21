@@ -23,6 +23,16 @@ persistence:
   capacity: 1Gi
   existingClaim: ""
 
+# Startup probes delay readiness and liveness checks until each service is listening.
+# The default 150-second window accommodates telemetry initialization on slower hosts.
+probes:
+  startup:
+    path: /health
+    port: http
+    periodSeconds: 5
+    timeoutSeconds: 2
+    failureThreshold: 30
+
 workloads:
   graphql:
     replicaCount: 1

@@ -71,6 +71,12 @@ for component in components:
     assert env["PORT"] == str(expected_container_ports[component])
     assert env["DATADOG_OTLP_PROTOCOL"] == "grpc"
     assert env["DATADOG_OTLP_ENDPOINT"] == "http://datadog-agent.monitoring.svc.cluster.local:4317"
+    assert container["startupProbe"] == {
+        "httpGet": {"path": "/health", "port": "http"},
+        "periodSeconds": 6,
+        "timeoutSeconds": 3,
+        "failureThreshold": 25,
+    }
     assert container["readinessProbe"]["httpGet"] == {"path": "/health", "port": "http"}
     assert container["livenessProbe"]["httpGet"] == {"path": "/health", "port": "http"}
     assert set(container["resources"]) == {"requests", "limits"}
@@ -108,6 +114,17 @@ for component in ["nextjs", "nextjs-custom", "tanstack"]:
     assert env["PUBLIC_EXPRESS_BASE_URL"] == "https://express.example.test"
 
 long_objects = [json.loads(line) for line in Path(sys.argv[2]).read_text().splitlines()]
+long_deployments = [obj for obj in long_objects if obj["kind"] == "Deployment"]
+assert len(long_deployments) == 5
+for deployment in long_deployments:
+    container = deployment["spec"]["template"]["spec"]["containers"][0]
+    assert container["startupProbe"] == {
+        "httpGet": {"path": "/health", "port": "http"},
+        "periodSeconds": 5,
+        "timeoutSeconds": 2,
+        "failureThreshold": 30,
+    }
+
 for kind in ["Deployment", "Service"]:
     names = [obj["metadata"]["name"] for obj in long_objects if obj["kind"] == kind]
     assert len(names) == len(set(names)) == 5
