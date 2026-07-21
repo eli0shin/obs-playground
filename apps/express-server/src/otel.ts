@@ -5,7 +5,10 @@ export const { logger } = initializeOtel({
   serviceName: "express-server",
   instrumentations: {
     "@opentelemetry/instrumentation-express": {
-      ignoreLayersType: [ExpressLayerType.ROUTER],
+      ignoreLayersType: [
+        ExpressLayerType.ROUTER,
+        ExpressLayerType.REQUEST_HANDLER,
+      ],
     },
   },
 });
