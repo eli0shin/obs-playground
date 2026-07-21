@@ -248,7 +248,7 @@ router.post("/meal-plan/generate", async (req: Request, res: Response) => {
     "app.meal_plan.estimated_cost_usd": estimatedCostUsd,
     "app.meal_plan.estimated_calories": estimatedCalories,
     "app.meal_plan.rejected_recipe_count": rejectedRecipeCount,
-    "app.meal_plan.inventory_substitution_count": injectedInventoryIssue ? 0 : 1,
+    "app.meal_plan.inventory_substitution_count": 0,
     "app.duration_ms": Date.now() - requestStart,
   });
 
