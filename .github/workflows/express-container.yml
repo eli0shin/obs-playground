@@ -3,32 +3,6 @@ name: Express Container
 on:
   pull_request:
     branches: [main, create-hemlchart]
-    paths:
-      - ".dockerignore"
-      - ".github/workflows/express-container.yml"
-      - "apps/express-server/**"
-      - "deploy/docker/express/**"
-      - "packages/env/**"
-      - "packages/graphql-client/**"
-      - "packages/otel/**"
-      - "patches/**"
-      - "package.json"
-      - "package-lock.json"
-      - "turbo.json"
-  push:
-    branches: [main]
-    paths:
-      - ".dockerignore"
-      - ".github/workflows/express-container.yml"
-      - "apps/express-server/**"
-      - "deploy/docker/express/**"
-      - "packages/env/**"
-      - "packages/graphql-client/**"
-      - "packages/otel/**"
-      - "patches/**"
-      - "package.json"
-      - "package-lock.json"
-      - "turbo.json"
 
 permissions:
   contents: read
