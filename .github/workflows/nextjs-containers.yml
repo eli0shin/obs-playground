@@ -3,38 +3,6 @@ name: Next.js Containers
 on:
   pull_request:
     branches: [main, create-hemlchart]
-    paths:
-      - ".dockerignore"
-      - ".github/workflows/nextjs-containers.yml"
-      - "apps/nextjs-app/**"
-      - "deploy/docker/nextjs/**"
-      - "deploy/docker/nextjs-custom/**"
-      - "packages/env/**"
-      - "packages/graphql-client/**"
-      - "packages/otel/**"
-      - "packages/trpc-otel/**"
-      - "patches/**"
-      - "scripts/smoke-nextjs-containers.sh"
-      - "package.json"
-      - "package-lock.json"
-      - "turbo.json"
-  push:
-    branches: [main]
-    paths:
-      - ".dockerignore"
-      - ".github/workflows/nextjs-containers.yml"
-      - "apps/nextjs-app/**"
-      - "deploy/docker/nextjs/**"
-      - "deploy/docker/nextjs-custom/**"
-      - "packages/env/**"
-      - "packages/graphql-client/**"
-      - "packages/otel/**"
-      - "packages/trpc-otel/**"
-      - "patches/**"
-      - "scripts/smoke-nextjs-containers.sh"
-      - "package.json"
-      - "package-lock.json"
-      - "turbo.json"
 
 permissions:
   contents: read
