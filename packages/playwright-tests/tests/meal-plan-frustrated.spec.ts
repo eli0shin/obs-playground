@@ -42,6 +42,10 @@ async function submitFailedAttempt(page: Page, attempt: number) {
 }
 
 test.describe("frustrated meal planner customer", () => {
+  test.skip(
+    process.env.PLAYWRIGHT_APP === "tanstack",
+    "Constraint-based meal planning is only available in the Next.js app",
+  );
   test("vegetarian northeast user retries 15 times during produce shortage", async ({
     page,
   }) => {

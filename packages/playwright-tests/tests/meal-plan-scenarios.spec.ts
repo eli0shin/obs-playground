@@ -191,6 +191,10 @@ const scenarios: MealPlanScenario[] = [
 ];
 
 test.describe("meal plan customer scenarios", () => {
+  test.skip(
+    process.env.PLAYWRIGHT_APP === "tanstack",
+    "Constraint-based meal planning is only available in the Next.js app",
+  );
   for (const scenario of scenarios) {
     test(scenario.name, async ({ page }) => {
       await openMealPlannerFromHome(page);

@@ -76,4 +76,5 @@ if (failedRuns.length > 0) {
       .map((result) => `worker=${result.workerId}/run=${result.runNumber}/exit=${result.exitCode}`)
       .join(", ")}`,
   );
+  process.exitCode = 1;
 }

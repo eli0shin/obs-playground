@@ -30,7 +30,7 @@
     "playwright": "npm run playwright:normal && npm run playwright:custom && npm run playwright:tanstack",
     "playwright:normal": "eval \"$(node scripts/portless-env.mjs shell)\" && BASE_URL=${BASE_URL} npm run test -w @obs-playground/playwright-tests",
     "playwright:custom": "eval \"$(node scripts/portless-env.mjs shell)\" && BASE_URL=${CUSTOM_URL} npm run test -w @obs-playground/playwright-tests",
-    "playwright:tanstack": "eval \"$(node scripts/portless-env.mjs shell)\" && BASE_URL=${TANSTACK_URL} npm run test -w @obs-playground/playwright-tests",
+    "playwright:tanstack": "eval \"$(node scripts/portless-env.mjs shell)\" && BASE_URL=${TANSTACK_URL} PLAYWRIGHT_APP=tanstack npm run test -w @obs-playground/playwright-tests",
     "playwright:slow": "eval \"$(node scripts/portless-env.mjs shell)\" && BASE_URL=${BASE_URL} SLOW_TESTS=true npm run test -w @obs-playground/playwright-tests",
     "smoke:express-container": "bash deploy/docker/express/smoke-test.sh",
     "smoke:nextjs-containers": "bash scripts/smoke-nextjs-containers.sh",
