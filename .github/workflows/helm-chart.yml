@@ -1,0 +1,38 @@
+name: Helm Chart
+
+on:
+  pull_request:
+    branches: [main, create-hemlchart]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Lint and template test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.18.4
+
+      - name: Install chart test tools
+        env:
+          KUBECONFORM_VERSION: v0.7.0
+          YQ_VERSION: v4.45.4
+        run: |
+          curl --fail --silent --show-error --location \
+            "https://github.com/yannh/kubeconform/releases/download/${KUBECONFORM_VERSION}/kubeconform-linux-amd64.tar.gz" \
+            | sudo tar --extract --gzip --directory /usr/local/bin kubeconform
+          sudo curl --fail --silent --show-error --location \
+            "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64" \
+            --output /usr/local/bin/yq
+          sudo chmod +x /usr/local/bin/yq
+
+      - name: Validate chart
+        run: deploy/helm/obs-playground/tests/template-test.sh

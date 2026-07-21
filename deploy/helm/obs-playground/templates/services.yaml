@@ -1,0 +1,22 @@
+{{- $root := . -}}
+{{- range $component := list "graphql" "express" "nextjs" "nextjsCustom" "tanstack" }}
+{{- $workload := index $root.Values.workloads $component }}
+{{- $context := dict "root" $root "component" $component }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "obs-playground.workloadName" $context }}
+  labels:
+    {{- include "obs-playground.labels" $root | nindent 4 }}
+    app.kubernetes.io/component: {{ include "obs-playground.componentName" $component }}
+spec:
+  type: {{ $workload.service.type }}
+  ports:
+    - name: http
+      port: {{ $workload.service.port }}
+      targetPort: http
+      protocol: TCP
+  selector:
+    {{- include "obs-playground.selectorLabels" $context | nindent 4 }}
+---
+{{- end }}

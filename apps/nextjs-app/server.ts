@@ -17,6 +17,11 @@ const handle = app.getRequestHandler();
 const server = express();
 
 app.prepare().then(() => {
+  // Bypass the Next.js request pipeline for lightweight Kubernetes probes.
+  server.get("/health", (_req, res) => {
+    res.json({ status: "healthy" });
+  });
+
   server.use((req, res) => {
     return handle(req, res);
   });

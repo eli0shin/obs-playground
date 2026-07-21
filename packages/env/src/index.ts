@@ -39,10 +39,15 @@ function getEnv(key: keyof RuntimeEnv): string | undefined {
   return process.env[key];
 }
 
+function getPublicEnv(key: keyof RuntimeEnv): string | undefined {
+  if (typeof process === "undefined") return getEnv(key);
+  return process.env[`PUBLIC_${key}`] ?? getEnv(key);
+}
+
 export function getRuntimeEnv(): RuntimeEnv {
   return {
-    GRAPHQL_BASE_URL: getEnv("GRAPHQL_BASE_URL"),
-    EXPRESS_BASE_URL: getEnv("EXPRESS_BASE_URL"),
+    GRAPHQL_BASE_URL: getPublicEnv("GRAPHQL_BASE_URL"),
+    EXPRESS_BASE_URL: getPublicEnv("EXPRESS_BASE_URL"),
   };
 }
 

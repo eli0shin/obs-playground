@@ -11,3 +11,5 @@ package-lock.json
 pnpm-lock.yaml
 yarn.lock
 apps/*/drizzle
+# Helm Go templates are not valid standalone YAML.
+deploy/helm/*/templates/*.yaml

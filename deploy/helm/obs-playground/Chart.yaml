@@ -1,0 +1,6 @@
+apiVersion: v2
+name: obs-playground
+description: Portable deployment of the five OBS Playground services
+version: 0.1.0
+appVersion: "0.1.0"
+type: application

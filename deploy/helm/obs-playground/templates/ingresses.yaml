@@ -1,0 +1,46 @@
+{{- $root := . -}}
+{{- range $component := list "graphql" "express" "nextjs" "nextjsCustom" "tanstack" }}
+{{- $workload := index $root.Values.workloads $component }}
+{{- if $workload.ingress.enabled }}
+{{- if not $workload.ingress.hosts }}{{ fail (printf "workloads.%s.ingress.hosts must contain at least one route when ingress is enabled" $component) }}{{ end }}
+{{- range $host := $workload.ingress.hosts }}
+{{- if not $host.paths }}{{ fail (printf "every workloads.%s.ingress.hosts entry must contain at least one path" $component) }}{{ end }}
+{{- end }}
+{{- $context := dict "root" $root "component" $component }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "obs-playground.workloadName" $context }}
+  labels:
+    {{- include "obs-playground.labels" $root | nindent 4 }}
+    app.kubernetes.io/component: {{ include "obs-playground.componentName" $component }}
+  {{- with $workload.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- with $workload.ingress.className }}
+  ingressClassName: {{ . }}
+  {{- end }}
+  {{- with $workload.ingress.tls }}
+  tls:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  rules:
+    {{- range $host := $workload.ingress.hosts }}
+    - host: {{ $host.host | quote }}
+      http:
+        paths:
+          {{- range $host.paths }}
+          - path: {{ .path }}
+            pathType: {{ .pathType }}
+            backend:
+              service:
+                name: {{ include "obs-playground.workloadName" $context }}
+                port:
+                  name: http
+          {{- end }}
+    {{- end }}
+---
+{{- end }}
+{{- end }}

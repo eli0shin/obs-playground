@@ -15,12 +15,14 @@
     "build": "tsc",
     "dev": "tsc --watch --preserveWatchOutput",
     "type-check": "tsc --noEmit",
-    "lint": "eslint src"
+    "lint": "eslint src",
+    "test": "vitest --run --exclude 'dist/**'"
   },
   "devDependencies": {
     "@types/node": "^20",
     "eslint": "^9.38.0",
     "typescript": "^5",
-    "vite": "^8.0.1"
+    "vite": "^8.0.1",
+    "vitest": "^4.0.6"
   }
 }
