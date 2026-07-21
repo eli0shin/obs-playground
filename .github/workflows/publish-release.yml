@@ -170,8 +170,8 @@ jobs:
       contents: read
       packages: write
     env:
-      DATADOG_APP_ID: ${{ vars.DATADOG_APP_ID }}
-      DATADOG_CLIENT_TOKEN: ${{ vars.DATADOG_CLIENT_TOKEN }}
+      DATADOG_APP_ID: ${{ secrets.DATADOG_APP_ID }}
+      DATADOG_CLIENT_TOKEN: ${{ secrets.DATADOG_CLIENT_TOKEN }}
     strategy:
       fail-fast: false
       matrix:
