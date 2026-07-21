@@ -71,6 +71,12 @@ for component in components:
     assert env["PORT"] == str(expected_container_ports[component])
     assert env["DATADOG_OTLP_PROTOCOL"] == "grpc"
     assert env["DATADOG_OTLP_ENDPOINT"] == "http://datadog-agent.monitoring.svc.cluster.local:4317"
+    assert container["startupProbe"] == {
+        "httpGet": {"path": "/health", "port": "http"},
+        "periodSeconds": 6,
+        "timeoutSeconds": 3,
+        "failureThreshold": 25,
+    }
     assert container["readinessProbe"]["httpGet"] == {"path": "/health", "port": "http"}
     assert container["livenessProbe"]["httpGet"] == {"path": "/health", "port": "http"}
     assert set(container["resources"]) == {"requests", "limits"}

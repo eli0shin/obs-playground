@@ -12,6 +12,22 @@ Express always runs one replica with the `Recreate` strategy and mounts its PVC 
 
 Each ingress is disabled by default and can be configured independently under `workloads.<service>.ingress`. Browser-visible `NEXT_PUBLIC_*` and `VITE_*` settings are compiled into the frontend images and must be supplied when those images are built; Helm values configure the server runtimes.
 
+## Health probes
+
+All five workloads use `/health` for startup, readiness, and liveness checks. Kubernetes does not run readiness or liveness checks until the startup probe succeeds, preventing slower services from being restarted before they begin listening. Configure the shared startup-probe contract under `probes.startup`:
+
+```yaml
+probes:
+  startup:
+    path: /health
+    port: http
+    periodSeconds: 5
+    timeoutSeconds: 2
+    failureThreshold: 30
+```
+
+The startup window is `periodSeconds * failureThreshold`; the default allows 150 seconds. Keep `port` set to the named HTTP container port unless you also adapt the workload ports.
+
 ## Validation
 
 The representative test requires Helm, kubeconform, yq v4, and Python 3.
