@@ -114,6 +114,17 @@ for component in ["nextjs", "nextjs-custom", "tanstack"]:
     assert env["PUBLIC_EXPRESS_BASE_URL"] == "https://express.example.test"
 
 long_objects = [json.loads(line) for line in Path(sys.argv[2]).read_text().splitlines()]
+long_deployments = [obj for obj in long_objects if obj["kind"] == "Deployment"]
+assert len(long_deployments) == 5
+for deployment in long_deployments:
+    container = deployment["spec"]["template"]["spec"]["containers"][0]
+    assert container["startupProbe"] == {
+        "httpGet": {"path": "/health", "port": "http"},
+        "periodSeconds": 5,
+        "timeoutSeconds": 2,
+        "failureThreshold": 30,
+    }
+
 for kind in ["Deployment", "Service"]:
     names = [obj["metadata"]["name"] for obj in long_objects if obj["kind"] == kind]
     assert len(names) == len(set(names)) == 5
