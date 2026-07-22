@@ -212,19 +212,19 @@ router.post("/meal-plan/generate", async (req: Request, res: Response) => {
   const viableBeforeBudget = candidates.filter((candidate) => candidate.rejectionReasons.length === 0);
   const selectedRecipes: CandidateRecipe[] = [];
   let estimatedCostUsd = 0;
+  let budgetBlockedCount = 0;
 
   for (const candidate of viableBeforeBudget.sort((a, b) => a.cost - b.cost)) {
     if (selectedRecipes.length >= input.mealCount) break;
     if (estimatedCostUsd + candidate.cost <= input.budgetMaxUsd) {
       selectedRecipes.push(candidate);
       estimatedCostUsd += candidate.cost;
+    } else {
+      budgetBlockedCount += 1;
     }
   }
 
   const outcome = selectedRecipes.length >= input.mealCount ? "success" : "no_plan";
-  const budgetBlockedCount = viableBeforeBudget.filter(
-    (candidate) => estimatedCostUsd + candidate.cost > input.budgetMaxUsd,
-  ).length;
   const failureReason =
     outcome === "success"
       ? "none"
