@@ -1,4 +1,9 @@
-import { test, expect, type Page } from "@playwright/test";
+import {
+  test,
+  expect,
+  type APIRequestContext,
+  type Page,
+} from "@playwright/test";
 
 type MealPlanScenario = {
   name: string;
@@ -64,6 +69,52 @@ async function expectOutcome(page: Page, scenario: MealPlanScenario) {
   if (scenario.expectedReason) {
     await expect(page.getByText(scenario.expectedReason)).toBeVisible();
   }
+}
+
+type MealPlanApiResponse = {
+  plan: {
+    recipes: { title: string; cost: number; calories: number }[];
+  };
+  diagnostics: {
+    rejectedRecipeCount: number;
+  };
+};
+
+const expressBaseUrl =
+  process.env.EXPRESS_BASE_URL ?? "https://api.obs-playground.localhost";
+
+function assertMealPlanApiResponse(
+  value: unknown,
+): asserts value is MealPlanApiResponse {
+  expect(value).toMatchObject({
+    plan: { recipes: expect.any(Array) },
+    diagnostics: { rejectedRecipeCount: expect.any(Number) },
+  });
+}
+
+async function requestMealPlan(
+  request: APIRequestContext,
+  overrides: Record<string, unknown> = {},
+  expectedStatus = 200,
+) {
+  const response = await request.post(`${expressBaseUrl}/meal-plan/generate`, {
+    data: {
+      customerSegment: "busy_professional",
+      fulfillmentRegion: "west",
+      diet: "omnivore",
+      allergens: [],
+      preferences: ["quick"],
+      budgetMaxUsd: 100,
+      servings: 4,
+      mealCount: 1,
+      failureScenario: "none",
+      ...overrides,
+    },
+  });
+  expect(response.status()).toBe(expectedStatus);
+  const result: unknown = await response.json();
+  assertMealPlanApiResponse(result);
+  return result;
 }
 
 const scenarios: MealPlanScenario[] = [
@@ -202,5 +253,54 @@ test.describe("meal plan customer scenarios", () => {
       await expectOutcome(page, scenario);
     });
   }
+});
 
+test.describe("meal plan API calculations", () => {
+  test("scales recipe cost and calories to requested servings", async ({
+    request,
+  }) => {
+    const fourServingPlan = await requestMealPlan(
+      request,
+      {
+        allergens: ["egg"],
+        budgetMaxUsd: 1000000000,
+        mealCount: 1000,
+        servings: 4,
+      },
+      422,
+    );
+    const eightServingPlan = await requestMealPlan(
+      request,
+      {
+        allergens: ["egg"],
+        budgetMaxUsd: 1000000000,
+        mealCount: 1000,
+        servings: 8,
+      },
+      422,
+    );
+    const fourServingRecipe = fourServingPlan.plan.recipes.find(
+      (recipe) => recipe.title === "Garlic Butter Chicken",
+    );
+    const eightServingRecipe = eightServingPlan.plan.recipes.find(
+      (recipe) => recipe.title === "Garlic Butter Chicken",
+    );
+
+    expect(fourServingRecipe).toBeDefined();
+    expect(eightServingRecipe).toBeDefined();
+    if (!fourServingRecipe || !eightServingRecipe) {
+      throw new Error("Expected Garlic Butter Chicken in both meal plans");
+    }
+    expect(eightServingRecipe.title).toBe(fourServingRecipe.title);
+    expect(eightServingRecipe.cost).toBeCloseTo(fourServingRecipe.cost * 2);
+    expect(eightServingRecipe.calories).toBeCloseTo(
+      fourServingRecipe.calories * 2,
+    );
+  });
+
+  test("does not count unused viable recipes as rejected", async ({ request }) => {
+    const result = await requestMealPlan(request);
+
+    expect(result.diagnostics.rejectedRecipeCount).toBe(0);
+  });
 });

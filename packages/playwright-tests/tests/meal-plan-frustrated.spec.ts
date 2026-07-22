@@ -28,7 +28,14 @@ async function submitFailedAttempt(page: Page, attempt: number) {
   await expect(page.locator('select[name="failureScenario"]')).toHaveValue(
     "vegetarian_produce_shortage_northeast",
   );
-  await page.getByRole("button", { name: "Generate meal plan" }).click();
+  await Promise.all([
+    page.waitForResponse(
+      (response) =>
+        response.request().method() === "POST" &&
+        new URL(response.url()).pathname === "/meal-planner",
+    ),
+    page.getByRole("button", { name: "Generate meal plan" }).click(),
+  ]);
 
   await expect(
     page.getByRole("heading", {

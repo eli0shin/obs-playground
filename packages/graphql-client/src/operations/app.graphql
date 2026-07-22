@@ -114,6 +114,7 @@ query AllRecipesForAggregation {
   recipes {
     id
     title
+    servings
     ingredients {
       ingredient {
         id

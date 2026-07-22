@@ -188,15 +188,19 @@ router.post("/meal-plan/generate", async (req: Request, res: Response) => {
   const candidates: CandidateRecipe[] = allRecipes.map((recipe) => {
     const ingredientNames = recipe.ingredients.map(({ ingredient }) => ingredient.name);
     const ingredientIds = recipe.ingredients.map(({ ingredient }) => ingredient.id);
-    const cost = recipe.ingredients.reduce(
-      (sum, { ingredient, quantity }) => sum + (ingredientPrices[ingredient.id] ?? 0) * quantity,
-      0,
-    );
-    const calories = recipe.ingredients.reduce(
-      (sum, { ingredient, quantity }) =>
-        sum + (ingredientTags.get(ingredient.id)?.calories ?? 0) * quantity,
-      0,
-    );
+    const servingScale = input.servings / recipe.servings;
+    const cost =
+      recipe.ingredients.reduce(
+        (sum, { ingredient, quantity }) =>
+          sum + (ingredientPrices[ingredient.id] ?? 0) * quantity,
+        0,
+      ) * servingScale;
+    const calories =
+      recipe.ingredients.reduce(
+        (sum, { ingredient, quantity }) =>
+          sum + (ingredientTags.get(ingredient.id)?.calories ?? 0) * quantity,
+        0,
+      ) * servingScale;
     const rejectionReasons: string[] = [];
 
     if (input.diet === "vegetarian" && ingredientIds.includes("6")) {
@@ -259,7 +263,10 @@ router.post("/meal-plan/generate", async (req: Request, res: Response) => {
             ? "allergen_conflict"
             : "no_valid_recipe_combination";
   const estimatedCalories = selectedRecipes.reduce((sum, recipe) => sum + recipe.calories, 0);
-  const rejectedRecipeCount = candidates.length - selectedRecipes.length;
+  const constraintRejectedCount = candidates.filter(
+    (candidate) => candidate.rejectionReasons.length > 0,
+  ).length;
+  const rejectedRecipeCount = constraintRejectedCount + budgetBlockedCount;
 
   activeSpan?.setAttributes({
     "app.planning.outcome": outcome,
