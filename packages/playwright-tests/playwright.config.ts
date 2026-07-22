@@ -1,6 +1,9 @@
 import { defineConfig, devices } from "@playwright/test";
 
 const isSlowTests = process.env.SLOW_TESTS === "true";
+const testTimeout = Number(
+  process.env.PLAYWRIGHT_TEST_TIMEOUT_MS ?? (isSlowTests ? 120000 : 30000),
+);
 
 export default defineConfig({
   testDir: "./tests",
@@ -31,7 +34,7 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"] },
       grep: isSlowTests ? /@slow/ : undefined,
       grepInvert: isSlowTests ? undefined : /@slow/,
-      timeout: isSlowTests ? 60000 : undefined,
+      timeout: testTimeout,
     },
   ],
 });

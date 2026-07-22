@@ -9,6 +9,11 @@ const graphqlSchema = "./apps/graphql-server/src/schema/schema.graphql";
 export default [
   ...forAi.configs.recommended,
   {
+    rules: {
+      "@typescript-eslint/consistent-type-definitions": ["error", "type"],
+    },
+  },
+  {
     files: ["**/otel.ts", "**/server.ts"],
     rules: {
       "no-console": "off",
