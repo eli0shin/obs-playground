@@ -10,16 +10,39 @@ import { logger } from "../otel";
 
 const router = Router();
 
+const normalizedTokenSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .transform((value) => value.toLowerCase());
+
 const mealPlanGenerateSchema = z.object({
-  customerSegment: z.string().min(1),
-  fulfillmentRegion: z.string().min(1),
-  diet: z.string().min(1),
-  allergens: z.array(z.string()).default([]),
-  preferences: z.array(z.string()).default([]),
+  customerSegment: normalizedTokenSchema.pipe(
+    z.enum([
+      "budget_family",
+      "vegetarian",
+      "fitness_focused",
+      "busy_professional",
+    ]),
+  ),
+  fulfillmentRegion: normalizedTokenSchema.pipe(
+    z.enum(["northeast", "midwest", "south", "west"]),
+  ),
+  diet: normalizedTokenSchema.pipe(z.enum(["vegetarian", "omnivore"])),
+  allergens: z
+    .array(normalizedTokenSchema.pipe(z.enum(["egg", "gluten", "dairy"])))
+    .default([]),
+  preferences: z
+    .array(
+      normalizedTokenSchema.pipe(z.enum(["quick", "high_protein", "variety"])),
+    )
+    .default([]),
   budgetMaxUsd: z.number().positive(),
   servings: z.number().int().positive(),
   mealCount: z.number().int().positive(),
-  failureScenario: z.string().default("none"),
+  failureScenario: normalizedTokenSchema
+    .pipe(z.enum(["none", "vegetarian_produce_shortage_northeast"]))
+    .default("none"),
 });
 
 type CandidateRecipe = {
