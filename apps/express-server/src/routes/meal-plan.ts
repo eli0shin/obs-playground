@@ -191,9 +191,8 @@ router.post("/meal-plan/generate", async (req: Request, res: Response) => {
       rejectionReasons.push("allergen_conflict");
     }
 
-    const hasInventoryIssue = recipe.ingredients.some(({ ingredient }) =>
-      Boolean(injectedInventoryIssue && ["8", "9", "10"].includes(ingredient.id)),
-    );
+    const hasInventoryIssue =
+      injectedInventoryIssue && !ingredientIds.includes("6");
 
     if (hasInventoryIssue) {
       rejectionReasons.push("inventory_unavailable");
