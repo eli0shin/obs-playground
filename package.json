@@ -36,7 +36,7 @@
     "smoke:nextjs-containers": "bash scripts/smoke-nextjs-containers.sh",
     "smoke:tanstack-container": "bash deploy/docker/tanstack/smoke-test.sh",
     "playwright:meal-plan": "eval \"$(node scripts/portless-env.mjs shell)\" && BASE_URL=${BASE_URL} npm run test -w @obs-playground/playwright-tests -- meal-plan-scenarios.spec.ts",
-    "playwright:meal-plan:frustrated": "eval \"$(node scripts/portless-env.mjs shell)\" && BASE_URL=${BASE_URL} npm run test -w @obs-playground/playwright-tests -- meal-plan-frustrated.spec.ts",
+    "playwright:meal-plan:frustrated": "eval \"$(node scripts/portless-env.mjs shell)\" && BASE_URL=${BASE_URL} SLOW_TESTS=true npm run test -w @obs-playground/playwright-tests -- meal-plan-frustrated.spec.ts",
     "playwright:meal-plan:heavy": "PLAYWRIGHT_TEST_TIMEOUT_MS=120000 node scripts/playwright-meal-plan-heavy.mts",
     "playwright:meal-plan:frustrated:heavy": "PLAYWRIGHT_TEST_TIMEOUT_MS=120000 node scripts/playwright-meal-plan-frustrated-heavy.mts",
     "playwright:repeat": "PLAYWRIGHT_TEST_TIMEOUT_MS=120000 npm run test:repeat -w @obs-playground/playwright-tests"

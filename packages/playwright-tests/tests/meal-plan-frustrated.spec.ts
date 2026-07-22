@@ -46,7 +46,7 @@ test.describe("frustrated meal planner customer", () => {
     process.env.PLAYWRIGHT_APP === "tanstack",
     "Constraint-based meal planning is only available in the Next.js app",
   );
-  test("vegetarian northeast user retries 15 times during produce shortage", async (
+  test("vegetarian northeast user retries 15 times during produce shortage @slow", async (
     { page },
     testInfo,
   ) => {
